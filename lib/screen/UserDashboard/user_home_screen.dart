@@ -1,26 +1,18 @@
 import 'package:flutter/material.dart';
+import '../UserLogin/user_bottom_nav_bar.dart';// Import the updated BottomNavigationBar widget
 import 'package:march24/screen/UserDashboard/view_all_pets.dart';
 import 'package:march24/screen/UserDashboard/view_all_shelter.dart';
 
-void main() {
-  runApp(UserDashboard());
-}
+class UserHomeScreen extends StatelessWidget {
+  final int adopterId;
 
-class UserDashboard extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: UserHomePage(),
-    );
-  }
-}
+  const UserHomeScreen({Key? key, required this.adopterId}) : super(key: key);
 
-class UserHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+
         title: Text('PetHub', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         actions: [
@@ -28,19 +20,25 @@ class UserHomePage extends StatelessWidget {
           IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
         ],
       ),
+
+      bottomNavigationBar: UserBottomNavBar(
+        adopterId: adopterId,
+        currentIndex: 0, // Set the active tab to "Home"
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildBanner(),
-            _buildSectionTitle(context, "Pets", ViewAllPets()),
+            _buildSectionTitle(context, 'Pets', PetApp()),
             _buildPetsList(context),
-            _buildSectionTitle(context, "Pet Shelters", ViewAllShelter()),
-            _buildSheltersList(),
+            _buildSectionTitle(context, 'Pet Shelters', ShelterScreen()),
+            _buildSheltersList()
           ],
+
         ),
+
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -66,6 +64,10 @@ class UserHomePage extends StatelessWidget {
                 Text('See how you can find friends who are a match for you'),
               ],
             ),
+          ),
+          Text(
+            'Welcome, Adopter ID: $adopterId',
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           CircleAvatar(
             radius: 30,
@@ -167,18 +169,6 @@ class UserHomePage extends StatelessWidget {
         trailing: Icon(Icons.arrow_forward_ios, size: 16),
         onTap: () {},
       ),
-    );
-  }
-
-  Widget _buildBottomNavigationBar() {
-    return BottomNavigationBar(
-      selectedItemColor: Colors.orange,
-      unselectedItemColor: Colors.grey,
-      items: [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-        BottomNavigationBarItem(icon: Icon(Icons.pets), label: "Pet Shelter"),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
-      ],
     );
   }
 }

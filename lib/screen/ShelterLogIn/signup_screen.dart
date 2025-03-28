@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'signin_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
 }
@@ -46,7 +48,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       isLoading = true;
     });
 
-    final url = Uri.parse('http://localhost:8080/register');
+    final url = Uri.parse('http://127.0.0.1:5566/shelter/register');
     final response = await http.post(
       url,
       headers: {"Content-Type": "application/json"},

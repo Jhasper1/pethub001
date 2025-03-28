@@ -1,68 +1,194 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:march24/screen/UserDashboard/user_dashboard.dart';
-import '../home_screen.dart';
+import 'package:http/http.dart' as http;
+import '../UserDashboard/user_home_screen.dart';
+import 'user_signup.dart';
 
 class UserSignInScreen extends StatefulWidget {
+  const UserSignInScreen({super.key});
+
   @override
   _UserSignInScreenState createState() => _UserSignInScreenState();
 }
 
 class _UserSignInScreenState extends State<UserSignInScreen> {
-  final TextEditingController usernameController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  bool isButtonEnabled = false;
-  bool isChecked = false;
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  void checkFields() {
+
+  Future<void> _login() async {
     setState(() {
-      isButtonEnabled = usernameController.text.isNotEmpty && passwordController.text.isNotEmpty && isChecked;
+      _isLoading = true;
+      _errorMessage = null;
     });
+
+    final url = Uri.parse('http://127.0.0.1:5566/user/login');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "username": _usernameController.text.trim(),
+          "password": _passwordController.text.trim(),
+        }),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final data = responseData['data'];
+        if (data != null && data['adopter_id'] != null) {
+          final int adopterId = data['adopter_id'];
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => UserHomeScreen(adopterId: adopterId)),
+          );
+        } else {
+          setState(() => _errorMessage = "Invalid username or password");
+        }
+      } else {
+        setState(() => _errorMessage = responseData['message'] ?? "Login failed. Please try again.");
+      }
+    } catch (e) {
+      setState(() => _errorMessage = "Server error. Please try again later.");
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    usernameController.addListener(checkFields);
-    passwordController.addListener(checkFields);
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Image.asset('assets/images/logo.png', width: 35),
-        leading: BackButton(color: Colors.black),
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
       body: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Sign in', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            SizedBox(height: 20),
-            TextField(controller: usernameController, decoration: InputDecoration(labelText: 'Username')),
-            TextField(controller: passwordController, decoration: InputDecoration(labelText: 'Password'), obscureText: true),
-            SizedBox(height: 10),
+            const SizedBox(height: 60),
             Row(
               children: [
-                Checkbox(
-                  value: isChecked,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      isChecked = value!;
-                      checkFields();
-                    });
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () {
+                    Navigator.pop(context);
                   },
                 ),
-                Text('Remember me')
               ],
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, minimumSize: Size(double.infinity, 50)),
-              onPressed: isButtonEnabled ? () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => UserDashboard())) : null,
-              child: Text('Sign in', style: TextStyle(color: Colors.white)),
+            const SizedBox(height: 20),
+            Center(
+              child: Column(
+                children: [
+                  Image.asset('assets/images/logo.png', width: 150),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Sign in as Adopter Account',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 40),
+            const Text(
+              'Username',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            TextField(
+              controller: _usernameController,
+              decoration: InputDecoration(
+                hintText: 'username',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Password',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            TextField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: InputDecoration(
+                hintText: 'password',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                filled: true,
+                fillColor: Colors.grey[200],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Checkbox(value: false, onChanged: (bool? value) {}),
+                    const Text('Remember me'),
+                  ],
+                ),
+                TextButton(
+                  onPressed: () {},
+                  child: const Text(
+                    'Forgot password',
+                    style: TextStyle(color: Colors.orange),
+                  ),
+                ),
+              ],
+            ),
+            Center(
+              child: Column(
+                children: [
+                  if (_errorMessage != null)
+                    Text(
+                      _errorMessage!,
+                      style: TextStyle(color: Colors.red, fontSize: 14),
+                    ),
+                  const SizedBox(height: 10),
+                  _isLoading
+                      ? CircularProgressIndicator()
+                      : ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 50,
+                        vertical: 15,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    onPressed: () async {
+                      await _login(); // Perform login
+                    },
+                    child: const Text(
+                      'Sign in',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const UserSignUpScreen()),
+                      );
+                    },
+                    child: const Text(
+                      "Doesn't have an account? Sign up",
+                      style: TextStyle(color: Colors.orange),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

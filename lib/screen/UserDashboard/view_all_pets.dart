@@ -1,29 +1,30 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'pet_clicked.dart'; // Import the pet details screen
 
 void main() {
-  runApp(ViewAllPets());
+  runApp(PetApp());
 }
 
-class ViewAllPets extends StatelessWidget {
+class PetApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SearchResultsPage(),
+      home: PetsScreen(),
     );
   }
 }
 
-class SearchResultsPage extends StatefulWidget {
+class PetsScreen extends StatefulWidget {
   @override
-  _SearchResultsPageState createState() => _SearchResultsPageState();
+  _PetsScreenState createState() => _PetsScreenState();
 }
 
-class _SearchResultsPageState extends State<SearchResultsPage> {
-  String selectedCategory = "Cats";  // Default category
-  List<dynamic> pets = [];
+class _PetsScreenState extends State<PetsScreen> {
+  String selectedCategory = 'All'; // Default category
+  List pets = [];
 
   @override
   void initState() {
@@ -32,16 +33,20 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
   }
 
   Future<void> fetchPets() async {
-    try {
-      final response = await http.get(Uri.parse('http://localhost:8080/pets'));
+    final url = Uri.parse("http://127.0.0.1:5566/users/petinfo"); // Replace with actual API URL
 
+    try {
+      final response = await http.get(url);
       if (response.statusCode == 200) {
-        List<dynamic> data = json.decode(response.body);
+        List allPets = json.decode(response.body);
         setState(() {
-          pets = data;
+          pets = selectedCategory == "All"
+              ? allPets
+              : allPets.where((pet) =>
+          pet["pet_type"]?.toLowerCase() == selectedCategory.toLowerCase()).toList();
         });
       } else {
-        print("Failed to load pets. Status Code: ${response.statusCode}");
+        print("Failed to load pets. Status: ${response.statusCode}");
       }
     } catch (e) {
       print("Error fetching pets: $e");
@@ -50,109 +55,71 @@ class _SearchResultsPageState extends State<SearchResultsPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<dynamic> filteredPets =
-    pets.where((pet) => pet['category'] == selectedCategory).toList();
-
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              print("No previous page found!");
-            }
-          },
-        ),
-        title: Text('Pets', style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text("Pets"), centerTitle: true),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildCategoryFilters(),
-          Expanded(child: _buildPetList(filteredPets)),
+          // Category Buttons
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                categoryButton("All", "All"),
+                SizedBox(width: 10),
+                categoryButton("Dogs", "Dog"),
+                SizedBox(width: 10),
+                categoryButton("Cats", "Cat"),
+              ],
+            ),
+          ),
+
+          // Pet List
+          Expanded(
+            child: pets.isEmpty
+                ? Center(child: Text("No pets found in this category"))
+                : ListView.builder(
+              itemCount: pets.length,
+              itemBuilder: (context, index) {
+                final pet = pets[index];
+                return ListTile(
+                  title: Text(pet["pet_name"], style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: Text("Age: ${pet["pet_age"]}  |  Sex: ${pet["pet_sex"]}"),
+                  leading: Icon(Icons.pets, color: Colors.orange),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    // Navigate to PetDetailsScreen with pet_id only
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PetDetailsScreen(petId: pet["pet_id"]),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryFilters() {
-    return Padding(
-      padding: EdgeInsets.all(16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildFilterButton("Dogs"),
-          _buildFilterButton("Cats"),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterButton(String category) {
-    bool isSelected = selectedCategory == category;
-    return ElevatedButton(
+  Widget categoryButton(String label, String type) {
+    bool isSelected = selectedCategory == type;
+    return ElevatedButton.icon(
       onPressed: () {
         setState(() {
-          selectedCategory = category;
+          selectedCategory = type;
         });
+        fetchPets();
       },
+      icon: Icon(Icons.pets, color: isSelected ? Colors.white : Colors.black),
+      label: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
       style: ElevatedButton.styleFrom(
         backgroundColor: isSelected ? Colors.orange : Colors.white,
-        foregroundColor: isSelected ? Colors.white : Colors.black,
+        foregroundColor: Colors.black,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.pets, size: 16, color: isSelected ? Colors.white : Colors.black),
-          SizedBox(width: 5),
-          Text(category),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPetList(List<dynamic> pets) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
-      child: pets.isEmpty
-          ? Center(child: Text("No pets found in this category"))
-          : ListView.builder(
-        itemCount: pets.length,
-        itemBuilder: (context, index) {
-          return _buildPetCard(pets[index]);
-        },
-      ),
-    );
-  }
-
-  Widget _buildPetCard(dynamic pet) {
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              pet["name"] ?? "Unknown Name",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-            SizedBox(height: 4),
-            Text(
-              "${pet["breed"] ?? "Unknown Breed"} • ${pet["distance"] ?? "N/A"} km away",
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-            ),
-            SizedBox(height: 4),
-            Text(
-              "Category: ${pet["category"] ?? "Uncategorized"}",
-              style: TextStyle(color: Colors.grey.shade800, fontSize: 14),
-            ),
-          ],
-        ),
       ),
     );
   }

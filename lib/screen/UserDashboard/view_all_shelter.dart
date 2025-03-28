@@ -2,13 +2,29 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-class ViewAllShelter extends StatefulWidget {
-  @override
-  _ViewAllShelterState createState() => _ViewAllShelterState();
+void main() {
+  runApp(ShelterApp());
 }
 
-class _ViewAllShelterState extends State<ViewAllShelter> {
+class ShelterApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: ShelterScreen(),
+    );
+  }
+}
+
+class ShelterScreen extends StatefulWidget {
+  @override
+  _ShelterScreenState createState() => _ShelterScreenState();
+}
+
+class _ShelterScreenState extends State<ShelterScreen> {
   List shelters = [];
+  bool isLoading = true;
+  String errorMessage = '';
 
   @override
   void initState() {
@@ -17,62 +33,56 @@ class _ViewAllShelterState extends State<ViewAllShelter> {
   }
 
   Future<void> fetchShelters() async {
-    final response = await http.get(Uri.parse('http://localhost:8080/shelters'));
+    final url = Uri.parse("http://127.0.0.1:5566/allshelter"); // Update with your actual API URL
 
-    if (response.statusCode == 200) {
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data is List) {
+          setState(() {
+            shelters = data;
+            isLoading = false;
+          });
+        } else if (data is Map && data.containsKey("shelters")) {
+          setState(() {
+            shelters = data["shelters"];
+            isLoading = false;
+          });
+        } else {
+          throw Exception("Unexpected JSON format");
+        }
+      } else {
+        throw Exception("Failed to load shelters. Status: ${response.statusCode}");
+      }
+    } catch (e) {
       setState(() {
-        shelters = json.decode(response.body);
+        errorMessage = "Error fetching shelters: $e";
+        isLoading = false;
       });
-    } else {
-      throw Exception('Failed to load shelters');
+      print(errorMessage);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Pet Shelters", style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.grey[300],
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      backgroundColor: Colors.grey[300],
-      body: ListView.builder(
-        padding: EdgeInsets.all(10),
+      appBar: AppBar(title: Text("Shelters"), centerTitle: true),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator()) // Show loading indicator
+          : errorMessage.isNotEmpty
+          ? Center(child: Text(errorMessage, style: TextStyle(color: Colors.red)))
+          : ListView.builder(
         itemCount: shelters.length,
         itemBuilder: (context, index) {
           final shelter = shelters[index];
-          return Container(
-            margin: EdgeInsets.symmetric(vertical: 8),
-            padding: EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(color: Colors.black12, blurRadius: 4),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  shelter['name'],
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 5),
-                Text(
-                  shelter['address'],
-                  style: TextStyle(fontSize: 16, color: Colors.black87),
-                ),
-                SizedBox(height: 5),
-                Text(
-                  "Contact: ${shelter['phone']}",
-                  style: TextStyle(fontSize: 16, color: Colors.black87),
-                ),
-              ],
+          return Card(
+            child: ListTile(
+              title: Text(shelter["shelter_name"], style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text(shelter["shelter_address"]),
+              leading: Icon(Icons.home, color: Colors.orange),
             ),
           );
         },

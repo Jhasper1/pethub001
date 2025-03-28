@@ -3,6 +3,8 @@ import 'user_signup.dart';
 import 'user_signin.dart';
 
 class UserStartScreen extends StatelessWidget {
+  const UserStartScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
