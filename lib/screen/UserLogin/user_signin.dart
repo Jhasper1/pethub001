@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:march24/screen/UserDashboard/user_dashboard.dart';
 import '../home_screen.dart';
 
 class UserSignInScreen extends StatefulWidget {
@@ -60,7 +61,7 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, minimumSize: Size(double.infinity, 50)),
-              onPressed: isButtonEnabled ? () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen())) : null,
+              onPressed: isButtonEnabled ? () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => UserDashboard())) : null,
               child: Text('Sign in', style: TextStyle(color: Colors.white)),
             ),
           ],
