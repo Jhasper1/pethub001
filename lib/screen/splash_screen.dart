@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'start_screen.dart';
+import 'choose_user_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -16,7 +16,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Timer(Duration(seconds: 2), () {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => StartScreen()),
+        MaterialPageRoute(builder: (context) => ChooseUserScreen()),
       );
     });
   }

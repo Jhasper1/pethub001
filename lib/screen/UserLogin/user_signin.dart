@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
+import '../home_screen.dart';
 
-class SignInScreen extends StatefulWidget {
+class UserSignInScreen extends StatefulWidget {
   @override
-  _SignInScreenState createState() => _SignInScreenState();
+  _UserSignInScreenState createState() => _UserSignInScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _UserSignInScreenState extends State<UserSignInScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool isButtonEnabled = false;
@@ -29,7 +29,7 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("PetHub"),
+        title: Image.asset('assets/images/logo.png', width: 35),
         leading: BackButton(color: Colors.black),
         backgroundColor: Colors.white,
         elevation: 0,

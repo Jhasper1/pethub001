@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
-import 'signup_screen.dart';
-import 'signin_screen.dart';
+import 'user_signup.dart';
+import 'user_signin.dart';
 
-class StartScreen extends StatelessWidget {
+class UserStartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        leading: BackButton(color: Colors.black),
+        backgroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -16,7 +21,7 @@ class StartScreen extends StatelessWidget {
                 children: [
                   Image.asset('assets/images/logo.png', width: 150),
                   SizedBox(height: 10),
-                  Text('PetHub', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                  Text('PetHub User', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -27,13 +32,13 @@ class StartScreen extends StatelessWidget {
               children: [
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, minimumSize: Size(250, 50)),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SignUpScreen())),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => UserSignUpScreen())),
                   child: Text('Sign up', style: TextStyle(color: Colors.white)),
                 ),
                 SizedBox(height: 10),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.orange.shade100, minimumSize: Size(250, 50)),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SignInScreen())),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => UserSignInScreen())),
                   child: Text('Sign in', style: TextStyle(color: Colors.orange)),
                 ),
               ],

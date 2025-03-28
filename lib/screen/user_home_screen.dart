@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-class HomeScreen extends StatelessWidget {
+class UserHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,7 +20,7 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Center(
         child: Text(
-          'Welcome to the Shelter Home Screen!',
+          'Welcome to the User Home Screen!',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
       ),
