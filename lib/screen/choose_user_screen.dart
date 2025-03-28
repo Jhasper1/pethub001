@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'ShelterLogIn/start_screen.dart';
+import 'package:march24/screen/ShelterLogIn/signin_screen.dart';
 
 /// Import the new login screens
 import 'UserLogin/user_start_screen.dart';
 
 class ChooseUserScreen extends StatefulWidget {
+  const ChooseUserScreen({super.key});
+
   @override
   _ChooseUserScreenState createState() => _ChooseUserScreenState();
 }
@@ -45,7 +47,7 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => isAdopterSelected ? UserStartScreen() : StartScreen(),
+        builder: (_) => isAdopterSelected ? UserStartScreen() : SignInScreen(),
       ),
     );
   }
