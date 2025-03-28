@@ -3,11 +3,13 @@ import 'signup_screen.dart';
 import 'signin_screen.dart';
 
 class StartScreen extends StatelessWidget {
+  const StartScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(color: Colors.black),
+        leading: const BackButton(color: Colors.black),
         backgroundColor: Colors.white,
         elevation: 0,
       ),
@@ -20,8 +22,8 @@ class StartScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Image.asset('assets/images/logo.png', width: 150),
-                  SizedBox(height: 10),
-                  Text('PetHub', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  const Text('PetHub', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -31,15 +33,27 @@ class StartScreen extends StatelessWidget {
             child: Column(
               children: [
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange, minimumSize: Size(250, 50)),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SignUpScreen())),
-                  child: Text('Sign up', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange,
+                    minimumSize: const Size(250, 50),
+                  ),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                  ),
+                  child: const Text('Sign up', style: TextStyle(color: Colors.white)),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orange.shade100, minimumSize: Size(250, 50)),
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SignInScreen())),
-                  child: Text('Sign in', style: TextStyle(color: Colors.orange)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orange.shade100,
+                    minimumSize: const Size(250, 50),
+                  ),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SignInScreen()),
+                  ),
+                  child: const Text('Sign in', style: TextStyle(color: Colors.orange)),
                 ),
               ],
             ),

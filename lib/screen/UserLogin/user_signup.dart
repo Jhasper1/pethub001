@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'user_signin.dart';
 
 class UserSignUpScreen extends StatefulWidget {
+  const UserSignUpScreen({super.key});
+
   @override
   _UserSignUpScreenState createState() => _UserSignUpScreenState();
 }

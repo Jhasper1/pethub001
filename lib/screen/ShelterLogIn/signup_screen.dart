@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'signin_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
 }
