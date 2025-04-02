@@ -24,6 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> fetchShelterInfo() async {
     final String apiUrl = 'http://127.0.0.1:5566/shelter/${widget.shelterId}';
+    const String baseImageUrl = 'http://127.0.0.1:5566/images/shelter_media/';
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -38,6 +39,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ...?data['info'],  // Safely extract shelter info
               ...?data['media'], // Safely extract shelter media
             };
+
+            // Prepend the base URL to shelter_profile and shelter_cover
+            if (shelterInfo!['shelter_profile'] != null) {
+  shelterInfo!['shelter_profile'] = base64Decode(shelterInfo!['shelter_profile']);
+}
+
+if (shelterInfo!['shelter_cover'] != null) {
+  shelterInfo!['shelter_cover'] = base64Decode(shelterInfo!['shelter_cover']);
+}
+
+
             isLoading = false;
           });
         } else {
@@ -80,10 +92,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Container(
                   height: 150,
                   decoration: shelterInfo!['shelter_cover'] != null
-                      ? BoxDecoration(
-                          image: DecorationImage(image: NetworkImage(shelterInfo!['shelter_cover']), fit: BoxFit.cover),
-                        )
-                      : const BoxDecoration(color: Colors.orange),
+    ? BoxDecoration(
+        image: DecorationImage(image: MemoryImage(shelterInfo!['shelter_cover']), fit: BoxFit.cover),
+      )
+    : const BoxDecoration(color: Colors.orange),
+
                 ),
                 Align(
                   alignment: Alignment.center,
@@ -94,8 +107,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         radius: 50,
                         backgroundColor: Colors.white,
                         backgroundImage: shelterInfo!['shelter_profile'] != null
-                            ? NetworkImage(shelterInfo!['shelter_profile'])
-                            : const AssetImage('assets/images/logo.png') as ImageProvider,
+    ? MemoryImage(shelterInfo!['shelter_profile'])
+    : const AssetImage('assets/images/logo.png') as ImageProvider,
+
                       ),
                       const SizedBox(height: 10),
                       Text(

@@ -71,6 +71,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ...?data['info'],
               ...?data['media'],
             };
+
+            // Decode base64-encoded images
+            if (shelterInfo!['shelter_profile'] != null) {
+              profileImageBytes = base64Decode(shelterInfo!['shelter_profile']);
+            }
+
+            if (shelterInfo!['shelter_cover'] != null) {
+              coverImageBytes = base64Decode(shelterInfo!['shelter_cover']);
+            }
+
             profileImageController.text = shelterInfo!['shelter_profile'] ?? '';
             coverImageController.text = shelterInfo!['shelter_cover'] ?? '';
             ownerController.text = shelterInfo!['shelter_owner'] ?? '';
@@ -120,11 +130,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         "shelter_social": shelterInfo!['shelter_social'],
       };
 
-      final response = await http.put(
-        Uri.parse(apiUrl),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(updateData),
-      );
+      if (profileImageBytes != null) {
+  updateData['shelter_profile'] = base64Encode(profileImageBytes!);
+}
+
+if (coverImageBytes != null) {
+  updateData['shelter_cover'] = base64Encode(coverImageBytes!);
+}
+
+final response = await http.put(
+  Uri.parse(apiUrl),
+  headers: {"Content-Type": "application/json"},
+  body: jsonEncode(updateData),
+);
+
 
       if (response.statusCode == 200) {
         // Upload media files if they are changed
@@ -133,10 +152,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (profileImageFile != null) {
           final profileBytes = await profileImageFile!.readAsBytes();
           final profileExtension = profileImageFile!.path.split('.').last.toLowerCase();
+          final profileFileName = 'profile_${widget.shelterId}.$profileExtension'; // Include file format
           mediaRequest.files.add(http.MultipartFile.fromBytes(
             'shelter_profile',
             profileBytes,
-            filename: 'profile.$profileExtension',
+            filename: profileFileName,
             contentType: MediaType('image', profileExtension),
           ));
         }
@@ -144,10 +164,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         if (coverImageFile != null) {
           final coverBytes = await coverImageFile!.readAsBytes();
           final coverExtension = coverImageFile!.path.split('.').last.toLowerCase();
+          final coverFileName = 'cover_${widget.shelterId}.$coverExtension'; // Include file format
           mediaRequest.files.add(http.MultipartFile.fromBytes(
             'shelter_cover',
             coverBytes,
-            filename: 'cover.$coverExtension',
+            filename: coverFileName,
             contentType: MediaType('image', coverExtension),
           ));
         }
@@ -174,6 +195,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           );
           Navigator.pop(context, true); // Return true to indicate success
         } else {
+          final errorResponse = await mediaResponse.stream.bytesToString();
+          print('Media upload failed: $errorResponse'); // Log the server response
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text("Failed to upload media files")),
           );
@@ -185,6 +208,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         );
       }
     } catch (e) {
+      print('Error during updateShelterDetails: $e'); // Log the error
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("An error occurred: ${e.toString()}")),
       );
