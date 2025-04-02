@@ -17,11 +17,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
   final TextEditingController shelterNameController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController contactNumberController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController ownerNameController = TextEditingController();
+  final TextEditingController landmarkController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController socialMediaController = TextEditingController();
+  final TextEditingController profileController = TextEditingController();
+  final TextEditingController coverController = TextEditingController();
 
   String? selectedSex;
   String? selectedCivilStatus;
@@ -43,6 +49,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return null;
   }
 
+  String? validatePasswordMatch(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Confirm password is required";
+    } else if (value != passwordController.text) {
+      return "Passwords do not match";
+    }
+    return null;
+  }
+
   Future<void> registerUser() async {
     setState(() {
       isLoading = true;
@@ -56,12 +71,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         "username": usernameController.text,
         "password": passwordController.text,
         "shelter_name": shelterNameController.text,
-        "address": addressController.text,
-        "contact": contactNumberController.text,
-        "email": emailController.text,
-        "owner_name": ownerNameController.text,
-        "sex": selectedSex,
-        "civil_status": selectedCivilStatus,
+        "shelter_address": addressController.text,
+        "shelter_landmark": landmarkController.text,
+        "shelter_contact": contactNumberController.text,
+        "shelter_email": emailController.text,
+        "shelter_owner": ownerNameController.text,
+        "shelter_description": descriptionController.text,
+        "shelter_social": socialMediaController.text,
       }),
     );
 
@@ -71,78 +87,74 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     if (response.statusCode == 201) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("User registered successfully!")),
+        SnackBar(content: Text("Shelter registered successfully!")),
       );
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => SignInScreen()),
       );
     } else {
-      final errorMessage = jsonDecode(response.body)["error"] ?? "Registration failed";
+      final errorMessage = jsonDecode(response.body)["message"] ?? "Registration failed";
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(errorMessage)),
       );
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Image.asset('assets/images/logo.png', width: 35),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+  InputDecoration _inputDecoration(String hintText) {
+    return InputDecoration(
+      hintText: hintText,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
       ),
-      body: PageView(
-        controller: _pageController,
-        physics: NeverScrollableScrollPhysics(), // Prevent manual swipe
-        children: [
-          buildStep1(),
-          buildStep2(),
-        ],
-      ),
+      filled: true,
+      fillColor: Colors.grey[200],
+      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12), // Adjust height
     );
   }
 
-  // STEP 1: Username & Password
-  Widget buildStep1() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Form(
-        key: _formKeyStep1,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Create Account', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-            SizedBox(height: 20),
-            TextFormField(
-              controller: usernameController,
-              decoration: InputDecoration(labelText: "Username"),
-              validator: (value) => value!.isEmpty ? "Username is required" : null,
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
             ),
-            TextFormField(
-              controller: passwordController,
-              decoration: InputDecoration(labelText: "Password"),
-              obscureText: true,
-              validator: (value) => value!.isEmpty ? "Password is required" : null,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50),
-                backgroundColor: Colors.orange,
+            const SizedBox(height: 20),
+            Center(
+              child: Column(
+                children: [
+                  Image.asset('assets/images/logo.png', width: 150),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Sign up as Shelter Account',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
-              onPressed: () {
-                if (_formKeyStep1.currentState!.validate()) {
-                  _pageController.nextPage(
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              },
-              child: Text("Next", style: TextStyle(color: Colors.white)),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(), // Prevent manual swipe
+                children: [
+                  buildStep1(),
+                  buildStep2(),
+                ],
+              ),
             ),
           ],
         ),
@@ -150,94 +162,146 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  // STEP 2: Additional User Info
+  // STEP 1: Additional User Info
+  Widget buildStep1() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKeyStep1,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Shelter Name', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextFormField(
+                controller: shelterNameController,
+                decoration: _inputDecoration("Enter shelter name"),
+                validator: (value) => value!.isEmpty ? "Shelter name is required" : null,
+              ),
+              SizedBox(height: 10),
+              const Text('Address', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextFormField(
+                controller: addressController,
+                decoration: _inputDecoration("Enter address"),
+                validator: (value) => value!.isEmpty ? "Address is required" : null,
+              ),
+              SizedBox(height: 10),
+              const Text('Landmark', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextFormField(
+                controller: landmarkController,
+                decoration: _inputDecoration("Enter landmark"),
+                validator: (value) => value!.isEmpty ? "Landmark is required" : null,
+              ),
+              SizedBox(height: 10),
+              const Text('Contact Number', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextFormField(
+                controller: contactNumberController,
+                decoration: _inputDecoration("Enter contact number"),
+                keyboardType: TextInputType.phone,
+                validator: validatePhoneNumber,
+              ),
+              SizedBox(height: 10),
+              const Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextFormField(
+                controller: emailController,
+                decoration: _inputDecoration("Enter email"),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) => (value != null && !_isValidEmail(value)) ? "Must end with @gmail.com" : null,
+              ),
+              SizedBox(height: 10),
+              const Text('Owner\'s Name', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextFormField(
+                controller: ownerNameController,
+                decoration: _inputDecoration("Enter owner's name"),
+                validator: (value) => value!.isEmpty ? "Owner's name is required" : null,
+              ),
+              SizedBox(height: 10),
+              const Text('Description', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextFormField(
+                controller: descriptionController,
+                decoration: _inputDecoration("Enter description"),
+                maxLines: 3,
+                validator: (value) => value!.isEmpty ? "Description is required" : null,
+              ),
+              SizedBox(height: 10),
+              const Text('Social Media', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextFormField(
+                controller: socialMediaController,
+                decoration: _inputDecoration("Enter social media link"),
+                validator: (value) => value!.isEmpty ? "Social media link is required" : null,
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 50),
+                  backgroundColor: Colors.orange,
+                ),
+                onPressed: () {
+                  if (_formKeyStep1.currentState!.validate()) {
+                    _pageController.nextPage(
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                },
+                child: Text("Next", style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // STEP 2: Username & Password
   Widget buildStep2() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Form(
         key: _formKeyStep2,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Personal Information', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              SizedBox(height: 20),
-              TextFormField(
-                controller: shelterNameController,
-                decoration: InputDecoration(labelText: "Shelter Name"),
-                validator: (value) => value!.isEmpty ? "Shelter name is required" : null,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Create Account', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            SizedBox(height: 20),
+            const Text('Username', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextFormField(
+              controller: usernameController,
+              decoration: _inputDecoration("Enter username"),
+              validator: (value) => value!.isEmpty ? "Username is required" : null,
+            ),
+            SizedBox(height: 10),
+            const Text('Password', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextFormField(
+              controller: passwordController,
+              decoration: _inputDecoration("Enter password"),
+              obscureText: true,
+              validator: (value) => value!.isEmpty ? "Password is required" : null,
+            ),
+            SizedBox(height: 10),
+            const Text('Confirm Password', style: TextStyle(fontWeight: FontWeight.bold)),
+            TextFormField(
+              controller: confirmPasswordController,
+              decoration: _inputDecoration("Confirm password"),
+              obscureText: true,
+              validator: validatePasswordMatch,
+            ),
+            SizedBox(height: 20),
+            isLoading
+                ? Center(child: CircularProgressIndicator())
+                : ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                minimumSize: Size(double.infinity, 50),
+                backgroundColor: Colors.orange,
               ),
-              TextFormField(
-                controller: addressController,
-                decoration: InputDecoration(labelText: "Address"),
-                validator: (value) => value!.isEmpty ? "Address is required" : null,
-              ),
-              TextFormField(
-                controller: contactNumberController,
-                decoration: InputDecoration(labelText: "Contact Number"),
-                keyboardType: TextInputType.phone,
-                validator: validatePhoneNumber,
-              ),
-              TextFormField(
-                controller: emailController,
-                decoration: InputDecoration(labelText: "Email"),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) => (value != null && !_isValidEmail(value)) ? "Must end with @gmail.com" : null,
-              ),
-              TextFormField(
-                controller: ownerNameController,
-                decoration: InputDecoration(labelText: "Owner's Name"),
-                validator: (value) => value!.isEmpty ? "Owner's name is required" : null,
-              ),
-              DropdownButtonFormField<String>(
-                value: selectedSex,
-                decoration: InputDecoration(labelText: "Sex"),
-                items: sexOptions.map((String sex) {
-                  return DropdownMenuItem<String>(
-                    value: sex,
-                    child: Text(sex),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedSex = value;
-                  });
-                },
-                validator: (value) => value == null ? "Select a sex" : null,
-              ),
-              DropdownButtonFormField<String>(
-                value: selectedCivilStatus,
-                decoration: InputDecoration(labelText: "Civil Status"),
-                items: civilStatusOptions.map((String status) {
-                  return DropdownMenuItem<String>(
-                    value: status,
-                    child: Text(status),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedCivilStatus = value;
-                  });
-                },
-                validator: (value) => value == null ? "Select a civil status" : null,
-              ),
-              SizedBox(height: 20),
-              isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: Size(double.infinity, 50),
-                  backgroundColor: Colors.orange,
-                ),
-                onPressed: () async {
-                  if (_formKeyStep2.currentState!.validate()) {
-                    await registerUser();
-                  }
-                },
-                child: Text("Sign Up", style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
+              onPressed: () async {
+                if (_formKeyStep2.currentState!.validate()) {
+                  await registerUser();
+                }
+              },
+              child: Text("Sign Up", style: TextStyle(color: Colors.white)),
+            ),
+          ],
         ),
       ),
     );
