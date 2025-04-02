@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class PetDetailsScreen extends StatefulWidget {
-  final int petId; // Receive pet_id instead of whole pet object
+  final int petId;
 
   PetDetailsScreen({required this.petId});
 
@@ -12,8 +12,8 @@ class PetDetailsScreen extends StatefulWidget {
 }
 
 class _PetDetailsScreenState extends State<PetDetailsScreen> {
-  Map? petDetails; // Store fetched pet details
-  bool isLoading = true; // Show loading state
+  Map<String, dynamic>? petDetails;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -22,15 +22,24 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   }
 
   Future<void> fetchPetDetails() async {
-    final url = Uri.parse("http://127.0.0.1:5566/pets/${widget.petId}"); // Replace with actual API URL
+    final url = Uri.parse("http://127.0.0.1:5566/users/pets/${widget.petId}");
 
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
-        setState(() {
-          petDetails = json.decode(response.body);
-          isLoading = false;
-        });
+        final data = json.decode(response.body);
+
+        print("Raw API Response: $data"); // Debugging log
+
+        if (data is Map<String, dynamic> && data.containsKey("data") && data["data"].containsKey("info")) {
+          setState(() {
+            petDetails = data["data"]["info"]; // Extracts pet info correctly
+            isLoading = false;
+          });
+          print("Extracted Pet Details: $petDetails"); // Debugging log
+        } else {
+          print("Unexpected response format");
+        }
       } else {
         print("Failed to load pet details. Status: ${response.statusCode}");
       }
@@ -42,7 +51,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(petDetails?["pet_name"] ?? "Pet Details")),
+      appBar: AppBar(title: Text("Pet Details")),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : petDetails == null
@@ -58,34 +67,39 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
               width: double.infinity,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(15),
-                image: petDetails!["pet_image"] != null
+                image: petDetails?["pet_image"] != null
                     ? DecorationImage(
                   image: NetworkImage(petDetails!["pet_image"]),
                   fit: BoxFit.cover,
                 )
                     : DecorationImage(
-                  image: AssetImage("assets/images/logo.png"), // Placeholder
+                  image: AssetImage("assets/images/logo.png"),
                   fit: BoxFit.cover,
                 ),
               ),
             ),
-            // Pet Details
+            // Pet Details Below Image
             Padding(
               padding: EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Name: ${petDetails!["pet_name"]}",
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text("Name: ${petDetails?["pet_name"] ?? "Unknown"}",
+                      style: TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.bold)),
                   SizedBox(height: 10),
-                  Text("Age: ${petDetails!["pet_age"]}",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                  Text("Age: ${petDetails?["pet_age"] ?? "N/A"}",
+                      style: TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w500)),
                   SizedBox(height: 10),
-                  Text("Sex: ${petDetails!["pet_sex"]}",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                  Text("Sex: ${petDetails?["pet_sex"] ?? "Unknown"}",
+                      style: TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w500)),
                   SizedBox(height: 10),
-                  Text("Description: ${petDetails!["pet_description"]}",
-                      style: TextStyle(fontSize: 16, color: Colors.grey[700])),
+                  Text(
+                      "Description: ${petDetails?["pet_descriptions"] ?? "No description available"}",
+                      style: TextStyle(
+                          fontSize: 16, color: Colors.grey[700])),
                 ],
               ),
             ),
