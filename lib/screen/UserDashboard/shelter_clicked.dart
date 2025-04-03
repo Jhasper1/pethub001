@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'pet_clicked.dart'; // Import PetDetailsPage
 
 class ShelterDetailsPage extends StatefulWidget {
   final int shelterId;
@@ -29,13 +30,12 @@ class _ShelterDetailsPageState extends State<ShelterDetailsPage> {
     final petsUrl = Uri.parse("http://127.0.0.1:5566/shelter/${widget.shelterId}/pets");
 
     try {
-      // Fetch shelter details
       final shelterResponse = await http.get(shelterUrl);
       if (shelterResponse.statusCode == 200) {
         final shelterData = json.decode(shelterResponse.body);
         setState(() {
           shelterDetails = shelterData["data"]["info"];
-          shelterLoaded = true;  // Shelter details have been successfully loaded
+          shelterLoaded = true;
         });
       } else {
         setState(() {
@@ -45,16 +45,14 @@ class _ShelterDetailsPageState extends State<ShelterDetailsPage> {
         return;
       }
 
-      // Fetch pets associated with the shelter
       final petsResponse = await http.get(petsUrl);
       if (petsResponse.statusCode == 200) {
         final petsData = json.decode(petsResponse.body);
         setState(() {
-          pets = petsData["data"] ?? []; // Assign pets from the response
+          pets = petsData["data"] ?? [];
           isLoading = false;
         });
       } else if (petsResponse.statusCode == 404) {
-        // If no pets found, show a message
         setState(() {
           pets = [];
           isLoading = false;
@@ -71,6 +69,15 @@ class _ShelterDetailsPageState extends State<ShelterDetailsPage> {
         isLoading = false;
       });
     }
+  }
+
+  void _onPetClicked(int petId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PetDetailsScreen(petId: petId),
+      ),
+    );
   }
 
   @override
@@ -115,23 +122,8 @@ class _ShelterDetailsPageState extends State<ShelterDetailsPage> {
               ],
             ),
             SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {},
-                  child: Text("Pets"),
-                ),
-                ElevatedButton(
-                  onPressed: () {},
-                  child: Text("Adoption Policy"),
-                ),
-              ],
-            ),
-            SizedBox(height: 16),
             Text("Available Pets:", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
-            // Display a message when there are no pets
             pets.isEmpty
                 ? Center(child: Text("No pets available for adoption", style: TextStyle(color: Colors.grey)))
                 : Expanded(
@@ -144,29 +136,32 @@ class _ShelterDetailsPageState extends State<ShelterDetailsPage> {
                 itemCount: pets.length,
                 itemBuilder: (context, index) {
                   final pet = pets[index];
-                  return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.network(
-                            pet["pet_image"] ?? "assets/images/logo.png",
-                            height: 100,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
+                  return GestureDetector(
+                    onTap: () => _onPetClicked(pet["id"]),
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              pet["pet_image"] ?? "assets/images/logo.png",
+                              height: 100,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Text(
-                            pet["pet_name"] ?? "Unknown Pet",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Text(
+                              pet["pet_name"] ?? "Unknown Pet",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   );
                 },

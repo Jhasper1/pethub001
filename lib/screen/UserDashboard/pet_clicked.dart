@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'adopt_pet_screen.dart'; // Import the new adopt screen
 
 class PetDetailsScreen extends StatefulWidget {
   final int petId;
@@ -33,7 +34,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
 
         if (data is Map<String, dynamic> && data.containsKey("data") && data["data"].containsKey("info")) {
           setState(() {
-            petDetails = data["data"]["info"]; // Extracts pet info correctly
+            petDetails = data["data"]["info"];
             isLoading = false;
           });
           print("Extracted Pet Details: $petDetails"); // Debugging log
@@ -45,6 +46,17 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       }
     } catch (e) {
       print("Error fetching pet details: $e");
+    }
+  }
+
+  void _onAdoptPressed() {
+    if (petDetails != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AdoptPetScreen(petId: widget.petId, petName: petDetails!["pet_name"] ?? "Unknown"),
+        ),
+      );
     }
   }
 
@@ -85,21 +97,34 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("Name: ${petDetails?["pet_name"] ?? "Unknown"}",
-                      style: TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold)),
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                   SizedBox(height: 10),
                   Text("Age: ${petDetails?["pet_age"] ?? "N/A"}",
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w500)),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
                   SizedBox(height: 10),
                   Text("Sex: ${petDetails?["pet_sex"] ?? "Unknown"}",
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.w500)),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
                   SizedBox(height: 10),
-                  Text(
-                      "Description: ${petDetails?["pet_descriptions"] ?? "No description available"}",
-                      style: TextStyle(
-                          fontSize: 16, color: Colors.grey[700])),
+                  Text("Description: ${petDetails?["pet_descriptions"] ?? "No description available"}",
+                      style: TextStyle(fontSize: 16, color: Colors.grey[700])),
+                  SizedBox(height: 20),
+                  // Adopt Button
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: _onAdoptPressed,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        "Adopt",
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

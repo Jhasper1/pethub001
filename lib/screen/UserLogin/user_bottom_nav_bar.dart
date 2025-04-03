@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:march24/screen/ShelterLogIn/home_screen.dart';
 import 'user_profile_screen.dart'; // Import ProfileScreen
+import 'package:march24/screen/UserDashboard/user_home_screen.dart';
 
 class UserBottomNavBar extends StatelessWidget {
   final int adopterId; // Add shelterId as a parameter
@@ -23,7 +23,7 @@ class UserBottomNavBar extends StatelessWidget {
             Navigator.pushReplacement(
               context,
               PageRouteBuilder(
-                pageBuilder: (context, animation1, animation2) => HomeScreen(shelterId: adopterId),
+                pageBuilder: (context, animation1, animation2) => UserHomeScreen(adopterId: adopterId),
                 transitionDuration: Duration.zero, // Remove animation
               ),
             );

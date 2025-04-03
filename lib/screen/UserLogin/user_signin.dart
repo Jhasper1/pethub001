@@ -17,7 +17,6 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
   bool _isLoading = false;
   String? _errorMessage;
 
-
   Future<void> _login() async {
     setState(() {
       _isLoading = true;
@@ -36,29 +35,41 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
         }),
       );
 
+      // Debugging logs
+      print("🔵 Request URL: $url");
+      print("🟢 Request Headers: ${response.request?.headers}");
+      print("🟡 Request Body: ${jsonEncode({
+        "username": _usernameController.text.trim(),
+        "password": _passwordController.text.trim(),
+      })}");
+      print("🔴 Response Code: ${response.statusCode}");
+      print("🟠 Response Body: ${response.body}");
+
       final responseData = jsonDecode(response.body);
 
-      if (response.statusCode == 200) {
-        final data = responseData['data'];
-        if (data != null && data['adopter_id'] != null) {
-          final int adopterId = data['adopter_id'];
+      if (response.statusCode == 200 && responseData['data'] != null) {
+        final adopterData = responseData['data']['adopter'];
+
+        if (adopterData != null && adopterData.containsKey('adopter_id')) {
+          final int adopterId = adopterData['adopter_id'];
+
+          // Navigate to UserHomeScreen with adopterId
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => UserHomeScreen(adopterId: adopterId)),
           );
-        } else {
-          setState(() => _errorMessage = "Invalid username or password");
+          return;
         }
-      } else {
-        setState(() => _errorMessage = responseData['message'] ?? "Login failed. Please try again.");
       }
+
+      setState(() => _errorMessage = responseData['message'] ?? "Invalid username or password");
     } catch (e) {
       setState(() => _errorMessage = "Server error. Please try again later.");
+      print("Error: $e");
     } finally {
       setState(() => _isLoading = false);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +111,7 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
             TextField(
               controller: _usernameController,
               decoration: InputDecoration(
-                hintText: 'username',
+                hintText: 'Enter your username',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -117,7 +128,7 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
               controller: _passwordController,
               obscureText: true,
               decoration: InputDecoration(
-                hintText: 'password',
+                hintText: 'Enter your password',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
@@ -138,7 +149,7 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                 TextButton(
                   onPressed: () {},
                   child: const Text(
-                    'Forgot password',
+                    'Forgot password?',
                     style: TextStyle(color: Colors.orange),
                   ),
                 ),
@@ -148,13 +159,15 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
               child: Column(
                 children: [
                   if (_errorMessage != null)
-                    Text(
-                      _errorMessage!,
-                      style: TextStyle(color: Colors.red, fontSize: 14),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.red, fontSize: 14),
+                      ),
                     ),
-                  const SizedBox(height: 10),
                   _isLoading
-                      ? CircularProgressIndicator()
+                      ? const CircularProgressIndicator()
                       : ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
@@ -166,9 +179,7 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    onPressed: () async {
-                      await _login(); // Perform login
-                    },
+                    onPressed: _login,
                     child: const Text(
                       'Sign in',
                       style: TextStyle(color: Colors.white),
@@ -183,7 +194,7 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                       );
                     },
                     child: const Text(
-                      "Doesn't have an account? Sign up",
+                      "Don't have an account? Sign up",
                       style: TextStyle(color: Colors.orange),
                     ),
                   ),
