@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:march24/screen/ShelterLogIn/home_screen.dart';
 import 'profile_screen.dart'; // Import ProfileScreen
+import 'view_pets.dart';
+import 'add_pet.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int shelterId; // Add shelterId as a parameter
   final int currentIndex; // Add currentIndex to track the active tab
 
-  const BottomNavBar({Key? key, required this.shelterId, required this.currentIndex}) : super(key: key);
+  const BottomNavBar({super.key, required this.shelterId, required this.currentIndex});
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,7 @@ class BottomNavBar extends StatelessWidget {
             Navigator.pushReplacement(
               context,
               PageRouteBuilder(
-                pageBuilder: (context, animation1, animation2) => const Placeholder(), // Replace with PetsScreen
+                pageBuilder: (context, animation1, animation2) => ViewPetsScreen(shelterId: shelterId), // Replace with PetsScreen
                 transitionDuration: Duration.zero, // Remove animation
               ),
             );
@@ -41,7 +43,7 @@ class BottomNavBar extends StatelessWidget {
             Navigator.pushReplacement(
               context,
               PageRouteBuilder(
-                pageBuilder: (context, animation1, animation2) => const Placeholder(), // Replace with AddPetScreen
+                pageBuilder: (context, animation1, animation2) => AddPetScreen(shelterId: shelterId), // Replace with AddPetScreen
                 transitionDuration: Duration.zero, // Remove animation
               ),
             );

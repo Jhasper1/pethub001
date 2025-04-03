@@ -6,7 +6,7 @@ import 'edit_profile_screen.dart'; // Import EditProfileScreen
 
 class ProfileScreen extends StatefulWidget {
   final int shelterId;
-  const ProfileScreen({Key? key, required this.shelterId}) : super(key: key);
+  const ProfileScreen({super.key, required this.shelterId});
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -24,7 +24,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> fetchShelterInfo() async {
     final String apiUrl = 'http://127.0.0.1:5566/shelter/${widget.shelterId}';
-    const String baseImageUrl = 'http://127.0.0.1:5566/images/shelter_media/';
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -81,7 +80,7 @@ if (shelterInfo!['shelter_cover'] != null) {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+       backgroundColor: const Color.fromARGB(255, 244, 231, 211),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,7 +120,7 @@ if (shelterInfo!['shelter_cover'] != null) {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
 
             // Information Card
             Padding(

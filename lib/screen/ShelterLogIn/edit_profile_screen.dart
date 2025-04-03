@@ -9,7 +9,7 @@ import 'package:http_parser/http_parser.dart';
 class EditProfileScreen extends StatefulWidget {
   final int shelterId;
 
-  const EditProfileScreen({Key? key, required this.shelterId}) : super(key: key);
+  const EditProfileScreen({super.key, required this.shelterId});
 
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();
@@ -26,8 +26,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   final TextEditingController profileImageController = TextEditingController();
   final TextEditingController coverImageController = TextEditingController();
-  final TextEditingController ownerController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
 
   Future<void> pickImage(String type) async {
     final ImagePicker picker = ImagePicker();
@@ -83,8 +81,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             profileImageController.text = shelterInfo!['shelter_profile'] ?? '';
             coverImageController.text = shelterInfo!['shelter_cover'] ?? '';
-            ownerController.text = shelterInfo!['shelter_owner'] ?? '';
-            descriptionController.text = shelterInfo!['shelter_description'] ?? '';
             isLoading = false;
           });
         } else {
@@ -101,20 +97,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  InputDecoration _inputDecoration(String hintText) {
-    return InputDecoration(
-      hintText: hintText,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      filled: true,
-      fillColor: Colors.grey[200],
-      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-    );
-  }
+ InputDecoration _inputDecoration(String hintText) {
+  return InputDecoration(
+    hintText: hintText,
+    hintStyle: TextStyle(color: Colors.grey), // Sets hint text color to gray
+    border: InputBorder.none, // Removes the outline
+    filled: true,
+    fillColor: Colors.grey[200],
+    contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+  );
+}
+
 
   Future<void> updateShelterDetails() async {
-    final String apiUrl = 'http://127.0.0.1:5566/shelter/${widget.shelterId}/update';
+    final String apiUrl = 'http://127.0.0.1:5566/shelter/${widget.shelterId}/update-info';
     final String mediaApiUrl = 'http://127.0.0.1:5566/shelter/${widget.shelterId}/upload-media';
 
     try {
@@ -125,8 +121,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         "shelter_landmark": shelterInfo!['shelter_landmark'],
         "shelter_contact": shelterInfo!['shelter_contact'],
         "shelter_email": shelterInfo!['shelter_email'],
-        "shelter_owner": ownerController.text.isNotEmpty ? ownerController.text : shelterInfo!['shelter_owner'],
-        "shelter_description": descriptionController.text.isNotEmpty ? descriptionController.text : shelterInfo!['shelter_description'],
+        "shelter_owner": shelterInfo!['shelter_owner'],
+        "shelter_description":  shelterInfo!['shelter_description'],
         "shelter_social": shelterInfo!['shelter_social'],
       };
 
@@ -215,8 +211,11 @@ final response = await http.put(
     }
   }
 
+
+
   @override
   Widget build(BuildContext context) {
+
     if (isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -260,7 +259,7 @@ final response = await http.put(
                     padding: const EdgeInsets.all(12.0),
                     child: GestureDetector(
                       onTap: () => pickImage('cover'),
-                      child: const Icon(Icons.camera_alt, color: Colors.black),
+                      child: const Icon(Icons.camera_alt, color: Colors.white),
                     ),
                   ),
                 ),
@@ -275,7 +274,6 @@ final response = await http.put(
                 onTap: () => pickImage('profile'),
                 child: CircleAvatar(
                   radius: 50,
-                  backgroundColor: Colors.white,
                   backgroundImage: profileImageBytes != null
                       ? MemoryImage(profileImageBytes!)
                       : (shelterInfo!['shelter_profile'] != null
@@ -342,8 +340,9 @@ final response = await http.put(
 
                   const Text('Description', style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
-                    controller: descriptionController,
+                    initialValue: shelterInfo!['shelter_description'],
                     decoration: _inputDecoration('Enter description'),
+                    onChanged: (value) => shelterInfo!['shelter_description'] = value,
                     maxLines: 5,
                   ),
                   const SizedBox(height: 10),
@@ -358,8 +357,9 @@ final response = await http.put(
 
                   const Text('Owner Name', style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
-                    controller: ownerController,
-                    decoration: _inputDecoration('Enter owner name'),
+                   initialValue: shelterInfo!['shelter_owner'],
+                    decoration: _inputDecoration('Enter owner name',),
+                    onChanged: (value) => shelterInfo!['shelter_owner'] = value,
                   ),
                   const SizedBox(height: 20),
 

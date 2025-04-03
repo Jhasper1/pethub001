@@ -4,7 +4,7 @@ import 'bottom_nav_bar.dart'; // Import the updated BottomNavigationBar widget
 class HomeScreen extends StatelessWidget {
   final int shelterId;
 
-  const HomeScreen({Key? key, required this.shelterId}) : super(key: key);
+  const HomeScreen({super.key, required this.shelterId});
 
   @override
   Widget build(BuildContext context) {
