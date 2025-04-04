@@ -18,6 +18,7 @@ class BottomNavBar extends StatelessWidget {
       unselectedItemColor: Colors.grey,
       showUnselectedLabels: false, // Hide labels for inactive pages
       currentIndex: currentIndex, // Set the active tab
+      selectedLabelStyle: const TextStyle(fontSize: 10), // Hide selected label
       onTap: (index) {
         if (index == currentIndex) return; // Prevent redundant navigation
         switch (index) {
@@ -70,11 +71,11 @@ class BottomNavBar extends StatelessWidget {
       },
       items: [
         const BottomNavigationBarItem(
-          icon: Icon(Icons.home, size: 35), // Increase icon size
+          icon: Icon(Icons.home, size: 30), // Increase icon size
           label: 'Home',
         ),
         const BottomNavigationBarItem(
-          icon: Icon(Icons.pets, size: 35), // Increase icon size
+          icon: Icon(Icons.pets, size: 30), // Increase icon size
           label: 'Pets',
         ),
         BottomNavigationBarItem(
@@ -83,16 +84,16 @@ class BottomNavBar extends StatelessWidget {
               color: Colors.orange,
               borderRadius: BorderRadius.circular(5),
             ),
-            child: const Icon(Icons.add, color: Colors.white, size: 40), // Increase icon size
+            child: const Icon(Icons.add, color: Colors.white, size: 45), // Increase icon size
           ),
           label: '',
         ),
         const BottomNavigationBarItem(
-          icon: Icon(Icons.message, size: 35), // Increase icon size
+          icon: Icon(Icons.message, size: 30), // Increase icon size
           label: 'Applications',
         ),
         const BottomNavigationBarItem(
-          icon: Icon(Icons.account_circle, size: 35), // Increase icon size
+          icon: Icon(Icons.account_circle, size: 30), // Increase icon size
           label: 'Account',
         ),
       ],
