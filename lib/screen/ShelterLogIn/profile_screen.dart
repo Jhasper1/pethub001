@@ -30,8 +30,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      print("API Response: $data"); // Debugging
-
       final info = data['data']['info'];
       final media = data['data']['media'];
 

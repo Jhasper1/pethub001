@@ -159,7 +159,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PetDetailsScreen(petId: pet['pet_id']),
+          builder: (context) => PetDetailsScreen(petId: pet['pet_id'], shelterId: widget.shelterId),
         ),
       );
     },

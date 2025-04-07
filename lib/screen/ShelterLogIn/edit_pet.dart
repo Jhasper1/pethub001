@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -5,18 +6,20 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/services.dart';
 import 'bottom_nav_bar.dart';
-import 'view_pets.dart';
+import 'pet_info_screen.dart';
 
-class AddPetScreen extends StatefulWidget {
-  final int shelterId;
+class EditPetScreen extends StatefulWidget {
+  final int petId;
+  final int shelterId; // Add shelterId as a parameter
 
-  const AddPetScreen({super.key, required this.shelterId});
+  const EditPetScreen(
+      {super.key, required this.petId, required this.shelterId});
 
   @override
-  _AddPetScreenState createState() => _AddPetScreenState();
+  _EditPetScreenState createState() => _EditPetScreenState();
 }
 
-class _AddPetScreenState extends State<AddPetScreen> {
+class _EditPetScreenState extends State<EditPetScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
@@ -26,8 +29,50 @@ class _AddPetScreenState extends State<AddPetScreen> {
   String? _selectedSex;
   XFile? _imageFile;
   Uint8List? _imageBytes;
+  bool isLoading = true;
+  String errorMessage = '';
 
-  // Function to pick an image
+  Future<void> fetchPetDetails() async {
+    final url = 'http://127.0.0.1:5566/shelter/${widget.petId}/petinfo';
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final petDataResponse = data['data']['pet'];
+
+        setState(() {
+          _nameController.text = petDataResponse['pet_name'] ?? '';
+          _ageController.text = petDataResponse['pet_age']?.toString() ?? '';
+          _descriptionController.text =
+              petDataResponse['pet_descriptions'] ?? '';
+          _selectedPetType = petDataResponse['pet_type'];
+          _selectedSex = petDataResponse['pet_sex'];
+          _selectedAgeType = petDataResponse['age_type'];
+
+          var imageData = petDataResponse['pet_image1'];
+
+          if (imageData != null) {
+            if (imageData is String) {
+              _imageBytes = base64Decode(imageData);
+            } else if (imageData is List) {
+              _imageBytes = Uint8List.fromList(List<int>.from(imageData));
+            }
+          }
+
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load pet data');
+      }
+    } catch (e) {
+      print("Error fetching pet data: $e");
+      setState(() {
+        errorMessage = "Error fetching pet data.";
+        isLoading = false;
+      });
+    }
+  }
+
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? pickedFile =
@@ -42,59 +87,55 @@ class _AddPetScreenState extends State<AddPetScreen> {
     }
   }
 
-  // Function to submit form
-  Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _updateForm() async {
+    final url = Uri.parse(
+        'http://127.0.0.1:5566/shelter/${widget.petId}/update-pet-info');
 
-    var uri = Uri.parse(
-        "http://127.0.0.1:5566/shelter/${widget.shelterId}/add-pet-info");
-
-    var request = http.MultipartRequest("POST", uri);
-    request.fields['pet_type'] = _selectedPetType ?? "";
-    request.fields['pet_name'] = _nameController.text;
-    request.fields['pet_age'] = _ageController.text;
-    request.fields['age_type'] = _selectedAgeType ?? "";
-    request.fields['pet_sex'] = _selectedSex ?? "";
-    request.fields['pet_descriptions'] = _descriptionController.text;
-
-    if (_imageBytes != null && _imageFile != null) {
-      final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'pet_image1',
-          _imageBytes!,
-          filename: 'pet_image.${fileExtension}',
-          contentType: MediaType('image', fileExtension),
-        ),
-      );
+    String? base64Image;
+    if (_imageBytes != null) {
+      base64Image = base64Encode(_imageBytes!);
     }
 
-    try {
-      var response = await request.send();
+    final Map<String, dynamic> body = {
+  "pet_info": {
+    "pet_name": _nameController.text,
+    "pet_age": int.tryParse(_ageController.text) ?? 0,  // Ensure pet_age is an integer
+    "age_type": _selectedAgeType,
+    "pet_sex": _selectedSex,
+    "pet_type": _selectedPetType,
+    "pet_descriptions": _descriptionController.text,
+  },
+  "pet_media": {
+    "pet_image1": base64Image ?? "",
+  },
+};
+    print("Request Body: $body"); // Debugging
 
-      if (response.statusCode == 201) {
+    try {
+      final response = await http.put(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Pet added successfully!")),
+          const SnackBar(content: Text('Pet updated successfully!')),
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ViewPetsScreen(shelterId: widget.shelterId),
-          ),
-        );
+        Navigator.pop(context);
       } else {
+        print('Failed: ${response.body}');
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to add pet")),
+          const SnackBar(content: Text('Failed to update pet.')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }
 
-  // TextField style to be reused
   InputDecoration _buildTextFieldDecoration(String hintText) {
     return InputDecoration(
       hintText: hintText,
@@ -106,7 +147,6 @@ class _AddPetScreenState extends State<AddPetScreen> {
     );
   }
 
-  // Name Validation (Only Letters)
   String? _validateName(String? value) {
     if (value == null || value.isEmpty) {
       return 'Enter pet name';
@@ -117,18 +157,17 @@ class _AddPetScreenState extends State<AddPetScreen> {
     return null;
   }
 
-  // Age Validation (Only Numbers)
   String? _validateAge(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Enter pet age';
-    }
-    if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
-      return 'Only numbers allowed';
-    }
-    return null;
+  if (value == null || value.isEmpty) {
+    return 'Enter pet age';
   }
+  if (int.tryParse(value) == null) {
+    return 'Enter a valid age';
+  }
+  return null;
+}
 
-  // Pet Type Validation
+
   String? _validatePetType(String? value) {
     if (value == null) {
       return 'Select a pet type';
@@ -136,12 +175,17 @@ class _AddPetScreenState extends State<AddPetScreen> {
     return null;
   }
 
-  // Image Validation
   String? _validateImage() {
     if (_imageBytes == null || _imageFile == null) {
       return 'Please select an image';
     }
     return null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPetDetails();
   }
 
   @override
@@ -155,7 +199,6 @@ class _AddPetScreenState extends State<AddPetScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                // Image
                 GestureDetector(
                   onTap: _pickImage,
                   child: _imageBytes != null
@@ -176,8 +219,6 @@ class _AddPetScreenState extends State<AddPetScreen> {
                         ),
                 ),
                 SizedBox(height: 15),
-
-                // Pet Type Buttons
                 Text(
                   'What type of pet is it?',
                   style: TextStyle(
@@ -195,20 +236,15 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   ],
                 ),
                 SizedBox(height: 15),
-
-                // Pet Name TextField
                 TextFormField(
                   controller: _nameController,
                   decoration: _buildTextFieldDecoration('Pet Name'),
                   validator: _validateName,
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                        RegExp(r'[a-zA-Z\s]')) // Allow only letters and spaces
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
                   ],
                 ),
                 SizedBox(height: 15),
-
-                // Pet Age and Age Type Dropdowns
                 Row(
                   children: [
                     Expanded(
@@ -218,8 +254,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                         decoration: _buildTextFieldDecoration('Pet Age'),
                         validator: _validateAge,
                         inputFormatters: [
-                          FilteringTextInputFormatter
-                              .digitsOnly, // Allow only numbers
+                          FilteringTextInputFormatter.digitsOnly,
                         ],
                       ),
                     ),
@@ -244,8 +279,6 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   ],
                 ),
                 SizedBox(height: 15),
-
-                // Pet Sex Dropdown
                 DropdownButtonFormField<String>(
                   decoration: _buildTextFieldDecoration('Pet Sex'),
                   value: _selectedSex,
@@ -260,8 +293,6 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   validator: (value) => value == null ? 'Select a sex' : null,
                 ),
                 SizedBox(height: 15),
-
-                // Pet Description TextField
                 Text(
                   'Note: You can include details like pet history, traits, etc.',
                   style: TextStyle(
@@ -278,17 +309,12 @@ class _AddPetScreenState extends State<AddPetScreen> {
                       value!.isEmpty ? 'Enter a description' : null,
                 ),
                 SizedBox(height: 5),
-
-                // Note Below Pet Description
-                
                 SizedBox(height: 10),
-
-                // Add Pet Button
                 ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState!.validate() &&
                         _validateImage() == null) {
-                      _submitForm();
+                      _updateForm();
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -307,12 +333,11 @@ class _AddPetScreenState extends State<AddPetScreen> {
       ),
       bottomNavigationBar: BottomNavBar(
         shelterId: widget.shelterId,
-        currentIndex: 2, // Index for ViewPetScreen
+        currentIndex: 2,
       ),
     );
   }
 
-  // Pet Type Button
   Widget _buildPetTypeButton(String text, IconData icon) {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(

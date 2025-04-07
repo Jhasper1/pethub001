@@ -1,21 +1,24 @@
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:typed_data'; // To handle image bytes
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'edit_pet.dart';
 
 class PetDetailsScreen extends StatefulWidget {
   final int petId;
+  final int shelterId; // Added shelterId to the constructor
 
-  const PetDetailsScreen({super.key, required this.petId});
+  const PetDetailsScreen({super.key, required this.petId, required this.shelterId});
 
   @override
   _PetDetailsScreenState createState() => _PetDetailsScreenState();
 }
 
 class _PetDetailsScreenState extends State<PetDetailsScreen> {
-  Map<String, dynamic>? petData; // Store fetched pet details
-  bool isLoading = true; // Loading state
+  Map<String, dynamic>? petData;
+  bool isLoading = true;
   String errorMessage = '';
+  Uint8List? petImage;
 
   @override
   void initState() {
@@ -24,25 +27,35 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   }
 
   Future<void> fetchPetDetails() async {
-    final url = 'http://127.0.0.1:5566/shelter/${widget.petId}/petinfo';
+    final url =
+        'http://127.0.0.1:5566/shelter/${widget.petId}/petinfo'; // Adjusted URL to use petId
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        final responseJson = json.decode(response.body);
-        print("API Response: $responseJson");
+        final data = json.decode(response.body);
+        print("API Response: $data"); // Debugging
 
-        if (responseJson['data'] != null &&
-            responseJson['data'] is Map<String, dynamic>) {
-          setState(() {
-            petData = responseJson['data'];
-            isLoading = false;
-          });
-        } else {
-          setState(() {
-            errorMessage = "No pet data found.";
-            isLoading = false;
-          });
-        }
+        final petDataResponse =
+            data['data']['pet']; // Adjusted to fetch the 'pet' object
+
+        setState(() {
+          petData = {
+            'pet_id': petDataResponse['pet_id'],
+            'shelter_id': petDataResponse['shelter_id'],
+            'pet_name': petDataResponse['pet_name'],
+            'pet_type': petDataResponse['pet_type'],
+            'pet_descriptions': petDataResponse['pet_descriptions'],
+            'pet_sex': petDataResponse['pet_sex'],
+            'pet_age': petDataResponse['pet_age'],
+            'age_type': petDataResponse['age_type'],
+            'pet_image1': petDataResponse['pet_image1'] != null &&
+                    petDataResponse['pet_image1'].isNotEmpty
+                ? base64Decode(petDataResponse['pet_image1']
+                    [0]) // Decode the first image (or handle multiple images)
+                : null, // Handle case where no images are available
+          };
+          isLoading = false; // Set loading to false once data is fetched
+        });
       } else {
         throw Exception('Failed to load pet data');
       }
@@ -55,33 +68,18 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     }
   }
 
-  Uint8List? _decodeBase64Image(String? base64String) {
-    if (base64String == null || base64String.isEmpty) {
-      return null;
-    }
-    try {
-      // Remove data:image/png;base64, or similar prefixes
-      final RegExp regex = RegExp(r'data:image/[^;]+;base64,');
-      base64String = base64String.replaceAll(regex, '');
-      return base64Decode(base64String);
-    } catch (e) {
-      print("Error decoding Base64 image: $e");
-      return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: Text('Pet Profile'),
+        title: const Text('Pet Profile'),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
               ? Center(child: Text(errorMessage))
               : SingleChildScrollView(
@@ -93,76 +91,93 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Stack(
                           children: [
-                            Center(
-                              child: Column(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 50,
-                                    backgroundImage: petData!['pet_image1'] !=
-                                                null &&
-                                            petData!['pet_image1'].isNotEmpty
-                                        ? _getImageFromBase64(petData!['pet_image1'])
-                                        : AssetImage('assets/images/logo.png')
-                                            as ImageProvider,
+                            // Main content
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(
+                                    height: 30), // Space for the edit button
+                                Center(
+                                  child: Column(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 50,
+                                        backgroundImage: petData?[
+                                                    'pet_image1'] !=
+                                                null
+                                            ? MemoryImage(
+                                                petData!['pet_image1'])
+                                            : const AssetImage(
+                                                    'assets/images/logo.png')
+                                                as ImageProvider,
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        petData?['pet_name'] ?? 'Unknown',
+                                        style: const TextStyle(
+                                            fontSize: 25,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
                                   ),
-                                  SizedBox(height: 10),
-                                  Text(
-                                    petData!['pet_name'] ?? 'Unknown',
-                                    style: TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text('${petData!['pet_type'] ?? 'Unknown'}',
-                                      style: TextStyle(color: Colors.grey)),
-                                ],
+                                ),
+                                const SizedBox(height: 20),
+                                Divider(thickness: 1, color: Colors.grey[400]),
+                                const Text(
+                                  'Pet Description',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  petData?['pet_descriptions'] ??
+                                      'No description available.',
+                                  textAlign: TextAlign.justify,
+                                  style: const TextStyle(
+                                      height: 1.5, fontSize: 13),
+                                ),
+                                const SizedBox(height: 16),
+                                Divider(thickness: 1, color: Colors.grey[400]),
+                                const SizedBox(height: 10),
+                                 _infoRow('Type of Pet', petData?['pet_type'] ?? 'Unknown'),
+                                _infoRow('Sex', petData?['pet_sex']),
+                                _infoRow(
+                                  'Age (Approx.)',
+                                  '${petData?['pet_age'] ?? 'Unknown'} ${petData?['age_type'] ?? ''} old',
+                                ),
+                                const SizedBox(height: 20),
+                              ],
+                            ),
+
+                            // Edit Button
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              child: TextButton.icon(
+                                onPressed: () async {
+                                  final result = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => EditPetScreen(
+                                        petId: widget.petId,
+                                        shelterId: widget.shelterId, // <-- add this
+                                      ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.edit, size: 16),
+                                label: const Text("Edit",
+                                    style: TextStyle(fontSize: 14)),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.orange,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  minimumSize: Size.zero,
+                                ),
                               ),
                             ),
-                            SizedBox(height: 20),
-                            Text(
-                              'Pet Description',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              petData!['pet_descriptions'] ??
-                                  'No description available.',
-                              textAlign: TextAlign.justify,
-                              style: TextStyle(height: 1.5),
-                            ),
-                            SizedBox(height: 16),
-                            Divider(thickness: 1, color: Colors.grey[400]),
-                            SizedBox(height: 10),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Gender',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                Text(petData!['pet_sex'] ?? 'Unknown'),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('ID',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                Text('${widget.petId}'),
-                              ],
-                            ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Age',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                                Text(
-                                    '${petData!['pet_age'] ?? 'Unknown'} ${petData!['age_type'] ?? ''}'),
-                              ],
-                            ),
-                            SizedBox(height: 20),
                           ],
                         ),
                       ),
@@ -172,16 +187,13 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     );
   }
 
-  // Function to handle base64 image decoding and return Image
-  ImageProvider _getImageFromBase64(String base64String) {
-    try {
-      final decodedImage = _decodeBase64Image(base64String);
-      if (decodedImage != null) {
-        return MemoryImage(decodedImage);
-      }
-    } catch (e) {
-      print("Error loading image from base64: $e");
-    }
-    return AssetImage('assets/images/logo.png') as ImageProvider; // Fallback
+  Widget _infoRow(String label, String? value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Text(value ?? 'Unknown'),
+      ],
+    );
   }
 }
