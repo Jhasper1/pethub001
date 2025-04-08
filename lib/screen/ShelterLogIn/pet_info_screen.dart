@@ -3,6 +3,7 @@ import 'dart:typed_data'; // To handle image bytes
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'edit_pet.dart';
+import 'bottom_nav_bar.dart'; // Import the updated BottomNavigationBar widget
 
 class PetDetailsScreen extends StatefulWidget {
   final int petId;
@@ -25,6 +26,8 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     super.initState();
     fetchPetDetails();
   }
+
+  
 
   Future<void> fetchPetDetails() async {
     final url =
@@ -68,9 +71,15 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     }
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: BottomNavBar(
+        shelterId: widget.shelterId,
+        currentIndex: 1,
+      ),
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
         title: const Text('Pet Profile'),
@@ -78,112 +87,109 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
         elevation: 0,
         centerTitle: true,
       ),
+
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : errorMessage.isNotEmpty
-              ? Center(child: Text(errorMessage))
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Stack(
-                          children: [
-                            // Main content
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+    ? const Center(child: CircularProgressIndicator())
+    : errorMessage.isNotEmpty
+        ? Center(child: Text(errorMessage))
+        : SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Center(
+                            child: Column(
                               children: [
-                                const SizedBox(
-                                    height: 30), // Space for the edit button
-                                Center(
-                                  child: Column(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 50,
-                                        backgroundImage: petData?[
-                                                    'pet_image1'] !=
-                                                null
-                                            ? MemoryImage(
-                                                petData!['pet_image1'])
-                                            : const AssetImage(
-                                                    'assets/images/logo.png')
-                                                as ImageProvider,
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        petData?['pet_name'] ?? 'Unknown',
-                                        style: const TextStyle(
-                                            fontSize: 25,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
+                                CircleAvatar(
+                                  radius: 50,
+                                  backgroundImage: petData?['pet_image1'] != null
+                                      ? MemoryImage(petData!['pet_image1'])
+                                      : const AssetImage('assets/images/logo.png')
+                                          as ImageProvider,
                                 ),
-                                const SizedBox(height: 20),
-                                Divider(thickness: 1, color: Colors.grey[400]),
-                                const Text(
-                                  'Pet Description',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text(
-                                  petData?['pet_descriptions'] ??
-                                      'No description available.',
-                                  textAlign: TextAlign.justify,
-                                  style: const TextStyle(
-                                      height: 1.5, fontSize: 13),
-                                ),
-                                const SizedBox(height: 16),
-                                Divider(thickness: 1, color: Colors.grey[400]),
                                 const SizedBox(height: 10),
-                                 _infoRow('Type of Pet', petData?['pet_type'] ?? 'Unknown'),
-                                _infoRow('Sex', petData?['pet_sex']),
-                                _infoRow(
-                                  'Age (Approx.)',
-                                  '${petData?['pet_age'] ?? 'Unknown'} ${petData?['age_type'] ?? ''} old',
+                                Text(
+                                  petData?['pet_name'] ?? 'Unknown',
+                                  style: const TextStyle(
+                                      fontSize: 25, fontWeight: FontWeight.bold),
                                 ),
-                                const SizedBox(height: 20),
                               ],
                             ),
-
-                            // Edit Button
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              child: TextButton.icon(
-                                onPressed: () async {
-                                  final result = await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => EditPetScreen(
-                                        petId: widget.petId,
-                                        shelterId: widget.shelterId, // <-- add this
-                                      ),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.edit, size: 16),
-                                label: const Text("Edit",
-                                    style: TextStyle(fontSize: 14)),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.orange,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  minimumSize: Size.zero,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 20),
+                          Divider(thickness: 1, color: Colors.grey[400]),
+                          const Text(
+                            'Pet Description',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            petData?['pet_descriptions'] ??
+                                'No description available.',
+                            textAlign: TextAlign.justify,
+                            style:
+                                const TextStyle(height: 1.5, fontSize: 13),
+                          ),
+                          const SizedBox(height: 16),
+                          Divider(thickness: 1, color: Colors.grey[400]),
+                          const SizedBox(height: 10),
+                          _infoRow('Type of Pet', petData?['pet_type'] ?? 'Unknown'),
+                          _infoRow('Sex', petData?['pet_sex']),
+                          _infoRow(
+                            'Age (Approx.)',
+                            '${petData?['pet_age'] ?? 'Unknown'} ${petData?['age_type'] ?? ''} old',
+                          ),
+                          const SizedBox(height: 10),
+                        ],
                       ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 10),
+
+                  // Edit Button below the card
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        minimumSize: const Size(double.infinity, 50),
+                      ),
+                      onPressed: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => EditPetScreen(
+                              petId: widget.petId,
+                              shelterId: widget.shelterId,
+                            ),
+                          ),
+                        );
+                        if (result == true) {
+                          fetchPetDetails();
+                        }
+                      },
+                      child: const Text(
+                        'Edit Pet Profile',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ),
     );
   }
 
