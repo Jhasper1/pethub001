@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'bottom_nav_bar.dart'; // Import BottomNavBar
 import 'edit_profile_screen.dart'; // Import EditProfileScreen
-import '../splash_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int shelterId;
@@ -24,58 +23,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> fetchShelterInfo() async {
-    final url = 'http://127.0.0.1:5566/shelter/${widget.shelterId}';
+    final String apiUrl = 'http://127.0.0.1:5566/shelter/${widget.shelterId}';
+
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(apiUrl));
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        print("API Response: $data"); // Debugging
+        final responseBody = jsonDecode(response.body);
+        final data = responseBody['data'];
 
-        final info = data['data']['info'];
-        final media = data['data']['media'];
+        if (data != null && data is Map) {
+          setState(() {
+            shelterInfo = {
+              ...?data['info'],  // Safely extract shelter info
+              ...?data['media'], // Safely extract shelter media
+            };
 
-        setState(() {
-          shelterInfo = {
-            ...?info,
-            ...?media,
-          };
+            // Prepend the base URL to shelter_profile and shelter_cover
+            if (shelterInfo!['shelter_profile'] != null) {
+  shelterInfo!['shelter_profile'] = base64Decode(shelterInfo!['shelter_profile']);
+}
 
-          if (shelterInfo!['shelter_profile'] != null) {
-            shelterInfo!['shelter_profile'] =
-                base64Decode(shelterInfo!['shelter_profile']);
-          }
+if (shelterInfo!['shelter_cover'] != null) {
+  shelterInfo!['shelter_cover'] = base64Decode(shelterInfo!['shelter_cover']);
+}
 
-          if (shelterInfo!['shelter_cover'] != null) {
-            shelterInfo!['shelter_cover'] =
-                base64Decode(shelterInfo!['shelter_cover']);
-          }
 
-          isLoading = false;
-        });
+            isLoading = false;
+          });
+        } else {
+          throw Exception('Invalid data format');
+        }
       } else {
         throw Exception('Failed to load shelter details');
       }
     } catch (e) {
-      print("Error fetching shelter details: $e");
       setState(() {
         isLoading = false;
       });
+      print('Error fetching shelter details: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return Scaffold(
-        body: const Center(child: CircularProgressIndicator()),
-        bottomNavigationBar: BottomNavBar(
-          shelterId: widget.shelterId,
-          currentIndex: 4,
-        ),
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
-
 
     if (shelterInfo == null) {
       return const Scaffold(
@@ -84,7 +80,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 244, 231, 211),
+       backgroundColor: const Color.fromARGB(255, 244, 231, 211),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,12 +91,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Container(
                   height: 150,
                   decoration: shelterInfo!['shelter_cover'] != null
-                      ? BoxDecoration(
-                    image: DecorationImage(
-                        image: MemoryImage(shelterInfo!['shelter_cover']),
-                        fit: BoxFit.cover),
-                  )
-                      : const BoxDecoration(color: Colors.orange),
+    ? BoxDecoration(
+        image: DecorationImage(image: MemoryImage(shelterInfo!['shelter_cover']), fit: BoxFit.cover),
+      )
+    : const BoxDecoration(color: Colors.orange),
+
                 ),
                 Align(
                   alignment: Alignment.center,
@@ -111,15 +106,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         radius: 50,
                         backgroundColor: Colors.white,
                         backgroundImage: shelterInfo!['shelter_profile'] != null
-                            ? MemoryImage(shelterInfo!['shelter_profile'])
-                            : const AssetImage('assets/images/logo.png')
-                        as ImageProvider,
+    ? MemoryImage(shelterInfo!['shelter_profile'])
+    : const AssetImage('assets/images/logo.png') as ImageProvider,
+
                       ),
                       const SizedBox(height: 10),
                       Text(
                         shelterInfo!['shelter_name'] ?? 'Unknown Shelter',
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -132,24 +126,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Card(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      _infoRow(Icons.location_on,
-                          shelterInfo!['shelter_address'] ?? 'No information'),
-                      _infoRow(Icons.location_city,
-                          shelterInfo!['shelter_landmark'] ?? 'No information'),
-                      _infoRow(
-                          Icons.phone,
-                          shelterInfo!['shelter_contact']?.toString() ??
-                              'No information'),
-                      _infoRow(Icons.email,
-                          shelterInfo!['shelter_email'] ?? 'No information'),
-                      _infoRow(Icons.language,
-                          shelterInfo!['shelter_social'] ?? 'No information'),
+                      _infoRow(Icons.location_on, shelterInfo!['shelter_address'] ?? 'No information'),
+                      _infoRow(Icons.location_city, shelterInfo!['shelter_landmark'] ?? 'No information'),
+                      _infoRow(Icons.phone, shelterInfo!['shelter_contact']?.toString() ?? 'No information'),
+                      _infoRow(Icons.email, shelterInfo!['shelter_email'] ?? 'No information'),
+                      _infoRow(Icons.language, shelterInfo!['shelter_social'] ?? 'No information'),
                     ],
                   ),
                 ),
@@ -161,8 +147,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Card(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: Container(
                   width: double.infinity, // Stretch the card to the full width
                   padding: const EdgeInsets.all(16.0),
@@ -171,8 +156,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       const Text(
                         'Description',
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
                       Text(
@@ -180,8 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ? shelterInfo!['shelter_description']
                             : 'No Description', // Display "No Description" if empty or null
                         style: const TextStyle(fontSize: 12),
-                        textAlign:
-                        TextAlign.justify, // Ensure text flows continuously
+                        textAlign: TextAlign.justify, // Ensure text flows continuously
                       ),
                     ],
                   ),
@@ -206,8 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) =>
-                          EditProfileScreen(shelterId: widget.shelterId),
+                      builder: (_) => EditProfileScreen(shelterId: widget.shelterId),
                     ),
                   );
 
@@ -219,6 +201,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: const Text(
                   'Edit Profile',
                   style: TextStyle(color: Colors.white, fontSize: 16),
+                  
                 ),
               ),
             ),
@@ -229,39 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: GestureDetector(
                 onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        // title: const Text('Logout Confirmation'),
-                        content: const Text('Are you sure you want to logout?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(); // close dialog
-                            },
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              Navigator.of(context).pop(); // close dialog
-                              // Navigate back to splash or login screen
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const SplashScreen()),
-                                    (Route<dynamic> route) => false,
-                              );
-                            },
-                            child: const Text(
-                              'Logout',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                  // Handle logout action
                 },
                 child: Container(
                   width: double.infinity,
@@ -273,10 +224,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: const Center(
                     child: Text(
                       'Logout',
-                      style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold),
+                      style: TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -302,8 +250,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           Icon(icon, color: Colors.black),
           const SizedBox(width: 10),
-          Text(displayText!,
-              style: const TextStyle(fontSize: 12)), // Set font size to 10
+          Text(displayText!, style: const TextStyle(fontSize: 12)), // Set font size to 10
         ],
       ),
     );
