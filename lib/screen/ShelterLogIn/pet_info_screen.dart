@@ -110,7 +110,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                             child: Column(
                               children: [
                                 CircleAvatar(
-                                  radius: 50,
+                                  radius: 100,
                                   backgroundImage: petData?['pet_image1'] != null
                                       ? MemoryImage(petData!['pet_image1'])
                                       : const AssetImage('assets/images/logo.png')
@@ -145,8 +145,8 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           _infoRow('Type of Pet', petData?['pet_type'] ?? 'Unknown'),
                           _infoRow('Sex', petData?['pet_sex']),
                           _infoRow(
-                            'Age (Approx.)',
-                            '${petData?['pet_age'] ?? 'Unknown'} ${petData?['age_type'] ?? ''} old',
+                            'Age ',
+                            '(Approx.) ${petData?['pet_age'] ?? 'Unknown'} ${petData?['age_type'] ?? ''} old',
                           ),
                           const SizedBox(height: 10),
                         ],

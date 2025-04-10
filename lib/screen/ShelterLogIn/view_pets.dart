@@ -15,6 +15,7 @@ class ViewPetsScreen extends StatefulWidget {
 }
 
 class _ViewPetsScreenState extends State<ViewPetsScreen> {
+  bool isLoading = true; // Add this at the top of your state class
   int selectedCategory = 1; // Default: Cats
   final List<Map<String, dynamic>> categories = [
     {'icon': Icons.pets, 'label': 'Dogs'},
@@ -22,36 +23,47 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
   ];
 
   List<Map<String, dynamic>> pets = [];
+  TextEditingController searchController = TextEditingController();
+  String selectedSex = 'All';
+  String selectedPetType = 'All';
 
   Future<void> fetchPets() async {
-    final url = 'http://127.0.0.1:5566/shelter/${widget.shelterId}/pets';
+    final searchQuery = searchController.text;
+    final sexFilter = selectedSex == 'All' ? '' : selectedSex;
+    final typeFilter = selectedPetType == 'All' ? '' : selectedPetType;
+
+    final url =
+        'http://127.0.0.1:5566/filter/${widget.shelterId}/pets/search?pet_name=$searchQuery&sex=$sexFilter&type=$typeFilter';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print("API Response: $data"); // Debugging
+        final petInfoList = data['data']['pets'] as List;
 
-        final petInfoList =
-            data['data']['pets'] as List; // Adjust this to 'pets'
+        final updatedPets = petInfoList.map((pet) {
+          return {
+            'pet_id': pet['pet_id'],
+            'pet_name': pet['pet_name'],
+            'pet_image1':
+                pet['pet_image1'] != null && pet['pet_image1'].isNotEmpty
+                    ? _decodeBase64Image(pet['pet_image1'][0])
+                    : null,
+          };
+        }).toList();
 
         setState(() {
-          pets = petInfoList.map((pet) {
-            return {
-              'pet_id': pet['pet_id'],
-              'pet_name': pet['pet_name'],
-              'pet_image1': pet['pet_image1'] != null &&
-                      pet['pet_image1'].isNotEmpty
-                  ? _decodeBase64Image(pet['pet_image1']
-                      [0]) // Decode the first image (or handle multiple images)
-                  : null,
-            };
-          }).toList();
+          pets = updatedPets;
+          isLoading = false;
         });
       } else {
         throw Exception('Failed to load pet data');
       }
     } catch (e) {
       print("Error fetching pet data: $e");
+      setState(() {
+        pets = []; // Make sure this is cleared on error
+        isLoading = false;
+      });
     }
   }
 
@@ -91,56 +103,92 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(categories.length, (index) {
-                  bool isSelected = index == selectedCategory;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ChoiceChip(
-                      label: Row(
-                        children: [
-                          Icon(categories[index]['icon'], size: 18),
-                          const SizedBox(width: 5),
-                          Text(categories[index]['label']),
-                        ],
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                TextField(
+                  controller: searchController,
+                  onChanged: (value) {
+                    fetchPets(); // Re-fetch when typing
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search pets by name...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: selectedSex,
+                        items: ['All', 'Male', 'Female']
+                            .map((sex) => DropdownMenuItem(
+                                  value: sex,
+                                  child: Text(sex),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedSex = value!;
+                          });
+                          fetchPets();
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Sex',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          selectedCategory = index;
-                        });
-                      },
-                      selectedColor: Colors.orange,
-                      backgroundColor: Colors.grey.shade200,
-                      labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black),
                     ),
-                  );
-                }),
-              ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: selectedPetType,
+                        items: ['All', 'Dog', 'Cat']
+                            .map((type) => DropdownMenuItem(
+                                  value: type,
+                                  child: Text(type),
+                                ))
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedPetType = value!;
+                          });
+                          fetchPets();
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Pet Type',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: pets.isEmpty
+              child: isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        childAspectRatio: 0.8,
-                      ),
-                      itemCount: pets.length,
-                      itemBuilder: (context, index) {
-                        return _buildPetCard(pets[index]);
-                      },
-                    ),
+                  : pets.isEmpty
+                      ? const Center(child: Text("No Pets Found"))
+                      : GridView.builder(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 0.8,
+                          ),
+                          itemCount: pets.length,
+                          itemBuilder: (context, index) {
+                            return _buildPetCard(pets[index]);
+                          },
+                        ),
             ),
           ),
         ],
@@ -153,62 +201,62 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
   }
 
   Widget _buildPetCard(Map<String, dynamic> pet) {
-  return GestureDetector(
-    onTap: () {
-      // Navigate to the pet details screen and pass the pet_id
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PetDetailsScreen(petId: pet['pet_id'], shelterId: widget.shelterId),
-        ),
-      );
-    },
-    child: Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      clipBehavior: Clip.antiAlias,
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: pet['pet_image1'] != null
-                    ? Image.memory(
-                        pet['pet_image1'],
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      )
-                    : Image.asset(
-                        'assets/images/logo.png',
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-              ),
-            ],
+    return GestureDetector(
+      onTap: () {
+        // Navigate to the pet details screen and pass the pet_id
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PetDetailsScreen(
+                petId: pet['pet_id'], shelterId: widget.shelterId),
           ),
-          Positioned(
-            bottom: 8,
-            left: 8,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.7),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                pet['pet_name'],
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: Colors.black,
+        );
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: pet['pet_image1'] != null
+                      ? Image.memory(
+                          pet['pet_image1'],
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.asset(
+                          'assets/images/logo.png',
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                ),
+              ],
+            ),
+            Positioned(
+              bottom: 8,
+              left: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  pet['pet_name'],
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Colors.black,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 }
