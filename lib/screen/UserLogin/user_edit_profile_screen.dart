@@ -1,5 +1,4 @@
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -20,12 +19,13 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
   bool isLoading = true;
 
   XFile? profileImageFile;
-  Uint8List? coverImageBytes;
   Uint8List? profileImageBytes;
 
-  final TextEditingController profileImageController = TextEditingController();
-  final TextEditingController ownerController = TextEditingController();
-  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController contactController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
 
   Future<void> pickImage(String type) async {
     final ImagePicker picker = ImagePicker();
@@ -37,7 +37,6 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
         if (type == 'profile') {
           profileImageFile = pickedFile;
           profileImageBytes = bytes;
-          profileImageController.text = pickedFile.path;
         }
       });
     }
@@ -46,10 +45,10 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    fetchShelterInfo();
+    fetchAdopterInfo();
   }
 
-  Future<void> fetchShelterInfo() async {
+  Future<void> fetchAdopterInfo() async {
     final String apiUrl = 'http://127.0.0.1:5566/user/${widget.adopterId}';
 
     try {
@@ -66,18 +65,18 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
               ...?data['media'],
             };
 
+            // Initialize controllers with current values
+            firstNameController.text = adopterInfo!['first_name'] ?? '';
+            lastNameController.text = adopterInfo!['last_name'] ?? '';
+            addressController.text = adopterInfo!['address'] ?? '';
+            contactController.text = adopterInfo!['contact_number']?.toString() ?? '';
+            emailController.text = adopterInfo!['email'] ?? '';
+
             // Decode base64-encoded images
             if (adopterInfo!['adopter_profile'] != null) {
               profileImageBytes = base64Decode(adopterInfo!['adopter_profile']);
             }
 
-            if (adopterInfo!['adopter_cover'] != null) {
-              coverImageBytes = base64Decode(adopterInfo!['adopter_cover']);
-            }
-
-            profileImageController.text = adopterInfo!['adopter_profile'] ?? '';
-            ownerController.text = adopterInfo!['adopter_owner'] ?? '';
-            descriptionController.text = adopterInfo!['adopter_description'] ?? '';
             isLoading = false;
           });
         } else {
@@ -97,93 +96,67 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
   InputDecoration _inputDecoration(String hintText) {
     return InputDecoration(
       hintText: hintText,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
+      hintStyle: const TextStyle(color: Colors.grey),
+      border: InputBorder.none,
       filled: true,
       fillColor: Colors.grey[200],
       contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
     );
   }
 
-  Future<void> updateShelterDetails() async {
-    final String apiUrl = 'http://127.0.0.1:5566/users/${widget.adopterId}/update';
+  Future<void> updateAdopterDetails() async {
+    final String apiUrl = 'http://127.0.0.1:5566/users/${widget.adopterId}/update-info';
     final String mediaApiUrl = 'http://127.0.0.1:5566/users/${widget.adopterId}/upload-media';
 
     try {
       // Update text fields
       final updateData = {
-        "first_name": adopterInfo!['first_name'],
-        "last_name": adopterInfo!['last_name'],
-        "address": adopterInfo!['address'],
-        "contact_number": adopterInfo!['contact_number'],
-        "email": adopterInfo!['email'],
+        "first_name": firstNameController.text,
+        "last_name": lastNameController.text,
+        "address": addressController.text,
+        "contact_number": contactController.text,
+        "email": emailController.text,
       };
 
-      if (profileImageBytes != null) {
-  updateData['adopter_profile'] = base64Encode(profileImageBytes!);
-}
-
-final response = await http.put(
-  Uri.parse(apiUrl),
-  headers: {"Content-Type": "application/json"},
-  body: jsonEncode(updateData),
-);
-
+      final response = await http.put(
+        Uri.parse(apiUrl),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode(updateData),
+      );
 
       if (response.statusCode == 200) {
         // Upload media files if they are changed
-        final mediaRequest = http.MultipartRequest('POST', Uri.parse(mediaApiUrl));
-
         if (profileImageFile != null) {
+          final mediaRequest = http.MultipartRequest('POST', Uri.parse(mediaApiUrl));
           final profileBytes = await profileImageFile!.readAsBytes();
           final profileExtension = profileImageFile!.path.split('.').last.toLowerCase();
-          final profileFileName = 'profile_${widget.adopterId}.$profileExtension'; // Include file format
+          final profileFileName = 'profile_${widget.adopterId}.$profileExtension';
+
           mediaRequest.files.add(http.MultipartFile.fromBytes(
             'adopter_profile',
             profileBytes,
             filename: profileFileName,
             contentType: MediaType('image', profileExtension),
           ));
+
+          final mediaResponse = await mediaRequest.send();
+
+          if (mediaResponse.statusCode != 200) {
+            throw Exception('Failed to upload profile image');
+          }
         }
 
-        final mediaResponse = await mediaRequest.send();
-
-        if (mediaResponse.statusCode == 200) {
-          final mediaResponseBody = await mediaResponse.stream.bytesToString();
-          final mediaResponseData = jsonDecode(mediaResponseBody);
-
-          setState(() {
-            adopterInfo = {
-              ...adopterInfo!,
-              ...mediaResponseData['data'], // Update shelter media info
-            };
-
-            // Reset the local image files after successful upload
-            profileImageFile = null;
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Adopter details and media updated successfully!")),
-          );
-          Navigator.pop(context, true); // Return true to indicate success
-        } else {
-          final errorResponse = await mediaResponse.stream.bytesToString();
-          print('Media upload failed: $errorResponse'); // Log the server response
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Failed to upload media files")),
-          );
-        }
-      } else {
-        final errorMessage = jsonDecode(response.body)["message"] ?? "Failed to update adopter details";
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
+          const SnackBar(content: Text("Profile updated successfully!")),
         );
+        Navigator.pop(context, true);
+      } else {
+        final errorMessage = jsonDecode(response.body)["message"] ?? "Failed to update profile";
+        throw Exception(errorMessage);
       }
     } catch (e) {
-      print('Error during updateShelterDetails: $e'); // Log the error
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("An error occurred: ${e.toString()}")),
+        SnackBar(content: Text("Error: ${e.toString()}")),
       );
     }
   }
@@ -198,7 +171,7 @@ final response = await http.put(
 
     if (adopterInfo == null) {
       return const Scaffold(
-        body: Center(child: Text('Failed to load adopter information')),
+        body: Center(child: Text('Failed to load profile information')),
       );
     }
 
@@ -213,22 +186,24 @@ final response = await http.put(
             // Profile Photo Picker
             Align(
               alignment: Alignment.center,
-              child: GestureDetector(
-                onTap: () => pickImage('profile'),
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Colors.white,
-                  backgroundImage: profileImageBytes != null
-                      ? MemoryImage(profileImageBytes!)
-                      : (adopterInfo!['adopter_profile'] != null
-                          ? NetworkImage(adopterInfo!['adopter_profile'])
-                          : const AssetImage('assets/images/logo.png')) as ImageProvider,
-                  child: const Align(
-                    alignment: Alignment.bottomRight,
-                    child: CircleAvatar(
-                      radius: 15,
-                      backgroundColor: Colors.orange,
-                      child: Icon(Icons.camera_alt, size: 15, color: Colors.white),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: GestureDetector(
+                  onTap: () => pickImage('profile'),
+                  child: CircleAvatar(
+                    radius: 50,
+                    backgroundImage: profileImageBytes != null
+                        ? MemoryImage(profileImageBytes!)
+                        : (adopterInfo!['adopter_profile'] != null
+                        ? MemoryImage(base64Decode(adopterInfo!['adopter_profile']))
+                        : const AssetImage('assets/images/logo.png')) as ImageProvider,
+                    child: const Align(
+                      alignment: Alignment.bottomRight,
+                      child: CircleAvatar(
+                        radius: 15,
+                        backgroundColor: Colors.orange,
+                        child: Icon(Icons.camera_alt, size: 15, color: Colors.white),
+                      ),
                     ),
                   ),
                 ),
@@ -242,50 +217,45 @@ final response = await http.put(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('first Name', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('First Name', style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
-                    initialValue: adopterInfo!['first_name'],
+                    controller: firstNameController,
                     decoration: _inputDecoration('Enter first name'),
-                    onChanged: (value) => adopterInfo!['first_name'] = value,
                   ),
                   const SizedBox(height: 10),
 
-                  const Text('last Name', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Last Name', style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
-                    initialValue: adopterInfo!['last_name'],
+                    controller: lastNameController,
                     decoration: _inputDecoration('Enter last name'),
-                    onChanged: (value) => adopterInfo!['last_name'] = value,
                   ),
                   const SizedBox(height: 10),
 
                   const Text('Address', style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
-                    initialValue: adopterInfo!['address'],
+                    controller: addressController,
                     decoration: _inputDecoration('Enter address'),
-                    onChanged: (value) => adopterInfo!['address'] = value,
                   ),
                   const SizedBox(height: 10),
 
                   const Text('Contact Number', style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
-                    initialValue: adopterInfo!['contact_number'],
+                    controller: contactController,
                     decoration: _inputDecoration('Enter contact number'),
-                    onChanged: (value) => adopterInfo!['contact_number'] = value,
+                    keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 10),
 
                   const Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
-                    initialValue: adopterInfo!['email'],
+                    controller: emailController,
                     decoration: _inputDecoration('Enter email'),
-                    onChanged: (value) => adopterInfo!['email'] = value,
+                    keyboardType: TextInputType.emailAddress,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 20),
 
                   ElevatedButton(
-                    onPressed: () {
-                      updateShelterDetails();
-                    },
+                    onPressed: updateAdopterDetails,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),
                       backgroundColor: Colors.orange,

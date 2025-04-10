@@ -1,53 +1,126 @@
 import 'package:flutter/material.dart';
-import '../UserLogin/user_bottom_nav_bar.dart';// Import the updated BottomNavigationBar widget
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:march24/screen/UserDashboard/shelter_clicked.dart';
+import '../UserLogin/user_bottom_nav_bar.dart';
 import 'package:march24/screen/UserDashboard/view_all_pets.dart';
 import 'package:march24/screen/UserDashboard/view_all_shelter.dart';
+import 'package:march24/screen/UserDashboard/pet_clicked.dart';
 
-class UserHomeScreen extends StatelessWidget {
+class UserHomeScreen extends StatefulWidget {
   final int adopterId;
 
   const UserHomeScreen({Key? key, required this.adopterId}) : super(key: key);
 
   @override
+  _UserHomeScreenState createState() => _UserHomeScreenState();
+}
+
+class _UserHomeScreenState extends State<UserHomeScreen> {
+  List<Map<String, dynamic>> pets = [];
+  List<Map<String, dynamic>> shelters = [];
+  bool isLoading = true;
+  String errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPetsAndShelters();
+  }
+
+  Future<void> fetchPetsAndShelters() async {
+    const String petApiUrl = 'http://127.0.0.1:5566/users/petinfo';
+    const String shelterApiUrl = 'http://127.0.0.1:5566/allshelter';
+
+    try {
+      final petResponse = await http.get(Uri.parse(petApiUrl));
+      final shelterResponse = await http.get(Uri.parse(shelterApiUrl));
+
+      if (petResponse.statusCode == 200 && shelterResponse.statusCode == 200) {
+        final petData = jsonDecode(petResponse.body);
+        final shelterData = jsonDecode(shelterResponse.body);
+
+        setState(() {
+          pets = List<Map<String, dynamic>>.from(petData).take(3).toList();
+          shelters = List<Map<String, dynamic>>.from(shelterData).take(3).toList();
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          isLoading = false;
+          errorMessage = 'Failed to load data. Please try again.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+        errorMessage = 'Connection error. Please check your internet.';
+      });
+      print("Error fetching pets and shelters: $e");
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-
-        title: Text('PetHub', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('PetHub',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
         centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
         actions: [
-          IconButton(icon: Icon(Icons.search), onPressed: () {}),
-          IconButton(icon: Icon(Icons.notifications), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.search, color: Colors.black),
+            onPressed: () {
+              // Implement search functionality
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.notifications, color: Colors.black),
+            onPressed: () {
+              // Implement notifications
+            },
+          ),
         ],
       ),
-
       bottomNavigationBar: UserBottomNavBar(
-        adopterId: adopterId,
-        currentIndex: 0, // Set the active tab to "Home"
+        adopterId: widget.adopterId,
+        currentIndex: 0,
       ),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : errorMessage.isNotEmpty
+          ? Center(child: Text(errorMessage))
+          : SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildBanner(),
-            _buildSectionTitle(context, 'Pets', PetApp()),
-            _buildPetsList(context),
-            _buildSectionTitle(context, 'Pet Shelters', ShelterScreen()),
-            _buildSheltersList()
+            _buildWelcomeBanner(),
+            const SizedBox(height: 16),
+            _buildSectionTitle('Featured Pets', PetApp()),
+            _buildFeaturedPetsList(),
+            const SizedBox(height: 16),
+            _buildSectionTitle('Shelters', ShelterScreen()),
+            _buildSheltersList(),
+            const SizedBox(height: 20),
           ],
-
         ),
-
       ),
     );
   }
 
-  Widget _buildBanner() {
+  Widget _buildWelcomeBanner() {
     return Container(
-      margin: EdgeInsets.all(16),
-      padding: EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.orange.shade200,
+        color: const Color(0xFFF5F5F5),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -57,117 +130,230 @@ class UserHomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Just About to Adopt?',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  'Welcome Back!',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
                 ),
-                SizedBox(height: 8),
-                Text('See how you can find friends who are a match for you'),
+                const SizedBox(height: 8),
+                Text(
+                  'Find your perfect furry companion today',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                  ),
+                ),
               ],
             ),
           ),
-          Text(
-            'Welcome, Adopter ID: $adopterId',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          CircleAvatar(
-            radius: 30,
-            backgroundImage: AssetImage('assets/images/adopter.png'), // Ensure this image exists
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange[100],
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.pets,
+              color: Colors.orange,
+              size: 24,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(BuildContext context, String title, Widget page) {
+  Widget _buildSectionTitle(String title, Widget page) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
           TextButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => page)),
-            child: Text("View All"),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => page),
+            ),
+            child: Text(
+              "View All",
+              style: TextStyle(
+                color: Colors.orange[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPetsList(BuildContext context) {
+  Widget _buildFeaturedPetsList() {
     return SizedBox(
-      height: 150,
-      child: ListView(
+      height: 220,
+      child: pets.isEmpty
+          ? const Center(
+        child: Text("No pets available", style: TextStyle(color: Colors.grey)),
+      )
+          : ListView.builder(
         scrollDirection: Axis.horizontal,
-        children: [
-          _buildPetCard(context, "Mochi", "Abyssinian", "assets/images/logo.png"),
-          _buildPetCard(context, "Luna", "Chihuahua", "assets/images/logo.png"),
-          _buildPetCard(context, "Casper", "Maine Coon", "assets/images/logo.png"),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPetCard(BuildContext context, String name, String breed, String image) {
-    return GestureDetector(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Clicked on $name")),
-        );
-      },
-      child: Container(
-        width: 120,
-        margin: EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.grey.shade200,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
-              child: Image.asset(image, height: 80, width: double.infinity, fit: BoxFit.cover),
-            ),
-            Padding(
-              padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: pets.length,
+        itemBuilder: (context, index) {
+          final pet = pets[index];
+          return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PetDetailsScreen(petId: pet["pet_id"]),
+                ),
+              );
+            },
+            child: Container(
+              width: 160,
+              margin: const EdgeInsets.only(right: 16),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text(breed, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                  // Pet Image
+                  Container(
+                    height: 140,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: pet['pet_image1']?.isNotEmpty == true
+                        ? ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        pet['pet_image1'], // Using direct URL from API
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.pets, size: 40),
+                      ),
+                    )
+                        : const Icon(Icons.pets, size: 40),
+                  ),
+                  // Pet Info
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          pet['pet_name'] ?? 'Unknown',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          pet['pet_type'] ?? 'Unknown',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
   Widget _buildSheltersList() {
     return Padding(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _buildShelterCard("Happy Paws Shelter", "Downtown City", "assets/images/logo.png"),
-          _buildShelterCard("Furry Friends Haven", "Uptown Area", "assets/images/logo.png"),
+          if (shelters.isEmpty)
+            const Center(
+              child: Text("No shelters available", style: TextStyle(color: Colors.grey)),
+            )
+          else
+            ...shelters.map((shelter) {
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ShelterDetailsPage(shelterId: shelter["shelter_id"]),
+                    ),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(12),
+                    leading: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: shelter['shelter_image']?.isNotEmpty == true
+                          ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          shelter['shelter_image'], // Using direct URL from API
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                          const Icon(Icons.home_work, size: 24),
+                        ),
+                      )
+                          : const Icon(Icons.home_work, size: 24),
+                    ),
+                    title: Text(
+                      shelter['shelter_name'] ?? 'Unknown Shelter',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      shelter['shelter_address'] ?? 'Unknown Location',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                  ),
+                ),
+              );
+            }).toList(),
         ],
-      ),
-    );
-  }
-
-  Widget _buildShelterCard(String name, String location, String image) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ListTile(
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.asset(image, width: 50, height: 50, fit: BoxFit.cover),
-        ),
-        title: Text(name, style: TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(location),
-        trailing: Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () {},
       ),
     );
   }

@@ -3,10 +3,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'user_bottom_nav_bar.dart';
 import 'user_edit_profile_screen.dart';
+import '../splash_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final int adopterId;
-  const UserProfileScreen({Key? key, required this.adopterId}) : super(key: key);
+  const UserProfileScreen({super.key, required this.adopterId});
 
   @override
   _UserProfileScreenState createState() => _UserProfileScreenState();
@@ -23,51 +24,49 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> fetchAdopterInfo() async {
-    final String apiUrl = 'http://127.0.0.1:5566/user/${widget.adopterId}';
-
+    final url = 'http://127.0.0.1:5566/user/${widget.adopterId}';
     try {
-      final response = await http.get(Uri.parse(apiUrl));
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
-        final data = responseBody['data'];
+        final data = json.decode(response.body);
+        print("API Response: $data"); // Debugging
 
-        if (data != null && data is Map<String, dynamic>) {
-          setState(() {
-            adopterInfo = {
-              ...?data['info'],
-              ...?data['media'],
-            };
+        setState(() {
+          adopterInfo = data['data']['info'] ?? {};
 
-            // Decode base64 images safely
-            if (adopterInfo!['adopter_profile'] is String) {
-              adopterInfo!['adopter_profile'] = base64Decode(adopterInfo!['adopter_profile']);
-            }
-            if (adopterInfo!['adopter_cover'] is String) {
-              adopterInfo!['adopter_cover'] = base64Decode(adopterInfo!['adopter_cover']);
-            }
+          // Handle media if exists
+          if (data['data']['media'] != null) {
+            adopterInfo!.addAll(data['data']['media']);
+          }
 
-            isLoading = false;
-          });
-        } else {
-          throw Exception('Invalid data format');
-        }
+          if (adopterInfo!['adopter_profile'] != null) {
+            adopterInfo!['adopter_profile'] =
+                base64Decode(adopterInfo!['adopter_profile']);
+          }
+
+          isLoading = false;
+        });
       } else {
         throw Exception('Failed to load adopter details');
       }
     } catch (e) {
+      print("Error fetching adopter details: $e");
       setState(() {
         isLoading = false;
       });
-      print('Error fetching adopter details: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        body: const Center(child: CircularProgressIndicator()),
+        bottomNavigationBar: UserBottomNavBar(
+          adopterId: widget.adopterId,
+          currentIndex: 4,
+        ),
       );
     }
 
@@ -77,8 +76,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
     }
 
+    // Safely get the full name
+    String fullName = '${adopterInfo!['first_name'] ?? ''} ${adopterInfo!['last_name'] ?? ''}'.trim();
+    if (fullName.isEmpty) fullName = 'Unknown User';
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: const Color.fromARGB(255, 244, 231, 211),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,32 +99,40 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         backgroundColor: Colors.white,
                         backgroundImage: adopterInfo!['adopter_profile'] != null
                             ? MemoryImage(adopterInfo!['adopter_profile'])
-                            : const AssetImage('assets/images/logo.png') as ImageProvider,
+                            : const AssetImage('assets/images/logo.png')
+                        as ImageProvider,
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        '${adopterInfo!['first_name'] ?? ''} ${adopterInfo!['last_name'] ?? ''}',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        fullName,
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
 
             // Information Card
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      _infoRow(Icons.home, adopterInfo!['address'] ?? 'No information'),
-                      _infoRow(Icons.phone, adopterInfo!['contact_number']?.toString() ?? 'No information'),
-                      _infoRow(Icons.email, adopterInfo!['email'] ?? 'No information'),
+                      _infoRow(Icons.location_on,
+                          adopterInfo!['address'] ?? 'No information'),
+                      _infoRow(
+                          Icons.phone,
+                          adopterInfo!['contact_number']?.toString() ??
+                              'No information'),
+                      _infoRow(Icons.email,
+                          adopterInfo!['email'] ?? 'No information'),
                     ],
                   ),
                 ),
@@ -133,7 +144,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
               child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16.0),
@@ -142,15 +154,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     children: [
                       const Text(
                         'Description',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        adopterInfo!['adopter_description']?.isNotEmpty == true
-                            ? adopterInfo!['adopter_description']
-                            : 'No Description',
+                        adopterInfo!['description'] ?? 'No description available',
                         style: const TextStyle(fontSize: 12),
-                        textAlign: TextAlign.justify,
                       ),
                     ],
                   ),
@@ -174,7 +184,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => UserEditProfileScreen(adopterId: widget.adopterId),
+                      builder: (_) =>
+                          UserEditProfileScreen(adopterId: widget.adopterId),
                     ),
                   );
 
@@ -195,7 +206,35 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: GestureDetector(
                 onTap: () {
-                  // Handle logout action
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        content: const Text('Are you sure you want to logout?'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => const SplashScreen()),
+                                    (Route<dynamic> route) => false,
+                              );
+                            },
+                            child: const Text(
+                              'Logout',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 },
                 child: Container(
                   width: double.infinity,
@@ -207,7 +246,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   child: const Center(
                     child: Text(
                       'Logout',
-                      style: TextStyle(color: Colors.red, fontSize: 13, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -224,21 +266,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  Widget _infoRow(IconData icon, String text) {
-    final displayText = text.isNotEmpty ? text : 'No information';
+  Widget _infoRow(IconData icon, String? text) {
+    final displayText = text?.isNotEmpty == true ? text : 'No information';
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
           Icon(icon, color: Colors.black),
           const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              displayText,
-              style: const TextStyle(fontSize: 12),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
+          Text(displayText!,
+              style: const TextStyle(fontSize: 12)),
         ],
       ),
     );

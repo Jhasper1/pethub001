@@ -9,7 +9,7 @@ class ShelterScreen extends StatefulWidget {
 }
 
 class _ShelterScreenState extends State<ShelterScreen> {
-  List<dynamic> shelters = []; // List to hold shelter data
+  List<dynamic> shelters = [];
   bool isLoading = true;
   String errorMessage = '';
 
@@ -20,19 +20,18 @@ class _ShelterScreenState extends State<ShelterScreen> {
   }
 
   Future<void> fetchShelters() async {
-    final url = Uri.parse("http://127.0.0.1:5566/allshelter"); // API URL
+    final url = Uri.parse("http://127.0.0.1:5566/allshelter");
 
     try {
-      final response = await http.get(url).timeout(Duration(seconds: 10)); // Timeout for request
+      final response = await http.get(url).timeout(Duration(seconds: 10));
 
-      print("API Response: ${response.body}"); // Log raw API response
+      print("API Response: ${response.body}");
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print("Decoded Data: $data"); // Log decoded data
+        print("Decoded Data: $data");
 
         setState(() {
-          // If the response is a list or has a 'shelters' key
           if (data is List) {
             shelters = data;
           } else if (data.containsKey("shelters")) {
@@ -40,7 +39,6 @@ class _ShelterScreenState extends State<ShelterScreen> {
           } else {
             shelters = [];
           }
-          print("Shelters List after setState: $shelters"); // Verify if shelters are populated correctly
           isLoading = false;
         });
       } else {
@@ -54,12 +52,32 @@ class _ShelterScreenState extends State<ShelterScreen> {
     }
   }
 
+  Widget _buildShelterImage(dynamic shelter) {
+    try {
+      if (shelter["shelter_profile"] != null && shelter["shelter_profile"].isNotEmpty) {
+        final imageBytes = base64Decode(shelter["shelter_profile"]);
+        return CircleAvatar(
+          radius: 25,
+          backgroundImage: MemoryImage(imageBytes),
+        );
+      }
+    } catch (e) {
+      print("Error decoding shelter profile image: $e");
+    }
+    return CircleAvatar(
+      radius: 25,
+      backgroundColor: Colors.orange[100],
+      child: Icon(Icons.home, color: Colors.orange),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    print("Shelters Length: ${shelters.length}"); // Log list length
-
     return Scaffold(
-      appBar: AppBar(title: Text("Shelters"), centerTitle: true),
+      appBar: AppBar(
+        title: Text("Shelters"),
+        centerTitle: true,
+      ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
@@ -67,18 +85,31 @@ class _ShelterScreenState extends State<ShelterScreen> {
           : shelters.isEmpty
           ? Center(child: Text("No shelters available"))
           : ListView.builder(
-        key: UniqueKey(), // Forces UI rebuild on each state change
         itemCount: shelters.length,
         itemBuilder: (context, index) {
           final shelter = shelters[index];
           return Card(
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: ListTile(
-              title: Text(shelter["shelter_name"] ?? "Unknown Shelter",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              subtitle: Text(shelter["shelter_address"] ?? "No address available"),
-              leading: Icon(Icons.home, color: Colors.orange),
+              contentPadding: EdgeInsets.all(12),
+              leading: _buildShelterImage(shelter),
+              title: Text(
+                shelter["shelter_name"] ?? "Unknown Shelter",
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(shelter["shelter_address"] ?? "No address available"),
+                  SizedBox(height: 4),
+                ],
+              ),
+              trailing: Icon(Icons.chevron_right, color: Colors.grey),
               onTap: () {
-                // Navigate to Shelter Details Page
                 Navigator.push(
                   context,
                   MaterialPageRoute(

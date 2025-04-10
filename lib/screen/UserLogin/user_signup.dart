@@ -55,7 +55,7 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
       "age": int.tryParse(ageController.text) ?? 0,
       "sex": selectedSex,
       "address": addressController.text,
-      "contact_number": int.tryParse(contactNumberController.text),
+      "contact_number": contactNumberController.text,
       "email": emailController.text,
       "occupation": occupationController.text,
       "civil_status": selectedCivilStatus,
@@ -117,7 +117,7 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
               children: [
                 Text('Sign up',
                     style:
-                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
                 SizedBox(height: 20),
                 TextFormField(
                   controller: firstNameController,
@@ -145,7 +145,7 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
                   },
                   items: ["Male", "Female"]
                       .map((sex) =>
-                          DropdownMenuItem(value: sex, child: Text(sex)))
+                      DropdownMenuItem(value: sex, child: Text(sex)))
                       .toList(),
                 ),
                 TextFormField(
@@ -186,7 +186,7 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
                   },
                   items: ["Single", "Married", "Divorced", "Widowed"]
                       .map((status) =>
-                          DropdownMenuItem(value: status, child: Text(status)))
+                      DropdownMenuItem(value: status, child: Text(status)))
                       .toList(),
                 ),
                 TextFormField(
@@ -210,10 +210,10 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, 50),
                     backgroundColor:
-                        isButtonEnabled() ? Colors.orange : Colors.grey,
+                    isButtonEnabled() ? Colors.orange : Colors.grey,
                   ),
                   onPressed:
-                      isButtonEnabled() && !isLoading ? registerUser : null,
+                  isButtonEnabled() && !isLoading ? registerUser : null,
                   child: isLoading
                       ? CircularProgressIndicator(color: Colors.white)
                       : Text("Sign Up", style: TextStyle(color: Colors.white)),
@@ -226,4 +226,3 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
     );
   }
 }
-
