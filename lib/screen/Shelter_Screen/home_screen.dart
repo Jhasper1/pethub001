@@ -51,7 +51,7 @@ class HomeScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-              color: Colors.orange,
+              color: Colors.lightBlue,
               borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -101,7 +101,7 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       backgroundColor: Colors.grey[200],
-                      child: Icon(Icons.pets, color: Colors.orange),
+                      child: Icon(Icons.pets, color: Colors.lightBlue),
                     ),
                     const SizedBox(height: 5),
                     Text(categories[index]),
@@ -112,7 +112,7 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(height: 20),
             _buildSectionHeader('Pets Near You'),
             _buildPetList(),
-            _buildSectionHeader('Based on Your Preferences'),
+            _buildSectionHeader('Your Preferences'),
             _buildPetList(),
           ],
         ),
@@ -134,7 +134,7 @@ class HomeScreen extends StatelessWidget {
             onPressed: () {},
             child: const Text(
               'View All',
-              style: TextStyle(color: Colors.orange),
+              style: TextStyle(color: Colors.lightBlue),
             ),
           ),
         ],

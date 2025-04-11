@@ -147,7 +147,10 @@ class _AddPetScreenState extends State<AddPetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Add Pet')),
+      appBar: AppBar(title: Text('Add Pet'),
+        backgroundColor: Colors.lightBlue,
+        automaticallyImplyLeading: false,
+      ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Form(
@@ -293,7 +296,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   },
                   style: ElevatedButton.styleFrom(
                     minimumSize: Size(double.infinity, 50),
-                    backgroundColor: Colors.orange,
+                    backgroundColor: Colors.lightBlue,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -317,7 +320,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
     return ElevatedButton.icon(
       style: ElevatedButton.styleFrom(
         backgroundColor:
-            _selectedPetType == text ? Colors.orange : Colors.grey[300],
+            _selectedPetType == text ? Colors.lightBlue : Colors.grey[300],
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),

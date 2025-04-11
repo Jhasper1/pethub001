@@ -24,56 +24,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> fetchShelterInfo() async {
-  final url = 'http://127.0.0.1:5566/shelter/${widget.shelterId}';
-  try {
-    final response = await http.get(Uri.parse(url));
+    final url = 'http://127.0.0.1:5566/shelter/${widget.shelterId}';
+    try {
+      final response = await http.get(Uri.parse(url));
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      final info = data['data']['info'];
-      final media = data['data']['media'];
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final info = data['data']['info'];
+        final media = data['data']['media'];
 
+        setState(() {
+          shelterInfo = {
+            ...?info,
+            ...?media,
+          };
+
+          if (shelterInfo!['shelter_profile'] != null) {
+            shelterInfo!['shelter_profile'] =
+                base64Decode(shelterInfo!['shelter_profile']);
+          }
+
+          if (shelterInfo!['shelter_cover'] != null) {
+            shelterInfo!['shelter_cover'] =
+                base64Decode(shelterInfo!['shelter_cover']);
+          }
+
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load shelter details');
+      }
+    } catch (e) {
+      print("Error fetching shelter details: $e");
       setState(() {
-        shelterInfo = {
-          ...?info,
-          ...?media,
-        };
-
-        if (shelterInfo!['shelter_profile'] != null) {
-          shelterInfo!['shelter_profile'] =
-              base64Decode(shelterInfo!['shelter_profile']);
-        }
-
-        if (shelterInfo!['shelter_cover'] != null) {
-          shelterInfo!['shelter_cover'] =
-              base64Decode(shelterInfo!['shelter_cover']);
-        }
-
         isLoading = false;
       });
-    } else {
-      throw Exception('Failed to load shelter details');
     }
-  } catch (e) {
-    print("Error fetching shelter details: $e");
-    setState(() {
-      isLoading = false;
-    });
   }
-}
 
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-  return Scaffold(
-    body: const Center(child: CircularProgressIndicator()),
-    bottomNavigationBar: BottomNavBar(
-      shelterId: widget.shelterId,
-      currentIndex: 4,
-    ),
-  );
-}
-
+      return Scaffold(
+        body: const Center(child: CircularProgressIndicator()),
+        bottomNavigationBar: BottomNavBar(
+          shelterId: widget.shelterId,
+          currentIndex: 4,
+        ),
+      );
+    }
 
     if (shelterInfo == null) {
       return const Scaffold(
@@ -82,7 +81,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 244, 231, 211),
+      appBar: AppBar(
+        title: const Text('Shelter Profile'),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.lightBlue,
+      ),
+      backgroundColor: Colors.grey[200],
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,22 +95,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Stack(
               children: [
                 Container(
-                  height: 150,
+                  height: 175,
+                  width: double.infinity,
                   decoration: shelterInfo!['shelter_cover'] != null
                       ? BoxDecoration(
                           image: DecorationImage(
                               image: MemoryImage(shelterInfo!['shelter_cover']),
                               fit: BoxFit.cover),
                         )
-                      : const BoxDecoration(color: Colors.orange),
+                      : const BoxDecoration(color: Colors.grey),
                 ),
                 Align(
                   alignment: Alignment.center,
                   child: Column(
                     children: [
-                      const SizedBox(height: 90),
+                      const SizedBox(height: 110),
                       CircleAvatar(
-                        radius: 50,
+                        radius: 60,
                         backgroundColor: Colors.white,
                         backgroundImage: shelterInfo!['shelter_profile'] != null
                             ? MemoryImage(shelterInfo!['shelter_profile'])
@@ -125,36 +130,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             const SizedBox(height: 10),
-
-            // Information Card
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
-              child: Card(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      _infoRow(Icons.location_on,
-                          shelterInfo!['shelter_address'] ?? 'No information'),
-                      _infoRow(Icons.location_city,
-                          shelterInfo!['shelter_landmark'] ?? 'No information'),
-                      _infoRow(
-                          Icons.phone,
-                          shelterInfo!['shelter_contact']?.toString() ??
-                              'No information'),
-                      _infoRow(Icons.email,
-                          shelterInfo!['shelter_email'] ?? 'No information'),
-                      _infoRow(Icons.language,
-                          shelterInfo!['shelter_social'] ?? 'No information'),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-
             // Description Box
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 15.0),
@@ -186,7 +161,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
+
+            // Information Card
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Card(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      _infoRow(Icons.location_on,
+                          shelterInfo!['shelter_address'] ?? 'No information'),
+                      _infoRow(Icons.location_city,
+                          shelterInfo!['shelter_landmark'] ?? 'No information'),
+                      _infoRow(
+                          Icons.phone,
+                          shelterInfo!['shelter_contact']?.toString() ??
+                              'No information'),
+                      _infoRow(Icons.email,
+                          shelterInfo!['shelter_email'] ?? 'No information'),
+                      _infoRow(Icons.language,
+                          shelterInfo!['shelter_social'] ?? 'No information'),
+                      _infoRow(Icons.person,
+                          shelterInfo!['shelter_owner'] ?? 'No information'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
 
             // Edit Button
             Padding(
@@ -220,7 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 15),
 
             // Logout Button
             Padding(
@@ -253,7 +259,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             },
                             child: const Text(
                               'Logout',
-                              style: TextStyle(color: Colors.red),
+                              style: TextStyle(color: Colors.red, fontSize: 16),
                             ),
                           ),
                         ],
