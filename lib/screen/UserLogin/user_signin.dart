@@ -35,16 +35,6 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
         }),
       );
 
-      // Debugging logs
-      print("🔵 Request URL: $url");
-      print("🟢 Request Headers: ${response.request?.headers}");
-      print("🟡 Request Body: ${jsonEncode({
-        "username": _usernameController.text.trim(),
-        "password": _passwordController.text.trim(),
-      })}");
-      print("🔴 Response Code: ${response.statusCode}");
-      print("🟠 Response Body: ${response.body}");
-
       final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200 && responseData['data'] != null) {
@@ -53,7 +43,6 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
         if (adopterData != null && adopterData.containsKey('adopter_id')) {
           final int adopterId = adopterData['adopter_id'];
 
-          // Navigate to UserHomeScreen with adopterId
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (_) => UserHomeScreen(adopterId: adopterId)),
@@ -74,134 +63,151 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 60),
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
+      backgroundColor: const Color(0xFFE2F3FD), // light blue background
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height,
             ),
-            const SizedBox(height: 20),
-            Center(
-              child: Column(
-                children: [
-                  Image.asset('assets/images/logo.png', width: 150),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Sign in as Adopter Account',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 40),
-            const Text(
-              'Username',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            TextField(
-              controller: _usernameController,
-              decoration: InputDecoration(
-                hintText: 'Enter your username',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Password',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                hintText: 'Enter your password',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+            child: IntrinsicHeight(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
                   children: [
-                    Checkbox(value: false, onChanged: (bool? value) {}),
-                    const Text('Remember me'),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Center(
+                      child: Column(
+                        children: [
+                          Image.asset('assets/images/logo.png', width: 150),
+                          const SizedBox(height: 20),
+                          const Text(
+                            'Sign in as Adopter Account',
+                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    // Form Card
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 10,
+                            offset: Offset(0, 3),
+                          )
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text('Username', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: _usernameController,
+                            decoration: InputDecoration(
+                              hintText: 'Enter your username',
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              filled: true,
+                              fillColor: Colors.grey[100],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          const Text('Password', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            decoration: InputDecoration(
+                              hintText: 'Enter your password',
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              filled: true,
+                              fillColor: Colors.grey[100],
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Checkbox(value: false, onChanged: (val) {}),
+                                  const Text('Remember me'),
+                                ],
+                              ),
+                              TextButton(
+                                onPressed: () {},
+                                child: const Text(
+                                  'Forgot password?',
+                                  style: TextStyle(color: Color(0xFF0288D1)),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Text(
+                                _errorMessage!,
+                                style: const TextStyle(color: Colors.red),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          _isLoading
+                              ? const Center(child: CircularProgressIndicator())
+                              : ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFF0288D1),
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            onPressed: _login,
+                            child: const Text(
+                              'Sign in',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const UserSignUpScreen()),
+                        );
+                      },
+                      child: const Text(
+                        "Don't have an account? Sign up",
+                        style: TextStyle(color: Color(0xFF0288D1)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
                   ],
                 ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    'Forgot password?',
-                    style: TextStyle(color: Colors.orange),
-                  ),
-                ),
-              ],
-            ),
-            Center(
-              child: Column(
-                children: [
-                  if (_errorMessage != null)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Text(
-                        _errorMessage!,
-                        style: const TextStyle(color: Colors.red, fontSize: 14),
-                      ),
-                    ),
-                  _isLoading
-                      ? const CircularProgressIndicator()
-                      : ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 50,
-                        vertical: 15,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    onPressed: _login,
-                    child: const Text(
-                      'Sign in',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const UserSignUpScreen()),
-                      );
-                    },
-                    child: const Text(
-                      "Don't have an account? Sign up",
-                      style: TextStyle(color: Colors.orange),
-                    ),
-                  ),
-                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

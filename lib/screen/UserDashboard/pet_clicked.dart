@@ -64,7 +64,9 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => QuestionnaireScreen(petId: widget.petId, petName: petDetails!["pet_name"] ?? "Unknown",
+          builder: (context) => QuestionnaireScreen(
+            petId: widget.petId,
+            petName: petDetails!["pet_name"] ?? "Unknown",
           ),
         ),
       );
@@ -123,7 +125,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
 
   Widget _squareInfoBox(String label, String? value, Color color) {
     return Container(
-      width: 90,
+      width: 120,
       height: 90,
       margin: EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
@@ -230,18 +232,23 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                 onPressed: _onAdoptPressed,
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.blue,
+                  backgroundColor: Color(0xFF1B85F3), // Teal 500
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(30),
                   ),
+                  elevation: 2,
                 ),
                 child: Text(
                   "Adopt",
-                  style: TextStyle(fontSize: 18),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
-          ),
+          )
         ],
       ),
     );
