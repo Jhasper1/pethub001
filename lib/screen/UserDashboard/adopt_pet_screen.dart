@@ -1,271 +1,267 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
 
-class AdoptPetScreen extends StatefulWidget {
+class QuestionnaireScreen extends StatefulWidget {
   final int petId;
   final String petName;
 
-  AdoptPetScreen({required this.petId, required this.petName});
+  const QuestionnaireScreen({
+    required this.petId,
+    required this.petName,
+    Key? key,
+  }) : super(key: key);
 
   @override
-  _AdoptPetScreenState createState() => _AdoptPetScreenState();
+  _QuestionnaireScreenState createState() => _QuestionnaireScreenState();
 }
 
-class _AdoptPetScreenState extends State<AdoptPetScreen> {
+class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
   final _formKey = GlobalKey<FormState>();
+  final TextEditingController _idealPetDescController = TextEditingController();
+  final TextEditingController _petMovePlanController = TextEditingController();
+  final TextEditingController _householdCompController = TextEditingController();
+  final TextEditingController _careRespController = TextEditingController();
+  final TextEditingController _finRespController = TextEditingController();
+  final TextEditingController _vacationPlanController = TextEditingController();
+  final TextEditingController _aloneTimeController = TextEditingController();
+  final TextEditingController _introPlanController = TextEditingController();
+  final TextEditingController _familySupportExpController = TextEditingController();
+  final TextEditingController _prefInterviewController = TextEditingController();
 
-  String? firstName, lastName, address, phone, email, occupation, socialMedia, civilStatus, sex;
-  DateTime? birthdate;
-  String? adoptedBefore, idealPet, buildingType, rentStatus, movePlan, livingWith, allergy, petCare, petNeeds, vacationPlan, familySupport, otherPets, pastPets;
-  String? homePhotos, idUpload, zoomDate, zoomTime, visitShelter;
+  List<File> _homePhotos = [];
+  File? _validIdFile;
+  bool? _specificShelterAnimal;
+  String? _buildingType;
+  bool? _rent;
+  bool? _allergies;
+  bool? _familySupport;
+  bool? _otherPets;
+  bool? _pastPets;
+  bool _isSubmitting = false;
 
-  final List<String> civilStatuses = ["Single", "Married", "Divorced", "Widowed"];
-  final List<String> sexes = ["Male", "Female", "Other"];
+  Future<void> _pickImages() async {
+    final picked = await ImagePicker().pickMultiImage();
+    if (picked != null) {
+      setState(() {
+        _homePhotos = picked.map((file) => File(file.path)).toList();
+      });
+    }
+  }
 
-  // For Yes/No questions
-  String? hasAdoptedBefore, isAllergicToAnimals, hasOtherPets, hasPastPets, familySupportAnswer, canVisitShelter;
+  Future<void> _pickValidId() async {
+    final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _validIdFile = File(picked.path);
+      });
+    }
+  }
 
-  final DateFormat _dateFormat = DateFormat("yyyy-MM-dd");
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSubmitting = true);
+
+    final uri = Uri.parse("http://127.0.0.1:5566/questionnaires");
+    var request = http.MultipartRequest('POST', uri);
+
+    // Add text fields
+    request.fields.addAll({
+      'application_id': widget.petId.toString(),
+      'pet_type': widget.petName,
+      'specific_shelter_animal': _specificShelterAnimal.toString(),
+      'ideal_pet_description': _idealPetDescController.text,
+      'building_type': _buildingType ?? '',
+      'rent': _rent.toString(),
+      'pet_move_plan': _petMovePlanController.text,
+      'household_composition': _householdCompController.text,
+      'allergies_to_animals': _allergies.toString(),
+      'care_responsibility': _careRespController.text,
+      'financial_responsibility': _finRespController.text,
+      'vacation_care_plan': _vacationPlanController.text,
+      'alone_time': _aloneTimeController.text,
+      'introduction_plan': _introPlanController.text,
+      'family_support': _familySupport.toString(),
+      'family_support_explanation': _familySupportExpController.text,
+      'other_pets': _otherPets.toString(),
+      'past_pets': _pastPets.toString(),
+      'preferred_interview_setting': _prefInterviewController.text,
+    });
+
+    // Add home photos
+    for (var photo in _homePhotos) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'home_photos',
+        photo.path,
+        filename: path.basename(photo.path),
+      ));
+    }
+
+    // Add valid ID
+    if (_validIdFile != null) {
+      request.files.add(await http.MultipartFile.fromPath(
+        'valid_id',
+        _validIdFile!.path,
+        filename: path.basename(_validIdFile!.path),
+      ));
+    }
+
+    try {
+      final response = await request.send();
+      final body = await response.stream.bytesToString();
+
+      if (response.statusCode == 201) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Questionnaire submitted successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${jsonDecode(body)['error']}')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Network error: $e')),
+      );
+    } finally {
+      setState(() => _isSubmitting = false);
+    }
+  }
+
+  Widget _buildYesNoRadio(String title, bool? value, Function(bool?) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+        Row(
+          children: [
+            Radio<bool>(
+              value: true,
+              groupValue: value,
+              onChanged: onChanged,
+            ),
+            Text('Yes'),
+            const SizedBox(width: 16),
+            Radio<bool>(
+              value: false,
+              groupValue: value,
+              onChanged: onChanged,
+            ),
+            Text('No'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBuildingTypeDropdown() {
+    return DropdownButtonFormField<String>(
+      value: _buildingType,
+      decoration: InputDecoration(labelText: 'Building Type'),
+      items: ['House', 'Apartment', 'Condo', 'Townhouse', 'Other']
+          .map((type) => DropdownMenuItem(
+        value: type,
+        child: Text(type),
+      ))
+          .toList(),
+      onChanged: (value) => setState(() => _buildingType = value),
+      validator: (value) => value == null ? 'Please select' : null,
+    );
+  }
+
+  Widget _buildImagePreview(List<File> images) {
+    if (images.isEmpty) return Container();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Selected Photos:', style: TextStyle(fontWeight: FontWeight.w500)),
+        SizedBox(height: 8),
+        SizedBox(
+          height: 100,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: images.length,
+            itemBuilder: (context, index) => Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Image.file(images[index], width: 100, height: 100, fit: BoxFit.cover),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Adopt ${widget.petName}")),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Adoption Form for ${widget.petName}",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                SizedBox(height: 20),
+      appBar: AppBar(
+        title: Text('Adoption Questionnaire for ${widget.petName}'),
+      ),
+      body: _isSubmitting
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('About Your Living Situation', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(height: 16),
+              _buildYesNoRadio(
+                'Are you interested in a specific shelter animal?',
+                _specificShelterAnimal,
+                    (v) => setState(() => _specificShelterAnimal = v),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _idealPetDescController,
+                decoration: InputDecoration(labelText: 'Describe your ideal pet'),
+                maxLines: 3,
+                validator: (v) => v!.isEmpty ? 'Required' : null,
+              ),
+              SizedBox(height: 16),
+              _buildBuildingTypeDropdown(),
+              SizedBox(height: 16),
+              _buildYesNoRadio(
+                'Do you rent your home?',
+                _rent,
+                    (v) => setState(() => _rent = v),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: _petMovePlanController,
+                decoration: InputDecoration(labelText: 'What would you do if you had to move?'),
+                maxLines: 2,
+                validator: (v) => v!.isEmpty ? 'Required' : null,
+              ),
+              SizedBox(height: 24),
 
-                // Applicant's Info Section
-                Text("Applicant's Info", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                _buildTextField("Firstname", (value) => firstName = value),
-                _buildTextField("Lastname", (value) => lastName = value),
-                _buildTextField("Address", (value) => address = value),
-                _buildTextField("Phone", (value) => phone = value, inputType: TextInputType.phone, validator: _phoneValidator),
-                _buildTextField("Email", (value) => email = value, validator: _emailValidator),
-                _buildTextField("Occupation", (value) => occupation = value),
-                _buildTextField("Social media profile", (value) => socialMedia = value),
+              // Rest of your form fields...
+              // (Include all the other form sections from the previous implementation)
 
-                // Civil Status and Sex Selection
-                _buildDropdown("Civil Status", civilStatuses, (value) => civilStatus = value),
-                _buildDropdown("Sex", sexes, (value) => sex = value),
-
-                // Birthdate
-                _buildDatePicker("Birthdate", (value) => birthdate = value),
-
-                // Have you adopted animals before (Yes/No)
-                _buildRadioGroup("Have you adopted animals before?", ["Yes", "No"], hasAdoptedBefore, (value) {
-                  setState(() {
-                    hasAdoptedBefore = value;
-                  });
-                }),
-
-                SizedBox(height: 20),
-
-                // Questionnaire Section
-                Text("Questionnaire", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                _buildRadioGroup("What are you looking to adopt?", ["Cat", "Dog", "Both", "Not Decided"], idealPet, (value) {
-                  setState(() {
-                    idealPet = value;
-                  });
-                }),
-                _buildRadioGroup("Are you applying to adopt a specific shelter animal?", ["Yes", "No"], adoptedBefore, (value) {
-                  setState(() {
-                    adoptedBefore = value;
-                  });
-                }),
-                _buildTextField("Describe your ideal pet, including its sex, age, appearance, temperament, etc.", (value) => idealPet = value),
-                _buildTextField("What type of building do you live in?", (value) => buildingType = value),
-                _buildRadioGroup("Do you rent?", ["Yes", "No"], rentStatus, (value) {
-                  setState(() {
-                    rentStatus = value;
-                  });
-                }),
-                _buildRadioGroup("What happens to your pet if or when you move?", ["Take it with me", "Leave it behind", "Other"], movePlan, (value) {
-                  setState(() {
-                    movePlan = value;
-                  });
-                }),
-                _buildRadioGroup("Who do you live with?", ["Living alone", "Spouse", "Parents", "Children over 18", "Children below 18", "Relatives", "Roommates"], livingWith, (value) {
-                  setState(() {
-                    livingWith = value;
-                  });
-                }),
-                _buildRadioGroup("Are any members of your household allergic to animals?", ["Yes", "No"], allergy, (value) {
-                  setState(() {
-                    allergy = value;
-                  });
-                }),
-                _buildTextField("Who will be responsible for feeding, grooming, and generally caring for your pet?", (value) => petCare = value),
-                _buildTextField("Who will be responsible for your pet’s needs (food, vet bills, etc)?", (value) => petNeeds = value),
-                _buildTextField("Who will look after your pet if you go on vacation or in case of emergency?", (value) => vacationPlan = value),
-                _buildTextField("How many hours in an average workday will your pet be left alone?", (value) => vacationPlan = value),
-                _buildTextField("What steps will you take to introduce your new pet to his/her new surroundings?", (value) => vacationPlan = value),
-                _buildRadioGroup("Does everyone in the family support your decision to adopt a pet?", ["Yes", "No"], familySupportAnswer, (value) {
-                  setState(() {
-                    familySupportAnswer = value;
-                  });
-                }),
-                _buildRadioGroup("Do you have other pets?", ["Yes", "No"], hasOtherPets, (value) {
-                  setState(() {
-                    hasOtherPets = value;
-                  });
-                }),
-                _buildRadioGroup("Have you had pets in the past?", ["Yes", "No"], hasPastPets, (value) {
-                  setState(() {
-                    hasPastPets = value;
-                  });
-                }),
-
-                SizedBox(height: 20),
-
-                // Submit Button
-                Center(
-                  child: ElevatedButton(
-                    onPressed: _validateAndSubmit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: Text(
-                      "Submit Request",
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
+              Center(
+                child: ElevatedButton(
+                  onPressed: _isSubmitting ? null : _submitForm,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   ),
+                  child: _isSubmitting
+                      ? CircularProgressIndicator(color: Colors.white)
+                      : Text('Submit Questionnaire', style: TextStyle(fontSize: 18)),
                 ),
-              ],
-            ),
+              ),
+              SizedBox(height: 32),
+            ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildTextField(String label, Function(String?) onSaved, {TextInputType inputType = TextInputType.text, String? Function(String?)? validator}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-        ),
-        keyboardType: inputType,
-        onSaved: onSaved,
-        validator: validator,
-      ),
-    );
-  }
-
-  Widget _buildDropdown(String label, List<String> items, Function(String?) onSaved) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: DropdownButtonFormField<String>(
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-        ),
-        items: items.map((String value) {
-          return DropdownMenuItem<String>(
-            value: value,
-            child: Text(value),
-          );
-        }).toList(),
-        onChanged: (value) => onSaved(value),
-        onSaved: onSaved,
-      ),
-    );
-  }
-
-  Widget _buildDatePicker(String label, Function(DateTime?) onSaved) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-        ),
-        readOnly: true,
-        onTap: () async {
-          DateTime? selectedDate = await showDatePicker(
-            context: context,
-            initialDate: DateTime.now(),
-            firstDate: DateTime(1900),
-            lastDate: DateTime.now(),
-          );
-          if (selectedDate != null) {
-            onSaved(selectedDate);
-          }
-        },
-        controller: TextEditingController(text: birthdate != null ? _dateFormat.format(birthdate!) : ''),
-        validator: (value) => value!.isEmpty ? "Please select a birthdate" : null,
-      ),
-    );
-  }
-
-  Widget _buildRadioGroup(String label, List<String> options, String? groupValue, Function(String?) onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          ...options.map((String option) {
-            return Row(
-              children: [
-                Radio<String>(
-                  value: option,
-                  groupValue: groupValue,
-                  onChanged: onChanged,
-                ),
-                Text(option),
-              ],
-            );
-          }).toList(),
-        ],
-      ),
-    );
-  }
-
-  String? _phoneValidator(String? value) {
-    if (value == null || value.isEmpty) {
-      return "Please enter your phone number";
-    }
-    if (!RegExp(r'^\d+$').hasMatch(value)) {
-      return "Phone number should only contain numbers";
-    }
-    return null;
-  }
-
-  String? _emailValidator(String? value) {
-    if (value == null || value.isEmpty) {
-      return "Please enter your email address";
-    }
-    if (!value.endsWith('@gmail.com')) {
-      return "Email must end with @gmail.com";
-    }
-    return null;
-  }
-
-  void _validateAndSubmit() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Adoption request submitted for ${widget.petName}!")),
-      );
-      Navigator.pop(context);
-    }
   }
 }

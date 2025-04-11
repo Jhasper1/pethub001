@@ -40,7 +40,7 @@ class UserBottomNavBar extends StatelessWidget {
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation1, animation2) =>
-                    Placeholder(), // Pass adopterId here
+                    AdoptedPetsScreen(adopterId: adopterId), // Pass adopterId here
                 transitionDuration: Duration.zero,
               ),
             );

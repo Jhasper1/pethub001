@@ -6,6 +6,8 @@ import '../UserLogin/user_bottom_nav_bar.dart';
 import 'package:march24/screen/UserDashboard/view_all_pets.dart';
 import 'package:march24/screen/UserDashboard/view_all_shelter.dart';
 import 'package:march24/screen/UserDashboard/pet_clicked.dart';
+import 'package:march24/screen/ShelterLogIn/shelter_notification.dart';
+import 'dart:typed_data';
 
 class UserHomeScreen extends StatefulWidget {
   final int adopterId;
@@ -84,9 +86,16 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           IconButton(
             icon: const Icon(Icons.notifications, color: Colors.black),
             onPressed: () {
-              // Implement notifications
+              // Navigate to the ShelterNotificationScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ShelterNotificationScreen(), // Navigate to ShelterNotificationScreen
+                ),
+              );
             },
-          ),
+          )
+
         ],
       ),
       bottomNavigationBar: UserBottomNavBar(
@@ -209,6 +218,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         itemCount: pets.length,
         itemBuilder: (context, index) {
           final pet = pets[index];
+          String petImageBase64 = pet['pet_image1'] ?? '';
+
           return GestureDetector(
             onTap: () {
               Navigator.push(
@@ -232,11 +243,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                       color: Colors.grey[200],
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: pet['pet_image1']?.isNotEmpty == true
+                    child: petImageBase64.isNotEmpty
                         ? ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        pet['pet_image1'], // Using direct URL from API
+                      child: Image.memory(
+                        base64Decode(petImageBase64), // Decode and display base64 image
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>
                         const Icon(Icons.pets, size: 40),
@@ -294,6 +305,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             )
           else
             ...shelters.map((shelter) {
+              String shelterProfileBase64 = shelter['shelter_profile'] ?? '';
+
               return GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -325,11 +338,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                         color: Colors.grey[200],
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: shelter['shelter_image']?.isNotEmpty == true
+                      child: shelterProfileBase64.isNotEmpty
                           ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          shelter['shelter_image'], // Using direct URL from API
+                        child: Image.memory(
+                          base64Decode(shelterProfileBase64), // Decode base64 shelter profile
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) =>
                           const Icon(Icons.home_work, size: 24),
