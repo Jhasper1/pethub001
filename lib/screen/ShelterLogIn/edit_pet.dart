@@ -51,8 +51,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
         setState(() {
           _nameController.text = petDataResponse['pet_name'] ?? '';
           _ageController.text = petDataResponse['pet_age'].toString();
-          _descriptionController.text =
-              petDataResponse['pet_descriptions'] ?? '';
+          _descriptionController.text = petDataResponse['pet_descriptions'] ?? '';
           _selectedAgeType = petDataResponse['age_type'];
           _selectedSex = petDataResponse['pet_sex'];
           _selectedPetType = petDataResponse['pet_type'];
@@ -69,7 +68,6 @@ class _EditPetScreenState extends State<EditPetScreen> {
         throw Exception('Failed to load pet data');
       }
     } catch (e) {
-      print("Error fetching pet data: $e");
       setState(() {
         errorMessage = "Error fetching pet data.";
         isLoading = false;
@@ -88,42 +86,40 @@ class _EditPetScreenState extends State<EditPetScreen> {
     }
   }
 
-  Future<void> _updateForm() async {
-  final url = Uri.parse(
-      'http://127.0.0.1:5566/shelter/${widget.petId}/update-pet-info');
+Future<void> _updateForm() async {
+  final url = Uri.parse('http://127.0.0.1:5566/shelter/${widget.petId}/update-pet-info');
 
-  // Ensure image is properly encoded to Base64 only if image exists
-  final petMedia = {
-  "pet_image1": _imageBytes != null && _imageBytes!.isNotEmpty
-      ? base64Encode(_imageBytes!)
-      : "",
-};
+  var request = http.MultipartRequest('PUT', url);
 
+  // Add text fields
+  request.fields['pet_name'] = _nameController.text;
+  request.fields['pet_age'] = _ageController.text;
+  request.fields['age_type'] = _selectedAgeType!;
+  request.fields['pet_sex'] = _selectedSex!;
+  request.fields['pet_type'] = _selectedPetType!;
+  request.fields['pet_descriptions'] = _descriptionController.text;
 
-  final body = {
-    "pet_info": {
-      "pet_name": _nameController.text,
-      "pet_age": int.tryParse(_ageController.text) ?? 0,
-      "age_type": _selectedAgeType,
-      "pet_sex": _selectedSex,
-      "pet_type": _selectedPetType,
-      "pet_descriptions": _descriptionController.text,
-    },
-    "pet_image1": petMedia['pet_image1'],
-  };
+  // Add image file (if selected)
+  if (_imageBytes != null && _imageBytes!.isNotEmpty) {
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'pet_image1', // Must match backend field
+        _imageBytes!,
+        filename: 'pet_image.jpg',
+        contentType: MediaType('image', 'jpeg' 'png' 'jpg' 'webp'),
+      ),
+    );
+  }
 
   try {
-    final response = await http.put(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode(body),
-    );
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Pet updated successfully!')),
       );
-      Navigator.pop(context, true); // send a result back
+      Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Update failed: ${response.body}')),
@@ -146,24 +142,30 @@ class _EditPetScreenState extends State<EditPetScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    bottomNavigationBar: BottomNavBar(
+      shelterId: widget.shelterId,
+      currentIndex: 1,
+    ),
+    appBar: AppBar(title: Text('Edit Pet')),
+    body: _buildBodyContent(),
+  );
+}
 
-            bottomNavigationBar: BottomNavBar(
-        shelterId: widget.shelterId,
-        currentIndex: 1,
-      ),
-      appBar: AppBar(title: Text('Edit Pet')),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: EdgeInsets.all(16),
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
+Widget _buildBodyContent() {
+  if (isLoading) {
+    return const Center(child: CircularProgressIndicator());
+  }
+
+  return Padding(
+    padding: const EdgeInsets.all(16),
+    child: Form(
+      key: _formKey,
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
                       Align(
                         alignment: Alignment.center,
                         child: GestureDetector(
@@ -311,10 +313,10 @@ class _EditPetScreenState extends State<EditPetScreen> {
                     ],
                   ),
                 ),
-              ),
-            ),
-    );
-  }
+    ),
+  );
+}
+            
 
   Widget _buildPetTypeButton(String type) {
     return ElevatedButton(
