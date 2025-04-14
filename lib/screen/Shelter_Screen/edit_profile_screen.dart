@@ -97,16 +97,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  InputDecoration _inputDecoration(String hintText) {
-    return InputDecoration(
-      hintText: hintText,
-      hintStyle: TextStyle(color: Colors.grey), // Sets hint text color to gray
-      border: InputBorder.none, // Removes the outline
-      filled: true,
-      fillColor: Colors.grey[200],
-      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-    );
-  }
+ InputDecoration _inputDecoration(String hintText) {
+  return InputDecoration(
+    hintText: hintText,
+    hintStyle: TextStyle(color: Colors.grey), // Sets hint text color to gray
+    border: InputBorder.none, // Removes the outline
+    filled: true,
+    fillColor: Colors.grey[200],
+    contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+  );
+}
 
 
   Future<void> updateShelterDetails() async {
@@ -127,18 +127,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       };
 
       if (profileImageBytes != null) {
-        updateData['shelter_profile'] = base64Encode(profileImageBytes!);
-      }
+  updateData['shelter_profile'] = base64Encode(profileImageBytes!);
+}
 
-      if (coverImageBytes != null) {
-        updateData['shelter_cover'] = base64Encode(coverImageBytes!);
-      }
+if (coverImageBytes != null) {
+  updateData['shelter_cover'] = base64Encode(coverImageBytes!);
+}
 
-      final response = await http.put(
-        Uri.parse(apiUrl),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode(updateData),
-      );
+final response = await http.put(
+  Uri.parse(apiUrl),
+  headers: {"Content-Type": "application/json"},
+  body: jsonEncode(updateData),
+);
 
 
       if (response.statusCode == 200) {
@@ -247,8 +247,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       image: coverImageBytes != null
                           ? DecorationImage(image: MemoryImage(coverImageBytes!), fit: BoxFit.cover)
                           : (shelterInfo!['shelter_cover'] != null
-                          ? DecorationImage(image: NetworkImage(shelterInfo!['shelter_cover']), fit: BoxFit.cover)
-                          : const DecorationImage(image: AssetImage('assets/images/logo.png'), fit: BoxFit.cover)),
+                              ? DecorationImage(image: NetworkImage(shelterInfo!['shelter_cover']), fit: BoxFit.cover)
+                              : const DecorationImage(image: AssetImage('assets/images/logo.png'), fit: BoxFit.cover)),
                       color: Colors.orange,
                     ),
                   ),
@@ -277,8 +277,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   backgroundImage: profileImageBytes != null
                       ? MemoryImage(profileImageBytes!)
                       : (shelterInfo!['shelter_profile'] != null
-                      ? NetworkImage(shelterInfo!['shelter_profile'])
-                      : const AssetImage('assets/images/logo.png')) as ImageProvider,
+                          ? NetworkImage(shelterInfo!['shelter_profile'])
+                          : const AssetImage('assets/images/logo.png')) as ImageProvider,
                   child: const Align(
                     alignment: Alignment.bottomRight,
                     child: CircleAvatar(
@@ -357,7 +357,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   const Text('Owner Name', style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
-                    initialValue: shelterInfo!['shelter_owner'],
+                   initialValue: shelterInfo!['shelter_owner'],
                     decoration: _inputDecoration('Enter owner name',),
                     onChanged: (value) => shelterInfo!['shelter_owner'] = value,
                   ),
