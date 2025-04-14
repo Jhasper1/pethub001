@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data'; // To handle image bytes
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'bottom_nav_bar.dart'; // Adjust the import according to your project
+// import 'bottom_nav_bar.dart'; // Adjust the import according to your project
 import 'archived_pet_info_screen.dart'; // Adjust the import according to your project
 
 class ArchivedPetsScreen extends StatefulWidget {

@@ -1,17 +1,70 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'bottom_nav_bar.dart'; // Import the updated BottomNavigationBar widget
-
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final int shelterId;
-
   const HomeScreen({super.key, required this.shelterId});
+
+
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class PetStatusCount {
+  final int available;
+  final int pending;
+  final int adopted;
+
+  PetStatusCount({required this.available, required this.pending, required this.adopted});
+
+  factory PetStatusCount.fromJson(Map<String, dynamic> json) {
+    final data = json['data'];
+    return PetStatusCount(
+      available: data['available'],
+      pending: data['pending'],
+      adopted: data['adopted'],
+    );
+  }
+}
+
+
+class _HomeScreenState extends State<HomeScreen> {
+  PetStatusCount? _petCounts;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPetCounts(widget.shelterId).then((counts) {
+      setState(() {
+        _petCounts = counts;
+        _isLoading = false;
+      });
+    });
+  }
+  
+
+  Future<PetStatusCount> fetchPetCounts(int shelterId) async {
+  final url = Uri.parse('http://127.0.0.1:5566/shelter/$shelterId/petcount');
+  final response = await http.get(url);
+
+  if (response.statusCode == 200) {
+    return PetStatusCount.fromJson(jsonDecode(response.body));
+  } else {
+    throw Exception('Failed to load pet counts');
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       bottomNavigationBar: BottomNavBar(
-        shelterId: shelterId,
-        currentIndex: 0, // Set the active tab to "Home"
+        shelterId: widget.shelterId,
+        currentIndex: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -44,7 +97,7 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Welcome, Shelter ID: $shelterId',
+              'Welcome, Shelter ID: ${widget.shelterId}',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
@@ -81,98 +134,55 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
                 ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle, color: Colors.white),
+                  onPressed: () {
+                    // Navigate to add pet screen
+                  },
+                ),
               ],
               ),
             ),
+
             const SizedBox(height: 20),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                childAspectRatio: 1,
-              ),
-              itemCount: 8,
-              itemBuilder: (context, index) {
-                List<String> categories = [
-                  'Dogs', 'Cats', 'Rabbits', 'Birds', 'Reptiles', 'Fish', 'Primates', 'Other'
-                ];
-                return Column(
-                  children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.grey[200],
-                      child: Icon(Icons.pets, color: Colors.lightBlue),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(categories[index]),
-                  ],
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            _buildSectionHeader('Pets Near You'),
-            _buildPetList(),
-            _buildSectionHeader('Your Preferences'),
-            _buildPetList(),
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildStatusBox("Available", _petCounts!.available, Colors.green),
+                      _buildStatusBox("Pending", _petCounts!.pending, Colors.orange),
+                      _buildStatusBox("Adopted", _petCounts!.adopted, Colors.blue),
+                    ],
+                  ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          TextButton(
-            onPressed: () {},
-            child: const Text(
-              'View All',
-              style: TextStyle(color: Colors.lightBlue),
+  Widget _buildStatusBox(String title, int count, Color color) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 5),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Text(
+              '$count',
+              style: const TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPetList() {
-    return SizedBox(
-      height: 180,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: 3,
-        itemBuilder: (context, index) {
-          List<String> petNames = ['Mochi', 'Luna', 'Casper'];
-          return Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Column(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.asset(
-                      'assets/images/logo.png', // Replace with actual images
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  petNames[index],
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const Text('1.2 km - Breed', style: TextStyle(color: Colors.grey)),
-              ],
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: const TextStyle(color: Colors.white),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

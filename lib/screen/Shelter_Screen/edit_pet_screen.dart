@@ -5,8 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/services.dart';
-import 'bottom_nav_bar.dart';
-import 'pet_info_screen.dart';
+// import 'bottom_nav_bar.dart';
+// import 'pet_info_screen.dart';
 
 class EditPetScreen extends StatefulWidget {
   final int petId;

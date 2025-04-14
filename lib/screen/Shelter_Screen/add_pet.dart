@@ -128,13 +128,13 @@ class _AddPetScreenState extends State<AddPetScreen> {
     return null;
   }
 
-  // Pet Type Validation
-  String? _validatePetType(String? value) {
-    if (value == null) {
-      return 'Select a pet type';
-    }
-    return null;
-  }
+  // // Pet Type Validation
+  // String? _validatePetType(String? value) {
+  //   if (value == null) {
+  //     return 'Select a pet type';
+  //   }
+  //   return null;
+  // }
 
   // Image Validation
   String? _validateImage() {
