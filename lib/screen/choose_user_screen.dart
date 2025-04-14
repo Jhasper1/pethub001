@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:march24/screen/ShelterLogIn/signin_screen.dart';
-
-/// Import the new login screens
+import 'package:march24/screen/Shelter_Screen/signin_screen.dart';
 import 'UserLogin/user_start_screen.dart';
 
 class ChooseUserScreen extends StatefulWidget {
@@ -24,8 +22,8 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
         AnimationController(vsync: this, duration: Duration(milliseconds: 500));
 
     _imageAnimation = Tween<Offset>(
-      begin: Offset(0, 1), // Start position (off-screen bottom)
-      end: Offset(0, 0), // End position (on-screen)
+      begin: Offset(0, 1),
+      end: Offset(0, 0),
     ).animate(CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeOut,
@@ -43,7 +41,6 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
   }
 
   void _navigateToLogin() {
-    /// Navigate based on selection
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -64,11 +61,20 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          /// Background Image
+          /// Blue Gradient Background
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/background.png',
-              fit: BoxFit.cover,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.blue.shade50,
+                    Colors.blue.shade200,
+                    Colors.blue.shade500,
+                  ],
+                ),
+              ),
             ),
           ),
 
@@ -81,35 +87,34 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
                   children: [
                     if (isAdopterSelected)
                       Positioned(
-                        top: 150, // Adjust position for adopter.png
+                        top: 150,
                         left: 40,
                         right: 40,
                         child: SlideTransition(
                           position: _imageAnimation,
                           child: Image.asset(
                             'assets/images/adopter.png',
-                            width: 300, // Adjust size as needed
+                            width: 300,
                             fit: BoxFit.contain,
                           ),
                         ),
                       ),
                     if (!isAdopterSelected)
                       Positioned(
-                        top: 135, // Adjust position for shelter.png
+                        top: 135,
                         left: 20,
                         right: 20,
                         child: SlideTransition(
                           position: _imageAnimation,
                           child: Image.asset(
                             'assets/images/shelter.png',
-                            width: 280, // Adjust size as needed
+                            width: 280,
                             fit: BoxFit.contain,
                           ),
                         ),
                       ),
                   ],
                 ),
-
               ),
 
               /// Bottom Card UI
@@ -118,19 +123,35 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.1),
+                      blurRadius: 10,
+                      spreadRadius: 5,
+                    ),
+                  ],
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    SizedBox(height: 30),
                     Text(
                       "Join Adopt Me Today",
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade800,
+                      ),
                     ),
-                    SizedBox(height: 5),
-                    Text("Adopt This <Tagline>", style: TextStyle(color: Colors.grey)),
-                    SizedBox(height: 20),
-
-                    /// Buttons to toggle selection
+                    SizedBox(height: 15),
+                    Text(
+                      "Adopt This <Tagline>",
+                      style: TextStyle(
+                        color: Colors.blue.shade600,
+                        fontSize: 16,
+                      ),
+                    ),
+                    SizedBox(height: 40),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -143,18 +164,32 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
                         }),
                       ],
                     ),
-
-                    SizedBox(height: 20),
-
-                    /// Confirm Button - Navigates to corresponding login screen
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        minimumSize: Size(double.infinity, 50),
+                    SizedBox(height: 40),
+                    /// Confirm Button - Now matches toggle button size
+                    SizedBox(
+                      height: 40,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue.shade700,
+                          minimumSize: Size(double.infinity, 50),
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          elevation: 3,
+                        ),
+                        onPressed: _navigateToLogin,
+                        child: Text(
+                          "Confirm",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                      onPressed: _navigateToLogin, // Calls the navigation function
-                      child: Text("Confirm", style: TextStyle(color: Colors.white, fontSize: 16)),
                     ),
+                    SizedBox(height: 30),
                   ],
                 ),
               ),
@@ -170,13 +205,20 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
     return Expanded(
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? Colors.orange : Colors.orange.shade100,
+          backgroundColor: isSelected ? Colors.blue.shade700 : Colors.blue.shade50,
           minimumSize: Size(150, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
         ),
         onPressed: onTap,
         child: Text(
           text,
-          style: TextStyle(color: isSelected ? Colors.white : Colors.orange),
+          style: TextStyle(
+            fontSize: 12,
+            color: isSelected ? Colors.white : Colors.blue.shade800,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

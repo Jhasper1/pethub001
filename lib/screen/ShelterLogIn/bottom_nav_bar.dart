@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:march24/screen/ShelterLogIn/home_screen.dart';
-import 'profile_screen.dart'; // Import ProfileScreen
-import 'view_pets.dart';
-import 'add_pet.dart';
+import 'package:march24/screen/Shelter_Screen/add_pet.dart';
+import 'package:march24/screen/Shelter_Screen/home_screen.dart';
+import 'package:march24/screen/Shelter_Screen/profile_screen.dart';
+import 'package:march24/screen/Shelter_Screen/view_pets.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int shelterId; // Add shelterId as a parameter

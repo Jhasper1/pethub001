@@ -6,7 +6,7 @@ import '../UserLogin/user_bottom_nav_bar.dart';
 import 'package:march24/screen/UserDashboard/view_all_pets.dart';
 import 'package:march24/screen/UserDashboard/view_all_shelter.dart';
 import 'package:march24/screen/UserDashboard/pet_clicked.dart';
-import 'package:march24/screen/ShelterLogIn/shelter_notification.dart';
+import 'package:march24/screen/Shelter_Screen/shelter_notification.dart';
 
 class UserHomeScreen extends StatefulWidget {
   final int adopterId;
