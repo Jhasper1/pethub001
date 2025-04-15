@@ -113,7 +113,7 @@ class _ShelterScreenState extends State<ShelterScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ShelterDetailsPage(shelterId: shelter["shelter_id"]),
+                    builder: (context) => ShelterDetailsScreen(shelterId: shelter["shelter_id"]),
                   ),
                 );
               },

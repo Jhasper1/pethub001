@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:march24/screen/Shelter_Screen/signin_screen.dart';
+import 'package:march24/screen/UserLogIn/user_signin.dart';
 import 'UserLogin/user_start_screen.dart';
 
 class ChooseUserScreen extends StatefulWidget {
@@ -44,7 +45,7 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => isAdopterSelected ? UserStartScreen() : SignInScreen(),
+        builder: (_) => isAdopterSelected ? UserSignInScreen() : SignInScreen(),
       ),
     );
   }
@@ -69,9 +70,8 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.blue.shade50,
-                    Colors.blue.shade200,
-                    Colors.blue.shade500,
+                    Colors.lightBlue.shade50,
+                    Colors.blueAccent,
                   ],
                 ),
               ),
@@ -174,7 +174,7 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
                           minimumSize: Size(double.infinity, 50),
                           padding: EdgeInsets.zero,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           elevation: 3,
                         ),
@@ -208,7 +208,7 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
           backgroundColor: isSelected ? Colors.blue.shade700 : Colors.blue.shade50,
           minimumSize: Size(150, 50),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
         onPressed: onTap,

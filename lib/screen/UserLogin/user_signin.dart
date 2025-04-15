@@ -39,7 +39,6 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
 
       if (response.statusCode == 200 && responseData['data'] != null) {
         final adopterData = responseData['data']['adopter'];
-
         if (adopterData != null && adopterData.containsKey('adopter_id')) {
           final int adopterId = adopterData['adopter_id'];
 

@@ -282,7 +282,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             context,
             MaterialPageRoute(
               builder: (_) =>
-                  ShelterDetailsPage(shelterId: shelter["shelter_id"]),
+
+              ShelterDetailsScreen(shelterId: shelter["shelter_id"]),
             ),
           ),
           child: Container(

@@ -65,7 +65,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         body: const Center(child: CircularProgressIndicator()),
         bottomNavigationBar: UserBottomNavBar(
           adopterId: widget.adopterId,
-          currentIndex: 4,
+          currentIndex: 2,
         ),
       );
     }
@@ -81,56 +81,88 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (fullName.isEmpty) fullName = 'Unknown User';
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 244, 231, 211),
+      backgroundColor: const Color(0xFFF5F9FF), // Light blue background
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Profile Header
-            Stack(
-              children: [
-                Align(
-                  alignment: Alignment.center,
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 90),
-                      CircleAvatar(
+            Container(
+              height: 200,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue.shade700, Colors.blue.shade400],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(30),
+                  bottomRight: Radius.circular(30),
+                ),
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white,
+                          width: 3,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: CircleAvatar(
                         radius: 50,
-                        backgroundColor: Colors.white,
+                        backgroundColor: Colors.blue.shade100,
                         backgroundImage: adopterInfo!['adopter_profile'] != null
                             ? MemoryImage(adopterInfo!['adopter_profile'])
                             : const AssetImage('assets/images/logo.png')
                         as ImageProvider,
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        fullName,
-                        style: const TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      fullName,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
 
             // Information Card
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Card(
+                elevation: 4,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
                       _infoRow(Icons.location_on,
                           adopterInfo!['address'] ?? 'No information'),
+                      const Divider(height: 20, thickness: 0.5),
                       _infoRow(
                           Icons.phone,
                           adopterInfo!['contact_number']?.toString() ??
                               'No information'),
+                      const Divider(height: 20, thickness: 0.5),
                       _infoRow(Icons.email,
                           adopterInfo!['email'] ?? 'No information'),
                     ],
@@ -138,146 +170,183 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
 
             // Description Box
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Card(
+                elevation: 4,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(16),
+                ),
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Description',
-                        style: TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.bold),
+                      Row(
+                        children: [
+                          Icon(Icons.info_outline,
+                              color: Colors.blue.shade700),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'About Me',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       Text(
                         adopterInfo!['description'] ?? 'No description available',
-                        style: const TextStyle(fontSize: 12),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.black87,
+                          height: 1.4,
+                        ),
+                        textAlign: TextAlign.justify,
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             // Edit Button
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  minimumSize: const Size(double.infinity, 50),
-                ),
-                onPressed: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          UserEditProfileScreen(adopterId: widget.adopterId),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade700,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  );
-
-                  if (result == true) {
-                    fetchAdopterInfo();
-                  }
-                },
-                child: const Text(
-                  'Edit Profile',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            UserEditProfileScreen(adopterId: widget.adopterId),
+                      ),
+                    );
+                    if (result == true) {
+                      fetchAdopterInfo();
+                    }
+                  },
+                  child: const Text(
+                    'Edit Profile',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
 
             // Logout Button
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: GestureDetector(
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        content: const Text('Are you sure you want to logout?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => const SplashScreen()),
-                                    (Route<dynamic> route) => false,
-                              );
-                            },
-                            child: const Text(
-                              'Logout',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.blue.shade700),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: const Center(
-                    child: Text(
-                      'Logout',
-                      style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          title: const Text('Confirm Logout',
+                              style: TextStyle(color: Colors.blue)),
+                          content: const Text(
+                              'Are you sure you want to logout?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Cancel',
+                                  style: TextStyle(color: Colors.blue)),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const SplashScreen()),
+                                      (Route<dynamic> route) => false,
+                                );
+                              },
+
+                              child: const Text(
+                                'Logout',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: Text(
+                    'Logout',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
           ],
         ),
       ),
       bottomNavigationBar: UserBottomNavBar(
         adopterId: widget.adopterId,
-        currentIndex: 4,
+        currentIndex: 2,
       ),
     );
   }
 
   Widget _infoRow(IconData icon, String? text) {
     final displayText = text?.isNotEmpty == true ? text : 'No information';
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.black),
-          const SizedBox(width: 10),
-          Text(displayText!,
-              style: const TextStyle(fontSize: 12)),
-        ],
-      ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: Colors.blue.shade700, size: 22),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            displayText!,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

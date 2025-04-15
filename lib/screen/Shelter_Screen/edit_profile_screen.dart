@@ -249,7 +249,7 @@ final response = await http.put(
                           : (shelterInfo!['shelter_cover'] != null
                               ? DecorationImage(image: NetworkImage(shelterInfo!['shelter_cover']), fit: BoxFit.cover)
                               : const DecorationImage(image: AssetImage('assets/images/logo.png'), fit: BoxFit.cover)),
-                      color: Colors.orange,
+                      color: Colors.blueAccent,
                     ),
                   ),
                 ),
@@ -283,7 +283,7 @@ final response = await http.put(
                     alignment: Alignment.bottomRight,
                     child: CircleAvatar(
                       radius: 15,
-                      backgroundColor: Colors.orange,
+                      backgroundColor: Colors.blueAccent,
                       child: Icon(Icons.camera_alt, size: 15, color: Colors.white),
                     ),
                   ),
@@ -369,7 +369,7 @@ final response = await http.put(
                     },
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: Colors.orange,
+                      backgroundColor: Colors.blueAccent,
                     ),
                     child: const Text('Save Changes', style: TextStyle(color: Colors.white)),
                   ),
