@@ -6,7 +6,7 @@ import 'package:march24/screen/UserDashboard/adopt_pet_screen.dart';
 class PetDetailsScreen extends StatefulWidget {
   final int petId;
 
-  PetDetailsScreen({required this.petId});
+  PetDetailsScreen({required this.petId, required petData});
 
   @override
   _PetDetailsScreenState createState() => _PetDetailsScreenState();

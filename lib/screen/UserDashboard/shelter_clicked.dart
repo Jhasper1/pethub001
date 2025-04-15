@@ -109,13 +109,13 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
             if (showPets)
               ...pets.map((pet) => GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PetDetailsScreen(petId: pet['pet_id'].toString(),petData: pet,
-                      ),
-                    ),
-                  );
+                  // Navigator.push(
+                  //   context,
+                  //   MaterialPageRoute(
+                  //     builder: (context) => PetDetailsScreen(petId: pet['pet_id'].toString(),petData: pet,
+                  //     ),
+                  //   ),
+                  // );
                 },
                 child: Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

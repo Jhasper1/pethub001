@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'bottom_nav_bar.dart'; // Adjust the import according to your project
 import 'pet_info_screen.dart'; // Adjust the import according to your project
+import 'archived_pets_screen.dart'; // Adjust the import according to your project
 
 class ViewPetsScreen extends StatefulWidget {
   final int shelterId;
@@ -92,75 +93,97 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.orange,
+        backgroundColor: Colors.blueAccent,
         automaticallyImplyLeading: false, // This hides the back button
         title: const Text(
           "Pet Library",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+
+        
       ),
+
       body: Column(
         children: [
-          Padding(
+                    Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                TextField(
-                  controller: searchController,
-                  onChanged: (value) {
-                    fetchPets(); // Re-fetch when typing
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Search pets by name...',
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                SizedBox(
+                  height: 40, // smaller height for TextField
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: (value) {
+                      fetchPets(); // Re-fetch when typing
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search pet name...',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 10), // slightly reduced space
                 Row(
                   children: [
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: selectedSex,
-                        items: ['All', 'Male', 'Female']
-                            .map((sex) => DropdownMenuItem(
-                                  value: sex,
-                                  child: Text(sex),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedSex = value!;
-                          });
-                          fetchPets();
-                        },
-                        decoration: const InputDecoration(
-                          labelText: 'Sex',
-                          border: OutlineInputBorder(),
+                      child: SizedBox(
+                        height: 40,
+                        child: DropdownButtonFormField<String>(
+                          value: selectedSex,
+                          items: ['All', 'Male', 'Female']
+                              .map((sex) => DropdownMenuItem(
+                                    value: sex,
+                                    child: Text(sex,
+                                        style: TextStyle(fontSize: 12)),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedSex = value!;
+                            });
+                            fetchPets();
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Sex',
+                            labelStyle: TextStyle(fontSize: 12),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 8),
+                            border: OutlineInputBorder(),
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 5),
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: selectedPetType,
-                        items: ['All', 'Dog', 'Cat']
-                            .map((type) => DropdownMenuItem(
-                                  value: type,
-                                  child: Text(type),
-                                ))
-                            .toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedPetType = value!;
-                          });
-                          fetchPets();
-                        },
-                        decoration: const InputDecoration(
-                          labelText: 'Pet Type',
-                          border: OutlineInputBorder(),
+                      child: SizedBox(
+                        height: 40,
+                        child: DropdownButtonFormField<String>(
+                          value: selectedPetType,
+                          items: ['All', 'Dog', 'Cat']
+                              .map((type) => DropdownMenuItem(
+                                    value: type,
+                                    child: Text(type,
+                                        style: TextStyle(fontSize: 12)),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedPetType = value!;
+                            });
+                            fetchPets();
+                          },
+                          decoration: const InputDecoration(
+                            labelText: 'Pet Type',
+                            labelStyle: TextStyle(fontSize: 12),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 8),
+                            border: OutlineInputBorder(),
+                          ),
                         ),
                       ),
                     ),
@@ -197,7 +220,23 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
         shelterId: widget.shelterId,
         currentIndex: 1,
       ),
+      floatingActionButton: FloatingActionButton(
+    backgroundColor: Colors.redAccent,
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ArchivedPetsScreen(shelterId: widget.shelterId),
+        ),
+      );
+    },
+    child: const Icon(Icons.archive,
+      color: Colors.white,
+    ),
+  ),
+  floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
+    
   }
 
   Widget _buildPetCard(Map<String, dynamic> pet) {

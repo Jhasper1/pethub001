@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:march24/screen/Shelter_Screen/shelter_donations_screen.dart';
 import 'bottom_nav_bar.dart';
 import 'edit_profile_screen.dart';
 import '../splash_screen.dart';
@@ -90,7 +91,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Stack(
               children: [
                 Container(
-                  height: 180, // Slightly taller cover image
+                  height: 160, // Slightly taller cover image
                   decoration: shelterInfo!['shelter_cover'] != null
                       ? BoxDecoration(
                     image: DecorationImage(
@@ -147,7 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                         child: CircleAvatar(
-                          radius: 50,
+                          radius: 60,
                           backgroundColor: Colors.blue.shade100,
                           backgroundImage: shelterInfo!['shelter_profile'] != null
                               ? MemoryImage(shelterInfo!['shelter_profile'])
@@ -161,7 +162,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
                       ),
                       const SizedBox(height: 5),
@@ -294,94 +295,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 12),
 
             // Add Donation Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  minimumSize: const Size(double.infinity, 50),
-                ),
-                onPressed: () async {
-                  // Navigate to EditProfileScreen and wait for the result
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          EditProfileScreen(shelterId: widget.shelterId),
-                    ),
-                  );
-
-                  // Refresh the profile screen if changes were saved
-                  if (result == true) {
-                    fetchShelterInfo();
-                  }
-                },
-                child: const Text(
-                  'Donation Box',
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-
-            // Logout Button
-            Padding(
+             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: SizedBox(
                 width: double.infinity,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.blue.shade700),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade700,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          title: const Text('Confirm Logout',
-                              style: TextStyle(color: Colors.blue)),
-                          content: const Text(
-                              'Are you sure you want to logout?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Cancel',
-                                  style: TextStyle(color: Colors.blue)),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.of(context).pop();
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => const SplashScreen()),
-                                      (Route<dynamic> route) => false,
-                                );
-                              },
-                              child: const Text(
-                                'Logout',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            ShelterDonationsScreen(shelterId: widget.shelterId),
+                      ),
                     );
+                    if (result == true) {
+                      fetchShelterInfo();
+                    }
                   },
-                  child: Text(
-                    'Logout',
+                  child: const Text(
+                    'Donation Box',
                     style: TextStyle(
-                      color: Colors.blue.shade700,
+                      color: Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
@@ -389,7 +330,73 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+
+
+            // Logout Button
+Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+  child: SizedBox(
+    width: double.infinity,
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        elevation: 4, // adds elevation/shadow
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.blue.shade700),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+      ),
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Text('Confirm Logout',
+                  style: TextStyle(color: Colors.blue)),
+              content: const Text('Are you sure you want to logout?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel',
+                      style: TextStyle(color: Colors.blue)),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const SplashScreen()),
+                      (Route<dynamic> route) => false,
+                    );
+                  },
+                  child: const Text(
+                    'Logout',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+      child: Text(
+        'Logout',
+        style: TextStyle(
+          color: Colors.blue.shade700,
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ),
+  ),
+),
+const SizedBox(height: 24),
+
           ],
         ),
       ),

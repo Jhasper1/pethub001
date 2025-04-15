@@ -140,6 +140,7 @@ class _PetsScreenState extends State<PetsScreen> {
         centerTitle: true,
         elevation: 0,
       ),
+      
       body: Column(
         children: [
           // Category Toggle Buttons
@@ -175,14 +176,14 @@ class _PetsScreenState extends State<PetsScreen> {
                 itemBuilder: (context, index) {
                   final pet = pets[index];
                   return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PetDetailsScreen(petId: pet["pet_id"]),
-                        ),
-                      );
-                    },
+                    // onTap: () {
+                    //   Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //       builder: (context) => PetDetailsScreen(petId: pet["pet_id"]),
+                    //     ),
+                    //   );
+                    // },
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(

@@ -206,13 +206,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           final pet = pets[index];
           String image = pet['pet_image1'] ?? '';
           return GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    PetDetailsScreen(petId: pet["pet_id"]),
-              ),
-            ),
+            // onTap: () => Navigator.push(
+            //   context,
+            //   MaterialPageRoute(
+            //     builder: (_) =>
+            //         PetDetailsScreen(petId: pet["pet_id"]),
+            //   ),
+            // ),
             child: Container(
               width: 160,
               margin: const EdgeInsets.only(right: 16),
