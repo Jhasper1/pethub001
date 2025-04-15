@@ -17,7 +17,7 @@ class UserBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.orange,
+      selectedItemColor: Colors.blueAccent,
       unselectedItemColor: Colors.grey,
       showUnselectedLabels: false,
       currentIndex: currentIndex,
@@ -50,26 +50,6 @@ class UserBottomNavBar extends StatelessWidget {
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation1, animation2) =>
-                const Placeholder(),
-                transitionDuration: Duration.zero,
-              ),
-            );
-            break;
-          case 3:
-            Navigator.pushReplacement(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation1, animation2) =>
-                const Placeholder(),
-                transitionDuration: Duration.zero,
-              ),
-            );
-            break;
-          case 4:
-            Navigator.pushReplacement(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation1, animation2) =>
                     UserProfileScreen(adopterId: adopterId),
                 transitionDuration: Duration.zero,
               ),
@@ -85,20 +65,6 @@ class UserBottomNavBar extends StatelessWidget {
         const BottomNavigationBarItem(
           icon: Icon(Icons.pets, size: 35),
           label: 'My Adoptions', // Changed label to be more specific
-        ),
-        BottomNavigationBarItem(
-          icon: Container(
-            decoration: BoxDecoration(
-              color: Colors.orange,
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: const Icon(Icons.add, color: Colors.white, size: 40),
-          ),
-          label: '',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.message, size: 35),
-          label: 'Applications',
         ),
         const BottomNavigationBarItem(
           icon: Icon(Icons.account_circle, size: 35),

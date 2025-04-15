@@ -80,7 +80,7 @@ class _PetsScreenState extends State<PetsScreen> {
               color: isSelected ? Colors.white : Colors.black87),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? Colors.orange : Colors.white,
+          backgroundColor: isSelected ? Colors.blueAccent : Colors.white,
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -135,7 +135,7 @@ class _PetsScreenState extends State<PetsScreen> {
     return Scaffold(
       backgroundColor: Color(0xFFF7F1FF),
       appBar: AppBar(
-        backgroundColor: Colors.orange,
+        backgroundColor: Colors.blueAccent,
         title: Text("Pet Library", style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         elevation: 0,
