@@ -222,6 +222,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 10),
 
+            // Add Donation Button
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                onPressed: () async {
+                  // Navigate to EditProfileScreen and wait for the result
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          EditProfileScreen(shelterId: widget.shelterId),
+                    ),
+                  );
+
+                  // Refresh the profile screen if changes were saved
+                  if (result == true) {
+                    fetchShelterInfo();
+                  }
+                },
+                child: const Text(
+                  'Donation Box',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+
             // Logout Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),

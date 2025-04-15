@@ -47,9 +47,10 @@ Future<void> _login() async {
           MaterialPageRoute(builder: (_) => HomeScreen(shelterId: shelterId)),
         );
       } else {
-        setState(() => _errorMessage = "Invalid username or password");
+        setState(() => _errorMessage = "Login failed. Please try again.");
       }
     } else {
+      // Show specific error message from the backend (like "Your account is pending...")
       setState(() => _errorMessage = responseData['message'] ?? "Login failed. Please try again.");
     }
   } catch (e) {
@@ -58,6 +59,7 @@ Future<void> _login() async {
     setState(() => _isLoading = false);
   }
 }
+
 
 
   @override
