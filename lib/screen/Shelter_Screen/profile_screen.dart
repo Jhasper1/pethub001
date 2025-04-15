@@ -94,18 +94,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   height: 160, // Slightly taller cover image
                   decoration: shelterInfo!['shelter_cover'] != null
                       ? BoxDecoration(
-                    image: DecorationImage(
-                      image: MemoryImage(shelterInfo!['shelter_cover']),
-                      fit: BoxFit.cover,
-                    ),
-                  )
+                          image: DecorationImage(
+                            image: MemoryImage(shelterInfo!['shelter_cover']),
+                            fit: BoxFit.cover,
+                          ),
+                        )
                       : BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.blue.shade700, Colors.blue.shade400],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.blue.shade700,
+                              Colors.blue.shade400
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
                 ),
                 Positioned(
                   top: 40,
@@ -115,8 +118,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     child: Text(
                       'Shelter Profile',
                       style: TextStyle(
@@ -150,10 +153,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: CircleAvatar(
                           radius: 60,
                           backgroundColor: Colors.blue.shade100,
-                          backgroundImage: shelterInfo!['shelter_profile'] != null
-                              ? MemoryImage(shelterInfo!['shelter_profile'])
-                              : const AssetImage('assets/images/logo.png')
-                          as ImageProvider,
+                          backgroundImage:
+                              shelterInfo!['shelter_profile'] != null
+                                  ? MemoryImage(shelterInfo!['shelter_profile'])
+                                  : const AssetImage('assets/images/logo.png')
+                                      as ImageProvider,
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -224,8 +228,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.info_outline,
-                              color: Colors.blue.shade700),
+                          Icon(Icons.info_outline, color: Colors.blue.shade700),
                           const SizedBox(width: 8),
                           const Text(
                             'About Us',
@@ -295,7 +298,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 12),
 
             // Add Donation Button
-             Padding(
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: SizedBox(
                 width: double.infinity,
@@ -320,7 +323,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     }
                   },
                   child: const Text(
-                    'Donation Box',
+                    'Update Donation Information',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -332,71 +335,72 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 12),
 
-
             // Logout Button
-Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-  child: SizedBox(
-    width: double.infinity,
-    child: ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white,
-        elevation: 4, // adds elevation/shadow
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Colors.blue.shade700),
-        ),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-      ),
-      onPressed: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              title: const Text('Confirm Logout',
-                  style: TextStyle(color: Colors.blue)),
-              content: const Text('Are you sure you want to logout?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel',
-                      style: TextStyle(color: Colors.blue)),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    Navigator.of(context).pop();
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SplashScreen()),
-                      (Route<dynamic> route) => false,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    elevation: 4, // adds elevation/shadow
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.red),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          title: const Text('Confirm Logout',
+                              style: TextStyle(color: Colors.blue)),
+                          content:
+                              const Text('Are you sure you want to logout?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Cancel',
+                                  style: TextStyle(color: Colors.blue)),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                Navigator.of(context).pop();
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const SplashScreen()),
+                                  (Route<dynamic> route) => false,
+                                );
+                              },
+                              child: const Text(
+                                'Logout',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     );
                   },
-                  child: const Text(
+                  child: Text(
                     'Logout',
-                    style: TextStyle(color: Colors.red),
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ],
-            );
-          },
-        );
-      },
-      child: Text(
-        'Logout',
-        style: TextStyle(
-          color: Colors.blue.shade700,
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    ),
-  ),
-),
-const SizedBox(height: 24),
-
+              ),
+            ),
+            const SizedBox(height: 24),
           ],
         ),
       ),

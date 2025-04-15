@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -9,13 +10,14 @@ import 'package:http_parser/http_parser.dart';
 class ShelterDonationsScreen extends StatefulWidget {
   final int shelterId;
 
-  const ShelterDonationsScreen ({Key? key, required this.shelterId}) : super(key: key);
+  const ShelterDonationsScreen({Key? key, required this.shelterId})
+      : super(key: key);
 
   @override
   _ShelterDonationsScreenState createState() => _ShelterDonationsScreenState();
 }
 
-class _ShelterDonationsScreenState extends State<ShelterDonationsScreen > {
+class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
   Map<String, dynamic>? shelterDonations;
   bool isLoading = true;
   XFile? qrImageFile;
@@ -28,7 +30,8 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen > {
 
   Future<void> pickImage(String type) async {
     final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+        await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
@@ -48,8 +51,9 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen > {
     fetchShelterDonations();
   }
 
- Future<void> fetchShelterDonations() async {
-    final url = 'http://127.0.0.1:5566/shelter/${widget.shelterId}/get/donationinfo';
+  Future<void> fetchShelterDonations() async {
+    final url =
+        'http://127.0.0.1:5566/shelter/${widget.shelterId}/get/donationinfo';
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -60,8 +64,10 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen > {
 
         setState(() {
           shelterDonations = donationDataResponse;
-          _accountnumberController.text = donationDataResponse['account_number'] ?? '';
-          _accountnameController.text = donationDataResponse['account_name'] ?? '';
+          _accountnumberController.text =
+              donationDataResponse['account_number'] ?? '';
+          _accountnameController.text =
+              donationDataResponse['account_name'] ?? '';
           // Decode image if available
           if (donationDataResponse['qr_image'] != null &&
               donationDataResponse['qr_image'].isNotEmpty) {
@@ -81,7 +87,7 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen > {
     }
   }
 
-    Future<void> _pickImage() async {
+  Future<void> _pickImage() async {
     final picker = ImagePicker();
     final file = await picker.pickImage(source: ImageSource.gallery);
     if (file != null) {
@@ -92,18 +98,28 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen > {
     }
   }
 
- InputDecoration _inputDecoration(String hintText) {
-  return InputDecoration(
-    hintText: hintText,
-    hintStyle: TextStyle(color: Colors.grey), // Sets hint text color to gray
-    border: InputBorder.none, // Removes the outline
-    filled: true,
-    fillColor: Colors.grey[200],
-    contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-  );
-}
-Future<void> updatedonationDetails() async {
-   final url = Uri.parse(
+  // InputDecoration _inputDecoration(String hintText) {
+  //   return InputDecoration(
+  //     hintText: hintText,
+  //     hintStyle: TextStyle(color: Colors.grey), // Sets hint text color to gray
+  //     border: InputBorder.none, // Removes the outline
+  //     filled: true,
+  //     fillColor: Colors.grey[200],
+  //     contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+  //   );
+  // }
+
+  InputDecoration _buildTextFieldDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+      filled: true,
+      fillColor: Colors.grey[200],
+    );
+  }
+
+  Future<void> updatedonationDetails() async {
+    final url = Uri.parse(
         'http://127.0.0.1:5566/shelter/${widget.shelterId}/update/donationinfo');
 
     var request = http.MultipartRequest('PUT', url);
@@ -119,7 +135,8 @@ Future<void> updatedonationDetails() async {
           'qr_image', // Must match backend field
           _qrImageBytes!,
           filename: 'pet_image.jpg',
-          contentType: MediaType('image', 'jpeg' 'png' 'jpg' 'webp'),
+          contentType:
+              MediaType('image', 'jpeg'), // or 'png', depending on your image
         ),
       );
     }
@@ -145,48 +162,8 @@ Future<void> updatedonationDetails() async {
     }
   }
 
-
-
-// Future<void> updatedonationDetails() async {
-//   final String apiUrl = 'http://127.0.0.1:5566/shelter/${widget.shelterId}/update/donationinfo';
-
-//   try {
-//     final updateData = {
-//       "account_number": shelterDonations!['account_number'],
-//       "account_name": shelterDonations!['account_name'],
-//       "qr_image": _qrImageBytes != null ? [base64Encode(_qrImageBytes!)] : [],
-//     };
-
-//     final response = await http.put(
-//       Uri.parse(apiUrl),
-//       headers: {"Content-Type": "application/json"},
-//       body: jsonEncode(updateData),
-//     );
-
-//     if (response.statusCode == 200) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text("Donation details updated successfully!")),
-//       );
-//       Navigator.pop(context, true);
-//     } else {
-//       final errorMessage = jsonDecode(response.body)["message"] ?? "Failed to update donation details";
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text(errorMessage)),
-//       );
-//     }
-//   } catch (e) {
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(content: Text("An error occurred: ${e.toString()}")),
-//     );
-//   }
-// }
-
-
-
-
   @override
   Widget build(BuildContext context) {
-
     if (isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -209,28 +186,41 @@ Future<void> updatedonationDetails() async {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Profile Photo Picker
+            const SizedBox(height: 50),
             Align(
               alignment: Alignment.center,
               child: GestureDetector(
                 onTap: _pickImage,
-                child: CircleAvatar(
-                  radius: 100,
-                  backgroundImage: _qrImageBytes != null
-                      ? MemoryImage(_qrImageBytes!)
-                      : (shelterDonations!['qr_image'] != null
-                          ? NetworkImage(shelterDonations!['qr_image'])
-                          : const AssetImage('assets/images/logo.png')) as ImageProvider,
+                child: Container(
+                  width: 200,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: _qrImageBytes != null
+                          ? MemoryImage(_qrImageBytes!)
+                          : (shelterDonations!['qr_image'] != null
+                                  ? NetworkImage(shelterDonations!['qr_image'])
+                                  : const AssetImage('assets/images/logo.png'))
+                              as ImageProvider,
+                      fit: BoxFit.cover,
+                    ),
+                    borderRadius:
+                        BorderRadius.circular(10), // Rounded corners (optional)
+                    color: Colors.grey[300], // Optional background color
+                  ),
                   child: const Align(
                     alignment: Alignment.bottomRight,
                     child: CircleAvatar(
                       radius: 15,
                       backgroundColor: Colors.blueAccent,
-                      child: Icon(Icons.camera_alt, size: 15, color: Colors.white),
+                      child:
+                          Icon(Icons.camera_alt, size: 15, color: Colors.white),
                     ),
                   ),
                 ),
               ),
             ),
+
             const SizedBox(height: 20),
 
             // Form Fields
@@ -239,31 +229,74 @@ Future<void> updatedonationDetails() async {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Account Number', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Account Number',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
-                    initialValue: shelterDonations!['account_number'],
-                    decoration: _inputDecoration('Enter your account number'),
-                    onChanged: (value) => shelterDonations!['account_number'] = value,
+                    controller: _accountnumberController,
+                    decoration:
+                        _buildTextFieldDecoration('Enter your account number'),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(11),
+                    ],
+                    onChanged: (value) =>
+                        shelterDonations!['account_number'] = value,
                   ),
                   const SizedBox(height: 10),
-
-                  const Text('Account Name', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Account Name',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
-                    initialValue: shelterDonations!['account_name'],
-                    decoration: _inputDecoration('Enter your account name'),
-                    onChanged: (value) => shelterDonations!['account_name'] = value,
+                    controller: _accountnameController,
+                    decoration:
+                        _buildTextFieldDecoration('Enter your account name'),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+                    ],
+                    onChanged: (value) =>
+                        shelterDonations!['account_name'] = value,
                   ),
                   const SizedBox(height: 20),
-
                   ElevatedButton(
                     onPressed: () {
-                      updatedonationDetails();
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text("Confirm"),
+                            content: const Text(
+                                "Are you sure you want to save the changes?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context)
+                                      .pop(); // Close dialog, cancel action
+                                },
+                                child: const Text("Cancel"),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop(); // Close dialog
+                                  updatedonationDetails(); // Proceed with the update
+                                },
+                                child: const Text("Yes"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
                     },
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade700,
                       minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: Colors.blueAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
-                    child: const Text('Save Changes', style: TextStyle(color: Colors.white)),
+                    child: const Text(
+                      'Save Changes',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ],
               ),
