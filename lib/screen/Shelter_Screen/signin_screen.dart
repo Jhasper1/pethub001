@@ -15,66 +15,73 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
   String? _errorMessage;
 
+  Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-Future<void> _login() async {
-  setState(() {
-    _isLoading = true;
-    _errorMessage = null;
-  });
+    final url = Uri.parse('http://127.0.0.1:5566/shelter/login');
 
-  final url = Uri.parse('http://127.0.0.1:5566/shelter/login');
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "username": _usernameController.text.trim(),
+          "password": _passwordController.text.trim(),
+        }),
+      );
 
-  try {
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "username": _usernameController.text.trim(),
-        "password": _passwordController.text.trim(),
-      }),
-    );
+      final responseData = jsonDecode(response.body);
 
-    final responseData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final data = responseData['data'];
 
-    if (response.statusCode == 200) {
-      final data = responseData['data'];
-      if (data != null && data['shelter_id'] != null) {
-        final int shelterId = data['shelter_id'];
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => HomeScreen(shelterId: shelterId)),
-        );
+        if (data != null && data['shelter_id'] != null) {
+          final int shelterId = data['shelter_id'];
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => HomeScreen(shelterId: shelterId)),
+          );
+        } else {
+          setState(() {
+            _errorMessage = "Invalid username or password. Please try again.";
+          });
+        }
       } else {
-        setState(() => _errorMessage = "Login failed. Please try again.");
+        setState(() {
+          _errorMessage = responseData['message'] ??
+              "Your account is pending. Please wait for admin approval.";
+        });
       }
-    } else {
-      // Show specific error message from the backend (like "Your account is pending...")
-      setState(() => _errorMessage = responseData['message'] ?? "Login failed. Please try again.");
+    } catch (e) {
+      setState(() {
+        _errorMessage = "Something went wrong. Please check your connection.";
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
-  } catch (e) {
-    setState(() => _errorMessage = "Server error. Please try again later.");
-  } finally {
-    setState(() => _isLoading = false);
   }
-}
 
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFE2F3FD), // light blue background
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minHeight: MediaQuery.of(context).size.height,
-            ),
-            child: IntrinsicHeight(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFE2F3FD),
+    resizeToAvoidBottomInset: true, // helps avoid keyboard overflow
+    body: SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
                 child: Column(
                   children: [
                     const SizedBox(height: 20),
@@ -93,8 +100,10 @@ Future<void> _login() async {
                           Image.asset('assets/images/logo.png', width: 150),
                           const SizedBox(height: 20),
                           const Text(
-                            'Sign in as Adopter Account',
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            'Back to the Shelter Life? Let’s Go!',
+                            style: TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
@@ -118,28 +127,45 @@ Future<void> _login() async {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text('Username', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const Text('Username',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _usernameController,
                             decoration: InputDecoration(
                               hintText: 'Enter your username',
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                               filled: true,
                               fillColor: Colors.grey[100],
                             ),
                           ),
                           const SizedBox(height: 20),
-                          const Text('Password', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const Text('Password',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _passwordController,
-                            obscureText: true,
+                            obscureText: !_isPasswordVisible,
                             decoration: InputDecoration(
                               hintText: 'Enter your password',
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                               filled: true,
                               fillColor: Colors.grey[100],
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
+                              ),
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -161,6 +187,7 @@ Future<void> _login() async {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 10),
                           if (_errorMessage != null)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 10),
@@ -173,30 +200,30 @@ Future<void> _login() async {
                           _isLoading
                               ? const Center(child: CircularProgressIndicator())
                               : ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF0288D1),
-                              padding: const EdgeInsets.symmetric(vertical: 15),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                            onPressed: _login,
-                            child: const Text(
-                              'Sign in',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Color(0xFF0288D1),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 15),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  onPressed: _login,
+                                  child: const Text(
+                                    'Sign in',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
                         ],
                       ),
                     ),
-
-                    const Spacer(),
-
+                    const SizedBox(height: 20),
                     TextButton(
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const SignUpScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const SignUpScreen()),
                         );
                       },
                       child: const Text(
@@ -209,9 +236,10 @@ Future<void> _login() async {
                 ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
-    );
-  }
+    ),
+  );
+}
 }

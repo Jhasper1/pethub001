@@ -33,22 +33,22 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
     _animationController.forward();
   }
 
-  void _toggleSelection(bool adopterSelected) {
-    setState(() {
-      isAdopterSelected = adopterSelected;
-      _animationController.reset();
-      _animationController.forward();
-    });
-  }
+void _toggleSelection(bool adopterSelected) {
+  setState(() {
+    isAdopterSelected = adopterSelected;
+    _animationController.reset();
+    _animationController.forward();
+  });
 
-  void _navigateToLogin() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => isAdopterSelected ? UserSignInScreen() : SignInScreen(),
-      ),
-    );
-  }
+  // Navigate immediately after selection
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => adopterSelected ? UserSignInScreen() : SignInScreen(),
+    ),
+  );
+}
+
 
   @override
   void dispose() {
@@ -136,7 +136,7 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
                   children: [
                     SizedBox(height: 30),
                     Text(
-                      "Join Adopt Me Today",
+                      "Join PetHub today!",
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -145,7 +145,7 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
                     ),
                     SizedBox(height: 15),
                     Text(
-                      "Adopt This <Tagline>",
+                      "Every Paw Deserves a Home 🐾",
                       style: TextStyle(
                         color: Colors.blue.shade600,
                         fontSize: 16,
@@ -163,31 +163,6 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
                           _toggleSelection(false);
                         }),
                       ],
-                    ),
-                    SizedBox(height: 40),
-                    /// Confirm Button - Now matches toggle button size
-                    SizedBox(
-                      height: 40,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          minimumSize: Size(double.infinity, 50),
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 3,
-                        ),
-                        onPressed: _navigateToLogin,
-                        child: Text(
-                          "Confirm",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
                     ),
                     SizedBox(height: 30),
                   ],

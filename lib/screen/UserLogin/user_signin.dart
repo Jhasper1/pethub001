@@ -15,6 +15,7 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
   String? _errorMessage;
 
   Future<void> _login() async {
@@ -64,7 +65,6 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFE2F3FD), // light blue background
       body: SafeArea(
-        child: SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(
               minHeight: MediaQuery.of(context).size.height,
@@ -90,8 +90,9 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                           Image.asset('assets/images/logo.png', width: 150),
                           const SizedBox(height: 20),
                           const Text(
-                            'Sign in as Adopter Account',
+                            'Log In & Meet Your New Companion',
                             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
@@ -131,12 +132,26 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                           const SizedBox(height: 8),
                           TextField(
                             controller: _passwordController,
-                            obscureText: true,
+                            obscureText: !_isPasswordVisible,
                             decoration: InputDecoration(
                               hintText: 'Enter your password',
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                               filled: true,
                               fillColor: Colors.grey[100],
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.grey,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
+                              ),
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -187,8 +202,6 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                       ),
                     ),
 
-                    const Spacer(),
-
                     TextButton(
                       onPressed: () {
                         Navigator.push(
@@ -208,7 +221,6 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 }
