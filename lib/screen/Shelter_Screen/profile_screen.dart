@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:march24/screen/Shelter_Screen/change_password_screen.dart';
 import 'package:march24/screen/Shelter_Screen/shelter_donations_screen.dart';
 import 'bottom_nav_bar.dart';
 import 'edit_profile_screen.dart';
 import '../splash_screen.dart';
+import 'change_password_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int shelterId;
@@ -82,7 +84,130 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F9FF), // Light blue background
+      backgroundColor: const Color(0xFFE2F3FD),
+      appBar: AppBar(
+        title: const Text('Shelter Profile'),
+        backgroundColor: Colors.lightBlue,
+        automaticallyImplyLeading: false,
+        centerTitle: true,
+        elevation: 0,
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert_rounded, color: Colors.black),
+            onSelected: (value) async {
+              if (value == 'donation') {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        ShelterDonationsScreen(shelterId: widget.shelterId),
+                  ),
+                );
+                if (result == true) {
+                  fetchShelterInfo();
+                }
+              } else if (value == 'edit') {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        EditProfileScreen(shelterId: widget.shelterId),
+                  ),
+                );
+                if (result == true) {
+                  fetchShelterInfo();
+                }
+              } else if (value == 'change_password') {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        ShelterChangePasswordScreen(shelterId: widget.shelterId),
+                  ),
+                );
+                if (result == true) {
+                  fetchShelterInfo();
+                }
+              } else if (value == 'logout') {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      // title: const Text('Confirm Logout', style: TextStyle(color: Colors.blue)),
+                      content: const Text('Are you sure you want to logout?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: const Text('Cancel',
+                              style: TextStyle(color: Colors.blue)),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const SplashScreen()),
+                              (Route<dynamic> route) => false,
+                            );
+                          },
+                          child: const Text('Logout',
+                              style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<String>(
+                value: 'edit',
+                child: Row(
+                  children: const [
+                    Icon(Icons.edit, color: Colors.black),
+                    SizedBox(width: 10),
+                    Text('Edit Profile'),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'donation',
+                child: Row(
+                  children: const [
+                    Icon(Icons.volunteer_activism, color: Colors.black),
+                    SizedBox(width: 10),
+                    Text('Edit Donation Info'),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'change_password',
+                child: Row(
+                  children: const [
+                    Icon(Icons.password, color: Colors.black),
+                    SizedBox(width: 10),
+                    Text('Change Password'),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'logout',
+                child: Row(
+                  children: const [
+                    Icon(Icons.logout, color: Colors.red),
+                    SizedBox(width: 10),
+                    Text('Logout', style: TextStyle(color: Colors.red)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,16 +242,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    child: Text(
-                      'Shelter Profile',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
                     ),
                   ),
                 ),
@@ -175,7 +290,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
 
             // Information Card
             Padding(
@@ -188,7 +303,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        children: [
+                          Icon(Icons.info_outline,
+                              color: Colors.blue.shade700),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Shelter Information',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                       _infoRow(Icons.location_on,
                           shelterInfo!['shelter_address'] ?? 'No information'),
                       const Divider(height: 20, thickness: 0.5),
@@ -205,12 +337,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const Divider(height: 20, thickness: 0.5),
                       _infoRow(Icons.language,
                           shelterInfo!['shelter_social'] ?? 'No information'),
+                      const Divider(height: 20, thickness: 0.5),
+                      _infoRow(Icons.person,
+                          shelterInfo!['shelter_owner'] ?? 'No information'),
                     ],
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
 
             // Description Box
             Padding(
@@ -257,153 +392,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
-
-            // Edit Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade700,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            EditProfileScreen(shelterId: widget.shelterId),
-                      ),
-                    );
-                    if (result == true) {
-                      fetchShelterInfo();
-                    }
-                  },
-                  child: const Text(
-                    'Edit Profile',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Add Donation Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade700,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            ShelterDonationsScreen(shelterId: widget.shelterId),
-                      ),
-                    );
-                    if (result == true) {
-                      fetchShelterInfo();
-                    }
-                  },
-                  child: const Text(
-                    'Update Donation Information',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Logout Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    elevation: 4, // adds elevation/shadow
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.red),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          title: const Text('Confirm Logout',
-                              style: TextStyle(color: Colors.blue)),
-                          content:
-                              const Text('Are you sure you want to logout?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text('Cancel',
-                                  style: TextStyle(color: Colors.blue)),
-                            ),
-                            TextButton(
-                              onPressed: () async {
-                                Navigator.of(context).pop();
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const SplashScreen()),
-                                  (Route<dynamic> route) => false,
-                                );
-                              },
-                              child: const Text(
-                                'Logout',
-                                style: TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  child: Text(
-                    'Logout',
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
           ],
         ),
       ),
+
+
       bottomNavigationBar: BottomNavBar(
         shelterId: widget.shelterId,
         currentIndex: 4,

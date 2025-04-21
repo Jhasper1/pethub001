@@ -17,11 +17,6 @@ class ViewPetsScreen extends StatefulWidget {
 
 class _ViewPetsScreenState extends State<ViewPetsScreen> {
   bool isLoading = true; // Add this at the top of your state class
-  int selectedCategory = 1; // Default: Cats
-  final List<Map<String, dynamic>> categories = [
-    {'icon': Icons.pets, 'label': 'Dogs'},
-    {'icon': Icons.pets, 'label': 'Cats'}
-  ];
 
   List<Map<String, dynamic>> pets = [];
   TextEditingController searchController = TextEditingController();
@@ -92,22 +87,33 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // backgroundColor: const Color(0xFFE2F3FD),
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        automaticallyImplyLeading: false, // This hides the back button
+        backgroundColor: Colors.lightBlue,
+        automaticallyImplyLeading: false,
         title: const Text(
           "Pet Library",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        centerTitle: true,
-
-        
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.archive, color: Colors.white),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ArchivedPetsScreen(shelterId: widget.shelterId),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-
       body: Column(
         children: [
-                    Padding(
-            padding: const EdgeInsets.all(16),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
                 SizedBox(
@@ -120,10 +126,9 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                     decoration: InputDecoration(
                       hintText: 'Search pet name...',
                       prefixIcon: const Icon(Icons.search, size: 20),
+                      
                       contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      border: OutlineInputBorder(),
                     ),
                   ),
                 ),
@@ -220,36 +225,28 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
         shelterId: widget.shelterId,
         currentIndex: 1,
       ),
-      floatingActionButton: FloatingActionButton(
-    backgroundColor: Colors.redAccent,
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ArchivedPetsScreen(shelterId: widget.shelterId),
-        ),
-      );
-    },
-    child: const Icon(Icons.archive,
-      color: Colors.white,
-    ),
-  ),
-  floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
-    
   }
 
   Widget _buildPetCard(Map<String, dynamic> pet) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         // Navigate to the pet details screen and pass the pet_id
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PetDetailsScreen(
-                petId: pet['pet_id'], shelterId: widget.shelterId),
-          ),
-        );
+        final result = await Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => PetDetailsScreen(
+      petId: pet['pet_id'],
+      shelterId: widget.shelterId,
+    ),
+  ),
+);
+
+if (result == true) {
+  // Reload the list after pet is archived or updated
+  fetchPets(); // Replace this with your actual method to refresh the list
+}
+
       },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

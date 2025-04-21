@@ -149,12 +149,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
       appBar: AppBar(title: Text('Edit Pet'),
       backgroundColor: Colors.lightBlue,
       ),
-      backgroundColor: Colors.grey[200],
       body: _buildBodyContent(),
-      // bottomNavigationBar: BottomNavBar(
-      //   shelterId: widget.shelterId,
-      //   currentIndex: 1,
-      // ),
     );
   }
 
@@ -299,13 +294,13 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.orangeAccent,
                   minimumSize: Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
                 child:
-                    Text('Save updates', style: TextStyle(color: Colors.white)),
+                    Text('Save edit', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),

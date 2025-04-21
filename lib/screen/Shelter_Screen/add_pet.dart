@@ -17,7 +17,8 @@ class AddPetScreen extends StatefulWidget {
   _AddPetScreenState createState() => _AddPetScreenState();
 }
 
-class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMixin {
+class _AddPetScreenState extends State<AddPetScreen>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
@@ -47,7 +48,8 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+        await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
       setState(() {
@@ -60,7 +62,8 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
-    var uri = Uri.parse("http://127.0.0.1:5566/shelter/${widget.shelterId}/add-pet-info");
+    var uri = Uri.parse(
+        "http://127.0.0.1:5566/shelter/${widget.shelterId}/add-pet-info");
     var request = http.MultipartRequest("POST", uri);
     request.fields['pet_type'] = _selectedPetType ?? "";
     request.fields['pet_name'] = _nameController.text;
@@ -116,7 +119,8 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
 
   String? _validateName(String? value) {
     if (value == null || value.isEmpty) return 'Enter pet name';
-    if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value)) return 'Only letters allowed';
+    if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(value))
+      return 'Only letters allowed';
     return null;
   }
 
@@ -203,7 +207,7 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
               radius: 70,
               backgroundColor: Colors.grey[200],
               backgroundImage:
-              _imageBytes != null ? MemoryImage(_imageBytes!) : null,
+                  _imageBytes != null ? MemoryImage(_imageBytes!) : null,
               child: _imageBytes == null
                   ? Icon(Icons.camera_alt, size: 50, color: Colors.grey[600])
                   : null,
@@ -214,7 +218,8 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
     );
   }
 
-  Widget _buildReviewItem(String label, String value, {bool isDescription = false}) {
+  Widget _buildReviewItem(String label, String value,
+      {bool isDescription = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
@@ -237,13 +242,10 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
               style: TextStyle(fontSize: isDescription ? 14 : 16),
             ),
           ),
-          SizedBox(height: 12),
+          SizedBox(height: 10),
         ],
-        
       ),
-      
     );
-    
   }
 
   Widget _buildPageContent() {
@@ -252,10 +254,13 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
         return Column(
           children: [
             _buildImagePreview(),
-            SizedBox(height: 30),
+            SizedBox(height: 20),
             Text(
               'What type of pet is it?',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic),
             ),
             SizedBox(height: 20),
             Row(
@@ -266,17 +271,22 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
                 _buildPetTypeButton('Cat', 'images/cat.png'),
               ],
             ),
-            SizedBox(height: 30),
+            SizedBox(height: 20),
             Text(
               'What is the pet name?',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic),
             ),
             SizedBox(height: 10),
             TextFormField(
               controller: _nameController,
               decoration: _buildTextFieldDecoration('Pet Name'),
               validator: _validateName,
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))],
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
+              ],
             ),
             SizedBox(height: 20),
           ],
@@ -294,9 +304,12 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
             SizedBox(height: 30),
             Text(
               'What is the pet age?',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic),
             ),
-            SizedBox(height: 30),
+            SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
@@ -316,8 +329,10 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
                     items: ['Month', 'Year'].map((type) {
                       return DropdownMenuItem(value: type, child: Text(type));
                     }).toList(),
-                    onChanged: (value) => setState(() => _selectedAgeType = value),
-                    validator: (value) => value == null ? 'Select age type' : null,
+                    onChanged: (value) =>
+                        setState(() => _selectedAgeType = value),
+                    validator: (value) =>
+                        value == null ? 'Select age type' : null,
                   ),
                 ),
               ],
@@ -325,7 +340,10 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
             SizedBox(height: 25),
             Text(
               'What is the pet sex?',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic),
             ),
             SizedBox(height: 15),
             DropdownButtonFormField<String>(
@@ -345,17 +363,26 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
         return Column(
           children: [
             _buildImagePreview(),
-            SizedBox(height: 25),
+            SizedBox(height: 20),
+            Text(
+              '${_nameController.text}',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 30),
             Text(
               'Note: You can include details like pet history, traits, etc.',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600], fontStyle: FontStyle.italic),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic),
             ),
             SizedBox(height: 15),
             TextFormField(
               controller: _descriptionController,
               decoration: _buildTextFieldDecoration('Pet Description'),
               maxLines: 6,
-              validator: (value) => value == null || value.isEmpty ? 'Enter a description' : null,
+              validator: (value) =>
+                  value == null || value.isEmpty ? 'Enter a description' : null,
             ),
             SizedBox(height: 25),
           ],
@@ -366,26 +393,29 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
           children: [
             SizedBox(height: 20),
             Text(
-              'Review Your Information',
+              'Review Pet Information',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 30),
+            SizedBox(height: 20),
             if (_imageBytes != null)
               CircleAvatar(
-                radius: 50,
+                radius: 70,
                 backgroundImage: MemoryImage(_imageBytes!),
               ),
-            SizedBox(height: 30),
+            SizedBox(height: 20),
             _buildReviewItem('Pet Type', _selectedPetType ?? 'Not specified'),
             _buildReviewItem('Name', _nameController.text),
-            _buildReviewItem('Age', '${_ageController.text} ${_selectedAgeType ?? ''}'),
+            _buildReviewItem(
+                'Age', '${_ageController.text} ${_selectedAgeType ?? ''}'),
             _buildReviewItem('Sex', _selectedSex ?? 'Not specified'),
-            _buildReviewItem('Description', _descriptionController.text, isDescription: true),
+            _buildReviewItem('Description', _descriptionController.text,
+                isDescription: true),
             SizedBox(height: 20),
             Text(
-              'Please review all information before submitting',
+              'Please review all pet information before submitting',
               style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
             ),
+            SizedBox(height: 20),
           ],
         );
 
@@ -399,7 +429,7 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
         4,
-            (index) => AnimatedContainer(
+        (index) => AnimatedContainer(
           duration: Duration(milliseconds: 300),
           margin: EdgeInsets.symmetric(horizontal: 6),
           width: _currentPage == index ? 14 : 8,
@@ -420,36 +450,21 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.lightBlue,
+        automaticallyImplyLeading: false,
         title: Text('Add Pet'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back),
-          onPressed: () {
-            if (_currentPage > 0) {
-              setState(() {
-                _currentPage--;
-                _progressBarController.forward(from: 0);
-              });
-            } else {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => HomeScreen(shelterId: widget.shelterId)),
-              );
-            }
-          },
-        ),
       ),
       bottomNavigationBar: BottomNavBar(
         shelterId: widget.shelterId,
         currentIndex: 2,
       ),
-      
+
       body: Padding(
-        padding: EdgeInsets.all(18.0),
+        padding: EdgeInsets.all(15.0),
         child: Column(
           children: [
             _buildProgressBar(),
-            SizedBox(height: 15),
+            SizedBox(height: 10),
             Expanded(
               child: Form(
                 key: _formKey,
@@ -457,78 +472,69 @@ class _AddPetScreenState extends State<AddPetScreen> with TickerProviderStateMix
               ),
             ),
             Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: ElevatedButton(
-          onPressed: () {
-            if (_currentPage == 0 && _validateImage() != null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(_validateImage()!)),
-              );
-              return;
-            }
+              padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+              child: Row(
+                children: [
+                  if (_currentPage > 0)
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _currentPage--;
+                            _progressBarController.forward(from: 0);
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          minimumSize: Size(double.infinity, 55),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text('Back',
+                            style:
+                                TextStyle(color: Colors.black, fontSize: 16)),
+                      ),
+                    ),
+                  if (_currentPage > 0) SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_currentPage == 0 && _validateImage() != null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(_validateImage()!)),
+                          );
+                          return;
+                        }
 
-            if (_formKey.currentState!.validate()) {
-              if (_currentPage < 3) {
-                setState(() {
-                  _currentPage++;
-                  _progressBarController.forward(from: 0);
-                });
-              } else {
-                _submitForm();
-              }
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            minimumSize: Size(double.infinity, 55),
-            backgroundColor: Colors.blue.shade700,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+                        if (_formKey.currentState!.validate()) {
+                          if (_currentPage < 3) {
+                            setState(() {
+                              _currentPage++;
+                              _progressBarController.forward(from: 0);
+                            });
+                          } else {
+                            _submitForm();
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: Size(double.infinity, 55),
+                        backgroundColor: Colors.lightBlue,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(_currentPage < 3 ? 'Next' : 'Submit',
+                          style: TextStyle(color: Colors.white, fontSize: 16)),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          child: Text(_currentPage < 3 ? 'Next' : 'Submit',
-              style: TextStyle(color: Colors.white, fontSize: 16)),
-        ),
-      ),
-      
           ],
-          
         ),
-        
       ),
-      // bottomNavigationBar: Padding(
-      //   padding: const EdgeInsets.all(20.0),
-      //   child: ElevatedButton(
-      //     onPressed: () {
-      //       if (_currentPage == 0 && _validateImage() != null) {
-      //         ScaffoldMessenger.of(context).showSnackBar(
-      //           SnackBar(content: Text(_validateImage()!)),
-      //         );
-      //         return;
-      //       }
-
-      //       if (_formKey.currentState!.validate()) {
-      //         if (_currentPage < 3) {
-      //           setState(() {
-      //             _currentPage++;
-      //             _progressBarController.forward(from: 0);
-      //           });
-      //         } else {
-      //           _submitForm();
-      //         }
-      //       }
-      //     },
-      //     style: ElevatedButton.styleFrom(
-      //       minimumSize: Size(double.infinity, 55),
-      //       backgroundColor: Colors.blue.shade700,
-      //       shape: RoundedRectangleBorder(
-      //         borderRadius: BorderRadius.circular(12),
-      //       ),
-      //     ),
-      //     child: Text(_currentPage < 3 ? 'Next' : 'Submit',
-      //         style: TextStyle(color: Colors.white, fontSize: 16)),
-      //   ),
-      // ),
-      
     );
   }
 }

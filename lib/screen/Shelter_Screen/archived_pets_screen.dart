@@ -91,8 +91,9 @@ class _ArchivedPetsScreenState extends State<ArchivedPetsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // backgroundColor: const Color.fromARGB(255, 253, 226, 226),
       appBar: AppBar(
-        backgroundColor: Colors.red,
+        backgroundColor: Colors.redAccent,
         title: const Text(
           "Archived Pets",
           // style: TextStyle(color: Colors.white),

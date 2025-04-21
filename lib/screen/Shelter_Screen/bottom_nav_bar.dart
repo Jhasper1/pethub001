@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:march24/screen/Shelter_Screen/home_screen.dart';
-import 'profile_screen.dart'; // Import ProfileScreen
+import 'home_screen.dart';
+import 'application_screen.dart';
+import 'profile_screen.dart';
 import 'view_pets.dart';
 import 'add_pet.dart';
 
@@ -52,7 +53,7 @@ class BottomNavBar extends StatelessWidget {
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation1, animation2) => const Placeholder(),
+          pageBuilder: (context, animation1, animation2) => ApplicantsScreen(shelterId: shelterId),
           transitionDuration: Duration.zero,
         ),
       );
@@ -71,8 +72,8 @@ class BottomNavBar extends StatelessWidget {
 
       items: [
         const BottomNavigationBarItem(
-          icon: Icon(Icons.home, size: 30), // Increase icon size
-          label: 'Home',
+          icon: Icon(Icons.dashboard, size: 30), // Increase icon size
+          label: 'Dashboard',
         ),
         const BottomNavigationBarItem(
           icon: Icon(Icons.pets, size: 30), // Increase icon size
@@ -89,7 +90,7 @@ class BottomNavBar extends StatelessWidget {
           label: '',
         ),
         const BottomNavigationBarItem(
-          icon: Icon(Icons.message, size: 30), // Increase icon size
+          icon: Icon(Icons.description, size: 30), // Increase icon size
           label: 'Applications',
         ),
         const BottomNavigationBarItem(

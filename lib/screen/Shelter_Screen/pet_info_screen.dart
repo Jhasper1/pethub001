@@ -110,7 +110,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: const Color(0xFFE2F3FD),
       appBar: AppBar(
         title: const Text('Pet Profile'),
         backgroundColor: Colors.lightBlue,
@@ -198,7 +198,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 5.0),
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueAccent,
+                              backgroundColor: Colors.orangeAccent,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -251,7 +251,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                     ),
                                     TextButton(
                                       onPressed: () =>
-                                          Navigator.of(context).pop(true),
+                                          Navigator.pop(context, true),
                                       child: const Text(
                                         "Yes",
                                         style: TextStyle(color: Colors.red),

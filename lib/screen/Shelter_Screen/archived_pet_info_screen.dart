@@ -114,10 +114,10 @@ class _ArchivedPetInfoScreenState extends State<ArchivedPetInfoScreen> {
         shelterId: widget.shelterId,
         currentIndex: 1,
       ),
-      backgroundColor: Colors.grey[200],
+      backgroundColor: const Color.fromARGB(255, 253, 226, 226),
       appBar: AppBar(
         title: const Text('Pet Profile'),
-        backgroundColor: Colors.lightBlue,
+        backgroundColor: Colors.redAccent,
         elevation: 0,
         centerTitle: true,
       ),
