@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data'; // To handle image bytes
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'bottom_nav_bar.dart'; // Adjust the import according to your project
 import 'pet_info_screen.dart'; // Adjust the import according to your project
@@ -40,6 +41,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
           return {
             'pet_id': pet['pet_id'],
             'pet_name': pet['pet_name'],
+            'priority_status': pet['priority_status'],
             'pet_image1':
                 pet['pet_image1'] != null && pet['pet_image1'].isNotEmpty
                     ? _decodeBase64Image(pet['pet_image1'][0])
@@ -91,9 +93,10 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.lightBlue,
         automaticallyImplyLeading: false,
-        title: const Text(
+        centerTitle: false,
+        title: Text(
           "Pet Library",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -126,7 +129,6 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                     decoration: InputDecoration(
                       hintText: 'Search pet name...',
                       prefixIcon: const Icon(Icons.search, size: 20),
-                      
                       contentPadding: const EdgeInsets.symmetric(vertical: 10),
                       border: OutlineInputBorder(),
                     ),
@@ -153,9 +155,9 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             });
                             fetchPets();
                           },
-                          decoration: const InputDecoration(
+                          decoration:InputDecoration(
                             labelText: 'Sex',
-                            labelStyle: TextStyle(fontSize: 12),
+                            labelStyle: GoogleFonts.poppins(fontSize: 12),
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 8),
                             border: OutlineInputBorder(),
@@ -182,12 +184,12 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             });
                             fetchPets();
                           },
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             labelText: 'Pet Type',
-                            labelStyle: TextStyle(fontSize: 12),
-                            contentPadding: EdgeInsets.symmetric(
+                            labelStyle: GoogleFonts.poppins(fontSize: 12),
+                            contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 8),
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                           ),
                         ),
                       ),
@@ -203,7 +205,8 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : pets.isEmpty
-                      ? const Center(child: Text("No Pets Found"))
+                      ? Center(child: Text("No Pets Found",
+                      style: GoogleFonts.poppins(),))
                       : GridView.builder(
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
@@ -233,20 +236,19 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
       onTap: () async {
         // Navigate to the pet details screen and pass the pet_id
         final result = await Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => PetDetailsScreen(
-      petId: pet['pet_id'],
-      shelterId: widget.shelterId,
-    ),
-  ),
-);
+          context,
+          MaterialPageRoute(
+            builder: (context) => PetDetailsScreen(
+              petId: pet['pet_id'],
+              shelterId: widget.shelterId,
+            ),
+          ),
+        );
 
-if (result == true) {
-  // Reload the list after pet is archived or updated
-  fetchPets(); // Replace this with your actual method to refresh the list
-}
-
+        if (result == true) {
+          // Reload the list after pet is archived or updated
+          fetchPets(); // Replace this with your actual method to refresh the list
+        }
       },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -257,37 +259,55 @@ if (result == true) {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: pet['pet_image1'] != null
-                      ? Image.memory(
-                          pet['pet_image1'],
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        )
-                      : Image.asset(
-                          'assets/images/logo.png',
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                ),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      pet['pet_image1'] != null
+                          ? Image.memory(
+                              pet['pet_image1'],
+                              fit: BoxFit.cover,
+                            )
+                          : Image.asset(
+                              'assets/images/logo.png',
+                              fit: BoxFit.cover,
+                            ),
+                      Container(
+                        color: Colors.black
+                            .withOpacity(0.4), // adjust opacity here
+                      ),
+                    ],
+                  ),
+                )
               ],
             ),
+            // Pet name at bottom-left
             Positioned(
               bottom: 8,
               left: 8,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.7),
-                  borderRadius: BorderRadius.circular(6),
+                  color: Colors.white.withOpacity(0.55),
+                  borderRadius: BorderRadius.circular(5),
                 ),
                 child: Text(
                   pet['pet_name'],
-                  style: const TextStyle(
+                  style: GoogleFonts.poppins(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                     color: Colors.black,
                   ),
                 ),
+              ),
+            ),
+            // Star icon at top-right
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Icon(
+                pet['priority_status'] == true ? Icons.star : Icons.star_border,
+                color: Colors.amber,
+                size: 24,
               ),
             ),
           ],

@@ -19,9 +19,11 @@ class AddPetScreen extends StatefulWidget {
 class _AddPetScreenState extends State<AddPetScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  bool _priorityStatus = false;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _sizeController = TextEditingController();
   String? _selectedPetType;
   String? _selectedAgeType;
   String? _selectedSex;
@@ -69,7 +71,9 @@ class _AddPetScreenState extends State<AddPetScreen>
     request.fields['pet_age'] = _ageController.text;
     request.fields['age_type'] = _selectedAgeType ?? "";
     request.fields['pet_sex'] = _selectedSex ?? "";
+    request.fields['pet_size'] = _sizeController.text;
     request.fields['pet_descriptions'] = _descriptionController.text;
+    request.fields['priority_status'] = _priorityStatus ? '1' : '0';
 
     if (_imageBytes != null && _imageFile != null) {
       final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
@@ -126,6 +130,13 @@ class _AddPetScreenState extends State<AddPetScreen>
   String? _validateAge(String? value) {
     if (value == null || value.isEmpty) return 'Enter pet age';
     if (!RegExp(r'^[0-9]+$').hasMatch(value)) return 'Only numbers allowed';
+    return null;
+  }
+
+  String? _validateSize(String? value) {
+    if (value == null || value.isEmpty) return 'Enter pet size';
+    if (!RegExp(r'^\d+(\.\d+)?$').hasMatch(value))
+      return 'Only numbers allowed';
     return null;
   }
 
@@ -320,7 +331,7 @@ class _AddPetScreenState extends State<AddPetScreen>
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
                 ),
-                SizedBox(width: 20),
+                SizedBox(width: 5),
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     decoration: _buildTextFieldDecoration('Age Type'),
@@ -336,25 +347,47 @@ class _AddPetScreenState extends State<AddPetScreen>
                 ),
               ],
             ),
-            SizedBox(height: 25),
+            SizedBox(height: 20),
             Text(
-              'What is the pet sex?',
+              'What is the pet size?',
               style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey[600],
                   fontStyle: FontStyle.italic),
             ),
-            SizedBox(height: 15),
-            DropdownButtonFormField<String>(
-              decoration: _buildTextFieldDecoration('Pet Sex'),
-              value: _selectedSex,
-              items: ['Male', 'Female'].map((sex) {
-                return DropdownMenuItem(value: sex, child: Text(sex));
-              }).toList(),
-              onChanged: (value) => setState(() => _selectedSex = value),
-              validator: (value) => value == null ? 'Select a sex' : null,
+            SizedBox(height: 5),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _sizeController,
+                    decoration: _buildTextFieldDecoration('Pet Size').copyWith(
+                      suffixText: 'KG',
+                      suffixStyle: TextStyle(color: Colors.grey[600]),
+                    ),
+                    validator: _validateSize,
+                    keyboardType:
+                        TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                    ],
+                  ),
+                ),
+                SizedBox(width: 5),
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    decoration: _buildTextFieldDecoration('Pet Sex'),
+                    value: _selectedSex,
+                    items: ['Male', 'Female'].map((sex) {
+                      return DropdownMenuItem(value: sex, child: Text(sex));
+                    }).toList(),
+                    onChanged: (value) => setState(() => _selectedSex = value),
+                    validator: (value) => value == null ? 'Select a sex' : null,
+                  ),
+                ),
+              ],
             ),
-            SizedBox(height: 25),
+            SizedBox(height: 20),
           ],
         );
 
@@ -371,9 +404,10 @@ class _AddPetScreenState extends State<AddPetScreen>
             Text(
               'Note: You can include details like pet history, traits, etc.',
               style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic),
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontStyle: FontStyle.italic,
+              ),
             ),
             SizedBox(height: 15),
             TextFormField(
@@ -382,6 +416,24 @@ class _AddPetScreenState extends State<AddPetScreen>
               maxLines: 6,
               validator: (value) =>
                   value == null || value.isEmpty ? 'Enter a description' : null,
+            ),
+            SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Priority Status',
+                  style: TextStyle(fontSize: 16),
+                ),
+                Switch(
+                  value: _priorityStatus,
+                  onChanged: (bool value) {
+                    setState(() {
+                      _priorityStatus = value;
+                    });
+                  },
+                ),
+              ],
             ),
             SizedBox(height: 25),
           ],
@@ -404,11 +456,13 @@ class _AddPetScreenState extends State<AddPetScreen>
             SizedBox(height: 20),
             _buildReviewItem('Pet Type', _selectedPetType ?? 'Not specified'),
             _buildReviewItem('Name', _nameController.text),
+            _buildReviewItem('Size', _sizeController.text),
             _buildReviewItem(
                 'Age', '${_ageController.text} ${_selectedAgeType ?? ''}'),
             _buildReviewItem('Sex', _selectedSex ?? 'Not specified'),
             _buildReviewItem('Description', _descriptionController.text,
                 isDescription: true),
+            _buildReviewItem('Priority Status', _priorityStatus ? 'Yes' : 'No'),
             SizedBox(height: 20),
             Text(
               'Please review all pet information before submitting',
@@ -417,7 +471,6 @@ class _AddPetScreenState extends State<AddPetScreen>
             SizedBox(height: 20),
           ],
         );
-
       default:
         return Container();
     }
@@ -448,16 +501,10 @@ class _AddPetScreenState extends State<AddPetScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.lightBlue,
-        automaticallyImplyLeading: false,
-        title: Text('Add Pet'),
-      ),
       bottomNavigationBar: BottomNavBar(
         shelterId: widget.shelterId,
         currentIndex: 2,
       ),
-
       body: Padding(
         padding: EdgeInsets.all(15.0),
         child: Column(
@@ -471,7 +518,8 @@ class _AddPetScreenState extends State<AddPetScreen>
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 0.0, horizontal: 0.0),
               child: Row(
                 children: [
                   if (_currentPage > 0)

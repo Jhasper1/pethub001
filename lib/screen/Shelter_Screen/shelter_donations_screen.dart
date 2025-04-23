@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -178,8 +179,10 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Donation Information'),
-        backgroundColor: Colors.blueAccent,
+        title: Text('Donation Information',
+        style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -229,8 +232,8 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Account Number',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Account Number',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
                   TextFormField(
                     controller: _accountnumberController,
                     decoration:
@@ -244,8 +247,8 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
                         shelterDonations!['account_number'] = value,
                   ),
                   const SizedBox(height: 10),
-                  const Text('Account Name',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Account Name',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
                   TextFormField(
                     controller: _accountnameController,
                     decoration:
@@ -263,7 +266,7 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
                         context: context,
                         builder: (BuildContext context) {
                           return AlertDialog(
-                            title: const Text("Confirm"),
+                            // title: const Text("Confirm"),
                             content: const Text(
                                 "Are you sure you want to save the changes?"),
                             actions: [
@@ -287,15 +290,15 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
+                      backgroundColor: Colors.lightBlue,
                       minimumSize: const Size(double.infinity, 50),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Save Changes',
-                      style: TextStyle(color: Colors.white),
+                      style: GoogleFonts.poppins(color: Colors.white),
                     ),
                   ),
                 ],

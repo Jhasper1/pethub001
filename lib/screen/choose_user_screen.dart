@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:march24/screen/Shelter_Screen/signin_screen.dart';
 import 'package:march24/screen/UserLogIn/user_signin.dart';
 
@@ -142,17 +143,17 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
                     SizedBox(height: 30),
                     Text(
                       "Join PetHub today!",
-                      style: TextStyle(
+                      style: GoogleFonts.poppins(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade800,
+                        color: Colors.lightBlue,
                       ),
                     ),
                     SizedBox(height: 15),
                     Text(
                       "Every Paw Deserves a Home 🐾",
-                      style: TextStyle(
-                        color: Colors.blue.shade600,
+                      style: GoogleFonts.poppins(
+                        color: Colors.lightBlue.shade500,
                         fontSize: 16,
                       ),
                     ),
@@ -185,7 +186,7 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor:
-          isSelected ? Colors.blue.shade700 : Colors.blue.shade50,
+          isSelected ? Colors.lightBlue : Colors.blue.shade50,
           minimumSize: Size(150, 50),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -194,9 +195,9 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
         onPressed: onTap,
         child: Text(
           text,
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             fontSize: 12,
-            color: isSelected ? Colors.white : Colors.blue.shade800,
+            color: isSelected ? Colors.white : Colors.lightBlue,
             fontWeight: FontWeight.w600,
           ),
         ),

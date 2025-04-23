@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:march24/screen/Shelter_Screen/change_password_screen.dart';
@@ -85,129 +86,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFE2F3FD),
-      appBar: AppBar(
-        title: const Text('Shelter Profile'),
-        backgroundColor: Colors.lightBlue,
-        automaticallyImplyLeading: false,
-        centerTitle: true,
-        elevation: 0,
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert_rounded, color: Colors.black),
-            onSelected: (value) async {
-              if (value == 'donation') {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        ShelterDonationsScreen(shelterId: widget.shelterId),
-                  ),
-                );
-                if (result == true) {
-                  fetchShelterInfo();
-                }
-              } else if (value == 'edit') {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        EditProfileScreen(shelterId: widget.shelterId),
-                  ),
-                );
-                if (result == true) {
-                  fetchShelterInfo();
-                }
-              } else if (value == 'change_password') {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        ShelterChangePasswordScreen(shelterId: widget.shelterId),
-                  ),
-                );
-                if (result == true) {
-                  fetchShelterInfo();
-                }
-              } else if (value == 'logout') {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      // title: const Text('Confirm Logout', style: TextStyle(color: Colors.blue)),
-                      content: const Text('Are you sure you want to logout?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('Cancel',
-                              style: TextStyle(color: Colors.blue)),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            Navigator.pushAndRemoveUntil(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const SplashScreen()),
-                              (Route<dynamic> route) => false,
-                            );
-                          },
-                          child: const Text('Logout',
-                              style: TextStyle(color: Colors.red)),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              PopupMenuItem<String>(
-                value: 'edit',
-                child: Row(
-                  children: const [
-                    Icon(Icons.edit, color: Colors.black),
-                    SizedBox(width: 10),
-                    Text('Edit Profile'),
-                  ],
-                ),
-              ),
-              PopupMenuItem<String>(
-                value: 'donation',
-                child: Row(
-                  children: const [
-                    Icon(Icons.volunteer_activism, color: Colors.black),
-                    SizedBox(width: 10),
-                    Text('Edit Donation Info'),
-                  ],
-                ),
-              ),
-              PopupMenuItem<String>(
-                value: 'change_password',
-                child: Row(
-                  children: const [
-                    Icon(Icons.password, color: Colors.black),
-                    SizedBox(width: 10),
-                    Text('Change Password'),
-                  ],
-                ),
-              ),
-              PopupMenuItem<String>(
-                value: 'logout',
-                child: Row(
-                  children: const [
-                    Icon(Icons.logout, color: Colors.red),
-                    SizedBox(width: 10),
-                    Text('Logout', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,14 +113,149 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                 ),
-                Positioned(
-                  top: 40,
-                  right: 20,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+                // Positioned(
+                //   top: 40,
+                //   right: 20,
+                //   child: Container(
+                //     decoration: BoxDecoration(
+                //       color: Colors.white.withOpacity(0.2),
+                //       borderRadius: BorderRadius.circular(20),
+                //     ),
+                //   ),
+                // ),
+                Padding(
+                  padding: const EdgeInsets.all(5), // adjust padding as needed
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      PopupMenuButton<String>(
+                        icon: Container(
+                          padding: const EdgeInsets.all(5.0),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.black.withOpacity(
+                                0.3), // light transparent background
+                          ),
+                          child: const Icon(Icons.settings,
+                              size: 30, color: Colors.white),
+                        ),
+                        onSelected: (value) async {
+                          if (value == 'donation') {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ShelterDonationsScreen(
+                                    shelterId: widget.shelterId),
+                              ),
+                            );
+                            if (result == true) {
+                              fetchShelterInfo();
+                            }
+                          } else if (value == 'edit') {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => EditProfileScreen(
+                                    shelterId: widget.shelterId),
+                              ),
+                            );
+                            if (result == true) {
+                              fetchShelterInfo();
+                            }
+                          } else if (value == 'change_password') {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => ShelterChangePasswordScreen(
+                                    shelterId: widget.shelterId),
+                              ),
+                            );
+                            if (result == true) {
+                              fetchShelterInfo();
+                            }
+                          } else if (value == 'logout') {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  content: const Text(
+                                      'Are you sure you want to logout?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
+                                      child: const Text('Cancel',
+                                          style: TextStyle(color: Colors.blue)),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                        Navigator.pushAndRemoveUntil(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const SplashScreen()),
+                                          (Route<dynamic> route) => false,
+                                        );
+                                      },
+                                      child: const Text('Logout',
+                                          style: TextStyle(color: Colors.red)),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }
+                        },
+                        itemBuilder: (BuildContext context) => [
+                          PopupMenuItem<String>(
+                            value: 'edit',
+                            child: Row(
+                              children: const [
+                                Icon(Icons.edit, color: Colors.black),
+                                SizedBox(width: 10),
+                                Text('Edit Profile'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'donation',
+                            child: Row(
+                              children: const [
+                                Icon(Icons.volunteer_activism,
+                                    color: Colors.black),
+                                SizedBox(width: 10),
+                                Text('Edit Donation Info'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'change_password',
+                            child: Row(
+                              children: const [
+                                Icon(Icons.password, color: Colors.black),
+                                SizedBox(width: 10),
+                                Text('Change Password'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'logout',
+                            child: Row(
+                              children: const [
+                                Icon(Icons.logout, color: Colors.red),
+                                SizedBox(width: 10),
+                                Text('Logout',
+                                    style: TextStyle(color: Colors.red)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
                 Align(
@@ -278,7 +291,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       const SizedBox(height: 10),
                       Text(
                         shelterInfo!['shelter_name'] ?? 'Unknown Shelter',
-                        style: const TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Colors.black,
@@ -307,12 +320,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.info_outline,
-                              color: Colors.blue.shade700),
+                          Icon(Icons.info_outline, color: Colors.blue.shade700),
                           const SizedBox(width: 8),
-                          const Text(
+                          Text(
                             'Shelter Information',
-                            style: TextStyle(
+                            style: GoogleFonts.poppins(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.blue,
@@ -380,12 +392,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         shelterInfo!['shelter_description']?.isNotEmpty == true
                             ? shelterInfo!['shelter_description']
                             : 'No description provided',
-                        style: const TextStyle(
+                        style: GoogleFonts.poppins(
                           fontSize: 14,
                           color: Colors.black87,
                           height: 1.4,
                         ),
-                        textAlign: TextAlign.justify,
+                        // textAlign: TextAlign.justify,
                       ),
                     ],
                   ),
@@ -396,7 +408,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
-
 
       bottomNavigationBar: BottomNavBar(
         shelterId: widget.shelterId,
@@ -415,7 +426,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Expanded(
           child: Text(
             displayText!,
-            style: const TextStyle(
+            style: GoogleFonts.poppins(
               fontSize: 14,
               color: Colors.black87,
             ),

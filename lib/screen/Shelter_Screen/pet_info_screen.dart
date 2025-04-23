@@ -49,6 +49,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
             'pet_descriptions': petDataResponse['pet_descriptions'],
             'pet_sex': petDataResponse['pet_sex'],
             'pet_age': petDataResponse['pet_age'],
+            'pet_size': petDataResponse['pet_size'],
             'age_type': petDataResponse['age_type'],
             'pet_image1': petDataResponse['pet_image1'] != null &&
                     petDataResponse['pet_image1'].isNotEmpty
@@ -172,6 +173,9 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                   'Age ',
                                   '(Approx.) ${petData?['pet_age'] ?? 'Unknown'} ${petData?['age_type'] ?? ''} old',
                                 ),
+                                const SizedBox(height: 8),
+                                _infoRow('Size', '${petData?['pet_size']?? 'Unknown'} KG'),
+
                                 const SizedBox(height: 10),
                                 Divider(thickness: 1, color: Colors.grey[400]),
                                 const Text(

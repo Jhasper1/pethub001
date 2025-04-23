@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:march24/screen/choose_user_screen.dart';
 import 'home_screen.dart';
 import 'signup_screen.dart';
 
 class SignInScreen extends StatefulWidget {
-  const  SignInScreen({super.key});
+  const SignInScreen({super.key});
 
   @override
   _SignInScreenState createState() => _SignInScreenState();
@@ -25,7 +26,7 @@ class _SignInScreenState extends State<SignInScreen> {
       _errorMessage = null;
     });
 
-    final url = Uri.parse('http://10.0.2.2:5566/shelter/login');
+    final url = Uri.parse('http://127.0.0.1:5566/shelter/login');
 
     try {
       final response = await http.post(
@@ -94,7 +95,8 @@ class _SignInScreenState extends State<SignInScreen> {
                               Navigator.pushReplacement(
                                 context,
                                 PageRouteBuilder(
-                                  pageBuilder: (_, __, ___) => const ChooseUserScreen(),
+                                  pageBuilder: (_, __, ___) =>
+                                      const ChooseUserScreen(),
                                   transitionDuration: Duration.zero,
                                   reverseTransitionDuration: Duration.zero,
                                 ),
@@ -109,9 +111,9 @@ class _SignInScreenState extends State<SignInScreen> {
                           children: [
                             Image.asset('assets/images/logo.png', width: 150),
                             const SizedBox(height: 20),
-                            const Text(
+                            Text(
                               'Back to the Shelter Life? Let’s Go!',
-                              style: TextStyle(
+                              style: GoogleFonts.poppins(
                                   fontSize: 24, fontWeight: FontWeight.bold),
                               textAlign: TextAlign.center,
                             ),
@@ -137,8 +139,9 @@ class _SignInScreenState extends State<SignInScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const Text('Username',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            Text('Username',
+                                style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
                             TextField(
                               controller: _usernameController,
@@ -150,9 +153,10 @@ class _SignInScreenState extends State<SignInScreen> {
                                 fillColor: Colors.grey[100],
                               ),
                             ),
-                            const SizedBox(height: 20),
-                            const Text('Password',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 15),
+                            Text('Password',
+                                style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.bold)),
                             const SizedBox(height: 8),
                             TextField(
                               controller: _passwordController,
@@ -178,26 +182,30 @@ class _SignInScreenState extends State<SignInScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 5),
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Row(
-                                  children: [
-                                    Checkbox(value: false, onChanged: (val) {}),
-                                    const Text('Remember me'),
-                                  ],
-                                ),
+                                // Row(
+                                //   children: [
+                                //     Checkbox(value: false, onChanged: (val) {}),
+                                //     Text('Remember me',
+                                //         style: GoogleFonts.poppins(
+                                //             color: Colors.black)),
+                                //   ],
+                                // ),
                                 TextButton(
                                   onPressed: () {},
-                                  child: const Text(
+                                  child: Text(
                                     'Forgot password?',
-                                    style: TextStyle(color: Color(0xFF0288D1)),
+                                    style: GoogleFonts.poppins(
+                                        color: Color(0xFF0288D1)),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 10),
+                            const SizedBox(height: 5),
+                            
                             if (_errorMessage != null)
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 10),
@@ -208,22 +216,23 @@ class _SignInScreenState extends State<SignInScreen> {
                                 ),
                               ),
                             _isLoading
-                                ? const Center(child: CircularProgressIndicator())
+                                ? const Center(
+                                    child: CircularProgressIndicator())
                                 : ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF0288D1),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 15),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              onPressed: _login,
-                              child: const Text(
-                                'Sign in',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.lightBlue,
+                                      minimumSize: Size(150, 50),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                    ),
+                                    onPressed: _login,
+                                    child: Text(
+                                      'Sign in',
+                                      style: GoogleFonts.poppins(
+                                          color: Colors.white),
+                                    ),
+                                  ),
                           ],
                         ),
                       ),
@@ -236,9 +245,9 @@ class _SignInScreenState extends State<SignInScreen> {
                                 builder: (_) => const SignUpScreen()),
                           );
                         },
-                        child: const Text(
+                        child: Text(
                           "Don't have an account? Sign up",
-                          style: TextStyle(color: Color(0xFF0288D1)),
+                          style: GoogleFonts.poppins(color: Color(0xFF0288D1)),
                         ),
                       ),
                       const SizedBox(height: 20),
