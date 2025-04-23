@@ -113,11 +113,11 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(10.0),
             child: Column(
               children: [
                 SizedBox(
-                  height: 40, // smaller height for TextField
+                  height: 35, // smaller height for TextField
                   child: TextField(
                     controller: searchController,
                     onChanged: (value) {
@@ -137,7 +137,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                   children: [
                     Expanded(
                       child: SizedBox(
-                        height: 40,
+                        height: 35,
                         child: DropdownButtonFormField<String>(
                           value: selectedSex,
                           items: ['All', 'Male', 'Female']
@@ -166,7 +166,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                     const SizedBox(width: 5),
                     Expanded(
                       child: SizedBox(
-                        height: 40,
+                        height: 35,
                         child: DropdownButtonFormField<String>(
                           value: selectedPetType,
                           items: ['All', 'Dog', 'Cat']
