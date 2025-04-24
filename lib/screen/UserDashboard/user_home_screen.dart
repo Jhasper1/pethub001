@@ -42,7 +42,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         final shelterData = jsonDecode(shelterResponse.body);
 
         setState(() {
-          pets = List<Map<String, dynamic>>.from(petData).take(3).toList();
+          pets = List<Map<String, dynamic>>.from(petData)
+              .where((pet) => pet['priority_status'] == true)
+              .take(3)
+              .toList();
           shelters = List<Map<String, dynamic>>.from(shelterData).take(3).toList();
           isLoading = false;
         });
@@ -195,9 +198,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   Widget _buildFeaturedPetsList() {
     return SizedBox(
-      height: 230,
+      height: 160,
       child: pets.isEmpty
-          ? const Center(child: Text("No pets available"))
+          ? const Center(child: Text("No featured pets available"))
           : ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -206,19 +209,20 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           final pet = pets[index];
           String image = pet['pet_image1'] ?? '';
           return GestureDetector(
-            // onTap: () => Navigator.push(
-            //   context,
-            //   MaterialPageRoute(
-            //     builder: (_) =>
-            //         PetDetailsScreen(petId: pet["pet_id"]),
-            //   ),
-            // ),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PetDetailsScreen(
+                  petId: pet["pet_id"],
+                ),
+              ),
+            ),
             child: Container(
               width: 160,
               margin: const EdgeInsets.only(right: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.blue.withOpacity(0.1),
@@ -227,36 +231,42 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   ),
                 ],
               ),
-              child: Column(
+              child: Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12)),
+                    borderRadius: BorderRadius.circular(16),
                     child: image.isNotEmpty
                         ? Image.memory(
                       base64Decode(image),
-                      height: 140,
                       width: double.infinity,
+                      height: double.infinity,
                       fit: BoxFit.cover,
                     )
                         : Container(
-                      height: 140,
                       color: Colors.blue.shade50,
                       child: const Icon(Icons.pets, size: 40),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(pet['pet_name'] ?? '',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold)),
-                        Text(pet['pet_type'] ?? '',
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey)),
-                      ],
+                  Positioned(
+                    bottom: 10,
+                    left: 10,
+                    right: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        pet['pet_name'] ?? '',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ],
@@ -282,8 +292,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             context,
             MaterialPageRoute(
               builder: (_) =>
-
-              ShelterDetailsScreen(shelterId: shelter["shelter_id"]),
+                  ShelterDetailsScreen(shelterId: shelter["shelter_id"]),
             ),
           ),
           child: Container(
@@ -329,8 +338,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                       ),
                       Text(
                         shelter['shelter_address'] ?? '',
-                        style: const TextStyle(
-                            fontSize: 12, color: Colors.black54),
+                        style: const TextStyle(fontSize: 12, color: Colors.black54),
                       ),
                     ],
                   ),
