@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data'; // To handle image bytes
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'bottom_nav_bar.dart'; // Adjust the import according to your project
 import 'pet_info_screen.dart'; // Adjust the import according to your project
@@ -18,6 +17,11 @@ class ViewPetsScreen extends StatefulWidget {
 
 class _ViewPetsScreenState extends State<ViewPetsScreen> {
   bool isLoading = true; // Add this at the top of your state class
+  int selectedCategory = 1; // Default: Cats
+  final List<Map<String, dynamic>> categories = [
+    {'icon': Icons.pets, 'label': 'Dogs'},
+    {'icon': Icons.pets, 'label': 'Cats'}
+  ];
 
   List<Map<String, dynamic>> pets = [];
   TextEditingController searchController = TextEditingController();
@@ -41,7 +45,6 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
           return {
             'pet_id': pet['pet_id'],
             'pet_name': pet['pet_name'],
-            'priority_status': pet['priority_status'],
             'pet_image1':
                 pet['pet_image1'] != null && pet['pet_image1'].isNotEmpty
                     ? _decodeBase64Image(pet['pet_image1'][0])
@@ -89,38 +92,26 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: const Color(0xFFE2F3FD),
       appBar: AppBar(
-        backgroundColor: Colors.lightBlue,
-        automaticallyImplyLeading: false,
-        centerTitle: false,
-        title: Text(
+        backgroundColor: Colors.blueAccent,
+        automaticallyImplyLeading: false, // This hides the back button
+        title: const Text(
           "Pet Library",
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.archive, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      ArchivedPetsScreen(shelterId: widget.shelterId),
-                ),
-              );
-            },
-          ),
-        ],
+        centerTitle: true,
+
+        
       ),
+
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(10.0),
+                    Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 SizedBox(
-                  height: 35, // smaller height for TextField
+                  height: 40, // smaller height for TextField
                   child: TextField(
                     controller: searchController,
                     onChanged: (value) {
@@ -130,7 +121,9 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                       hintText: 'Search pet name...',
                       prefixIcon: const Icon(Icons.search, size: 20),
                       contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                      border: OutlineInputBorder(),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
                 ),
@@ -139,7 +132,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                   children: [
                     Expanded(
                       child: SizedBox(
-                        height: 35,
+                        height: 40,
                         child: DropdownButtonFormField<String>(
                           value: selectedSex,
                           items: ['All', 'Male', 'Female']
@@ -155,9 +148,9 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             });
                             fetchPets();
                           },
-                          decoration:InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Sex',
-                            labelStyle: GoogleFonts.poppins(fontSize: 12),
+                            labelStyle: TextStyle(fontSize: 12),
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 8),
                             border: OutlineInputBorder(),
@@ -168,7 +161,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                     const SizedBox(width: 5),
                     Expanded(
                       child: SizedBox(
-                        height: 35,
+                        height: 40,
                         child: DropdownButtonFormField<String>(
                           value: selectedPetType,
                           items: ['All', 'Dog', 'Cat']
@@ -184,12 +177,12 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             });
                             fetchPets();
                           },
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Pet Type',
-                            labelStyle: GoogleFonts.poppins(fontSize: 12),
-                            contentPadding: const EdgeInsets.symmetric(
+                            labelStyle: TextStyle(fontSize: 12),
+                            contentPadding: EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 8),
-                            border: const OutlineInputBorder(),
+                            border: OutlineInputBorder(),
                           ),
                         ),
                       ),
@@ -205,8 +198,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : pets.isEmpty
-                      ? Center(child: Text("No Pets Found",
-                      style: GoogleFonts.poppins(),))
+                      ? const Center(child: Text("No Pets Found"))
                       : GridView.builder(
                           gridDelegate:
                               const SliverGridDelegateWithFixedCrossAxisCount(
@@ -228,27 +220,36 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
         shelterId: widget.shelterId,
         currentIndex: 1,
       ),
+      floatingActionButton: FloatingActionButton(
+    backgroundColor: Colors.redAccent,
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ArchivedPetsScreen(shelterId: widget.shelterId),
+        ),
+      );
+    },
+    child: const Icon(Icons.archive,
+      color: Colors.white,
+    ),
+  ),
+  floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
+    
   }
 
   Widget _buildPetCard(Map<String, dynamic> pet) {
     return GestureDetector(
-      onTap: () async {
+      onTap: () {
         // Navigate to the pet details screen and pass the pet_id
-        final result = await Navigator.push(
+        Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => PetDetailsScreen(
-              petId: pet['pet_id'],
-              shelterId: widget.shelterId,
-            ),
+                petId: pet['pet_id'], shelterId: widget.shelterId),
           ),
         );
-
-        if (result == true) {
-          // Reload the list after pet is archived or updated
-          fetchPets(); // Replace this with your actual method to refresh the list
-        }
       },
       child: Card(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -259,28 +260,20 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      pet['pet_image1'] != null
-                          ? Image.memory(
-                              pet['pet_image1'],
-                              fit: BoxFit.cover,
-                            )
-                          : Image.asset(
-                              'assets/images/logo.png',
-                              fit: BoxFit.cover,
-                            ),
-                      Container(
-                        color: Colors.black
-                            .withOpacity(0.4), // adjust opacity here
-                      ),
-                    ],
-                  ),
-                )
+                  child: pet['pet_image1'] != null
+                      ? Image.memory(
+                          pet['pet_image1'],
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.asset(
+                          'assets/images/logo.png',
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                ),
               ],
             ),
-            // Pet name at bottom-left
             Positioned(
               bottom: 8,
               left: 8,
@@ -292,22 +285,12 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                 ),
                 child: Text(
                   pet['pet_name'],
-                  style: GoogleFonts.poppins(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                     color: Colors.black,
                   ),
                 ),
-              ),
-            ),
-            // Star icon at top-right
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Icon(
-                pet['priority_status'] == true ? Icons.star : Icons.star_border,
-                color: Colors.amber,
-                size: 24,
               ),
             ),
           ],

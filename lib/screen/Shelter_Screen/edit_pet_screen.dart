@@ -24,7 +24,6 @@ class _EditPetScreenState extends State<EditPetScreen> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _sizeController = TextEditingController();
 
   String? _selectedPetType;
   String? _selectedAgeType;
@@ -56,9 +55,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
               petDataResponse['pet_descriptions'] ?? '';
           _selectedAgeType = petDataResponse['age_type'];
           _selectedSex = petDataResponse['pet_sex'];
-          _sizeController.text = petDataResponse['pet_size'].toString();
           _selectedPetType = petDataResponse['pet_type'];
-
 
           // Decode image if available
           if (petDataResponse['pet_image1'] != null &&
@@ -99,7 +96,6 @@ class _EditPetScreenState extends State<EditPetScreen> {
     // Add text fields
     request.fields['pet_name'] = _nameController.text;
     request.fields['pet_age'] = _ageController.text;
-    request.fields['pet_size'] = _sizeController.text;
     request.fields['age_type'] = _selectedAgeType!;
     request.fields['pet_sex'] = _selectedSex!;
     request.fields['pet_type'] = _selectedPetType!;
@@ -138,13 +134,6 @@ class _EditPetScreenState extends State<EditPetScreen> {
     }
   }
 
-   String? _validateSize(String? value) {
-    if (value == null || value.isEmpty) return 'Enter pet size';
-    if (!RegExp(r'^\d+(\.\d+)?$').hasMatch(value))
-      return 'Only numbers allowed';
-    return null;
-  }
-
   InputDecoration _buildTextFieldDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
@@ -160,7 +149,12 @@ class _EditPetScreenState extends State<EditPetScreen> {
       appBar: AppBar(title: Text('Edit Pet'),
       backgroundColor: Colors.lightBlue,
       ),
+      backgroundColor: Colors.grey[200],
       body: _buildBodyContent(),
+      // bottomNavigationBar: BottomNavBar(
+      //   shelterId: widget.shelterId,
+      //   currentIndex: 1,
+      // ),
     );
   }
 
@@ -228,20 +222,6 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 ],
               ),
               SizedBox(height: 15),
-              TextFormField(
-                      controller: _sizeController,
-                      decoration: _buildTextFieldDecoration('Pet Size').copyWith(
-                      suffixText: 'KG',
-                      suffixStyle: TextStyle(color: Colors.grey[600]),
-                    ),
-                      validator: _validateSize,
-                    keyboardType:
-                        TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-                    ],
-                    ),
-              SizedBox(height: 15),
               Row(
                 children: [
                   Expanded(
@@ -289,7 +269,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 style: TextStyle(
                     fontSize: 10,
                     fontStyle: FontStyle.italic,
-                    color: Colors.black),
+                    color: Colors.grey[600]),
               ),
               TextFormField(
                 controller: _descriptionController,
@@ -319,13 +299,13 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orangeAccent,
+                  backgroundColor: Colors.green,
                   minimumSize: Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
                 child:
-                    Text('Save edit', style: TextStyle(color: Colors.white)),
+                    Text('Save updates', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),

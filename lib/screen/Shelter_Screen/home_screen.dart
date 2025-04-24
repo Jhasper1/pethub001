@@ -50,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
   
 
   Future<PetStatusCount> fetchPetCounts(int shelterId) async {
-  final url = Uri.parse('http://127.0.0.1:5566/shelter/$shelterId/petcount');
+  final url = Uri.parse('http://10.0.2.2:5566/shelter/$shelterId/petcount');
   final response = await http.get(url);
 
   if (response.statusCode == 200) {

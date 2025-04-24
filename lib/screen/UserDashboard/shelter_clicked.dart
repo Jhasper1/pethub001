@@ -1,23 +1,23 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:cached_network_image/cached_network_image.dart';
-import 'pet_clicked.dart';
+import 'package:march24/screen/UserDashboard/pet_clicked.dart';
 
 class ShelterDetailsScreen extends StatefulWidget {
-  final String shelterId;
+  final int shelterId;
 
-  const ShelterDetailsScreen({required this.shelterId, Key? key}) : super(key: key);
+  const ShelterDetailsScreen({required this.shelterId, super.key});
 
   @override
   State<ShelterDetailsScreen> createState() => _ShelterDetailsScreenState();
 }
 
 class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
-  Map<String, dynamic>? shelterData;
+  Map<String, dynamic>? shelter;
   List<dynamic> pets = [];
   bool isLoading = true;
-  bool showPets = true;
+  String selectedTab = 'pets';
 
   @override
   void initState() {
@@ -26,119 +26,263 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
   }
 
   Future<void> fetchShelterData() async {
-    final response = await http.get(
-      Uri.parse('http://YOUR_LOCALHOST_OR_DEPLOYED_URL/shelters/${widget.shelterId}'),
-    );
+    final url = Uri.parse('http://127.0.0.1:5566/user/${widget.shelterId}/pet');
+    final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
+      try {
+        final decoded = json.decode(response.body);
+        final data = decoded['data'] as Map<String, dynamic>;
+        final shelterRaw = data['shelter'];
+        final petsRaw = data['pets'];
+
+        setState(() {
+          shelter = Map<String, dynamic>.from(shelterRaw);
+          pets = List<Map<String, dynamic>>.from(
+            (petsRaw as List).map((e) => Map<String, dynamic>.from(e)),
+          );
+          isLoading = false;
+        });
+      } catch (e) {
+        print("Error parsing JSON: $e");
+        setState(() {
+          isLoading = false;
+        });
+      }
+    } else {
+      print("Request failed: ${response.statusCode} - ${response.body}");
       setState(() {
-        shelterData = responseData['data']['shelter'];
-        pets = responseData['data']['pets'];
         isLoading = false;
       });
-    } else {
-      setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to load shelter data')),
-      );
     }
+  }
+
+  Widget _buildShelterInfo() {
+    if (shelter == null) return const Text("Shelter data not available");
+
+    return Column(
+      children: [
+        Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            Container(
+              height: 180,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                image: shelter!['shelter_cover'] != null
+                    ? DecorationImage(
+                  image: MemoryImage(base64Decode(shelter!['shelter_cover'])),
+                  fit: BoxFit.cover,
+                )
+                    : null,
+                color: Colors.grey[300],
+              ),
+            ),
+            Positioned(
+              top: 120,
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                  image: shelter!['shelter_profile'] != null
+                      ? DecorationImage(
+                    image: MemoryImage(base64Decode(shelter!['shelter_profile'])),
+                    fit: BoxFit.cover,
+                  )
+                      : null,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 60),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              Text(
+                shelter!['shelter_name'] ?? 'N/A',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.location_on, size: 16),
+                  const SizedBox(width: 4),
+                  Text(shelter!['shelter_address'] ?? 'N/A'),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.phone, size: 16),
+                  const SizedBox(width: 4),
+                  Text(shelter!['shelter_contact'] ?? 'N/A'),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.email, size: 16),
+                  const SizedBox(width: 4),
+                  Text(shelter!['shelter_email'] ?? 'N/A'),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPetList() {
+    if (pets.isEmpty) return const Text("No pets available");
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: pets.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1,
+      ),
+      itemBuilder: (context, index) {
+        final pet = pets[index] as Map<String, dynamic>;
+        final base64Image = pet['pet_image1'];
+        final petName = pet['pet_name'] ?? 'Unnamed';
+
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PetDetailsScreen(
+                  petId: pet['pet_id'],
+                ),
+              ),
+            );
+          },
+          child: Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  image: base64Image != null
+                      ? DecorationImage(
+                    image: MemoryImage(base64Decode(base64Image)),
+                    fit: BoxFit.cover,
+                  )
+                      : const DecorationImage(
+                    image: AssetImage('assets/placeholder.jpg'),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                  child: Text(
+                    petName,
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    if (shelterData == null) {
-      return const Scaffold(body: Center(child: Text('Failed to load data')));
-    }
-
     return Scaffold(
       appBar: AppBar(title: const Text("Shelter Details")),
-      body: SingleChildScrollView(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (shelterData!['shelter_cover'] != null)
-              CachedNetworkImage(
-                imageUrl: shelterData!['shelter_cover'],
-                height: 200,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => const CircularProgressIndicator(),
-                errorWidget: (context, url, error) => const Icon(Icons.error),
-              ),
-            const SizedBox(height: 8),
-            if (shelterData!['shelter_profile'] != null)
-              CircleAvatar(
-                radius: 50,
-                backgroundImage: CachedNetworkImageProvider(shelterData!['shelter_profile']),
-              ),
-            const SizedBox(height: 8),
-            Text(
-              shelterData!['shelter_name'] ?? 'No name',
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text("📍 ${shelterData!['shelter_address'] ?? 'No address'}"),
-            Text("📧 ${shelterData!['shelter_email'] ?? 'No email'}"),
-            Text("📞 ${shelterData!['shelter_number'] ?? 'No phone number'}"),
-            const SizedBox(height: 12),
+            _buildShelterInfo(),
+            const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ElevatedButton(
-                  onPressed: () => setState(() => showPets = true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: showPets ? Colors.blue : Colors.grey,
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        selectedTab = 'pets';
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: selectedTab == 'pets' ? Colors.blue : Colors.grey[300],
+                      foregroundColor: selectedTab == 'pets' ? Colors.white : Colors.black,
+                    ),
+                    child: const Text("Pets"),
                   ),
-                  child: const Text("Pets"),
                 ),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: () => setState(() => showPets = false),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: !showPets ? Colors.blue : Colors.grey,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        selectedTab = 'policy';
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: selectedTab == 'policy' ? Colors.blue : Colors.grey[300],
+                      foregroundColor: selectedTab == 'policy' ? Colors.white : Colors.black,
+                    ),
+                    child: const Text("Adoption Policy"),
                   ),
-                  child: const Text("Adoption Policy"),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
-            if (showPets)
-              ...pets.map((pet) => GestureDetector(
-                onTap: () {
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => PetDetailsScreen(petId: pet['pet_id'].toString(),petData: pet,
-                  //     ),
-                  //   ),
-                  // );
-                },
-                child: Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ListTile(
-                    leading: pet['pet_image'] != null
-                        ? CircleAvatar(
-                      backgroundImage: CachedNetworkImageProvider(pet['pet_image']),
-                    )
-                        : const CircleAvatar(child: Icon(Icons.pets)),
-                    title: Text(pet['pet_name'] ?? 'Unnamed Pet'),
-                    subtitle: Text(pet['pet_type'] ?? 'Unknown type'),
-                    trailing: const Icon(Icons.arrow_forward_ios),
-                  ),
-                ),
-              )).toList(),
-            if (!showPets)
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(
-                  shelterData!['adoption_policy'] ?? 'No adoption policy provided',
-                  style: const TextStyle(fontSize: 16),
-                ),
+            const SizedBox(height: 16),
+            if (selectedTab == 'pets') ...[
+              const Text(
+                "Available Pets",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
+              const SizedBox(height: 12),
+              _buildPetList(),
+            ] else ...[
+              const Text(
+                "Adoption Policy",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                shelter?['adoption_policy'] ?? "No policy provided by the shelter.",
+                style: const TextStyle(fontSize: 15),
+              ),
+            ],
           ],
         ),
       ),

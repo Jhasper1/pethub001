@@ -38,7 +38,7 @@ class _ArchivedPetInfoScreenState extends State<ArchivedPetInfoScreen> {
         print("API Response: $data"); // Debugging
 
         final petDataResponse =
-            data['data']['pet']; // Adjusted to fetch the 'pet' object
+        data['data']['pet']; // Adjusted to fetch the 'pet' object
 
         setState(() {
           petData = {
@@ -51,9 +51,9 @@ class _ArchivedPetInfoScreenState extends State<ArchivedPetInfoScreen> {
             'pet_age': petDataResponse['pet_age'],
             'age_type': petDataResponse['age_type'],
             'pet_image1': petDataResponse['pet_image1'] != null &&
-                    petDataResponse['pet_image1'].isNotEmpty
+                petDataResponse['pet_image1'].isNotEmpty
                 ? base64Decode(petDataResponse['pet_image1']
-                    [0]) // Decode the first image (or handle multiple images)
+            [0]) // Decode the first image (or handle multiple images)
                 : null, // Handle case where no images are available
           };
           isLoading = false; // Set loading to false once data is fetched
@@ -124,159 +124,159 @@ class _ArchivedPetInfoScreenState extends State<ArchivedPetInfoScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
-              ? Center(child: Text(errorMessage))
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Center(
-                                  child: Column(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 75,
-                                        backgroundImage: petData?[
-                                                    'pet_image1'] !=
-                                                null
-                                            ? MemoryImage(
-                                                petData!['pet_image1'])
-                                            : const AssetImage(
-                                                    'assets/images/logo.png')
-                                                as ImageProvider,
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        petData?['pet_name'] ?? 'Unknown',
-                                        style: const TextStyle(
-                                            fontSize: 25,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Divider(thickness: 1, color: Colors.grey[400]),
-                                const SizedBox(height: 10),
-                                _infoRow('Type of Pet',
-                                    petData?['pet_type'] ?? 'Unknown'),
-                                _infoRow('Sex', petData?['pet_sex']),
-                                _infoRow(
-                                  'Age ',
-                                  '(Approx.) ${petData?['pet_age'] ?? 'Unknown'} ${petData?['age_type'] ?? ''} old',
-                                ),
-                                const SizedBox(height: 10),
-                                Divider(thickness: 1, color: Colors.grey[400]),
-                                const Text(
-                                  'Pet Description',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  petData?['pet_descriptions'] ??
-                                      'No description available.',
-                                  textAlign: TextAlign.justify,
-                                  style: const TextStyle(
-                                      height: 1.5, fontSize: 13),
-                                ),
-                                const SizedBox(height: 10),
-                              ],
+          ? Center(child: Text(errorMessage))
+          : SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Column(
+                          children: [
+                            CircleAvatar(
+                              radius: 75,
+                              backgroundImage: petData?[
+                              'pet_image1'] !=
+                                  null
+                                  ? MemoryImage(
+                                  petData!['pet_image1'])
+                                  : const AssetImage(
+                                  'assets/images/logo.png')
+                              as ImageProvider,
                             ),
-                          ),
+                            const SizedBox(height: 10),
+                            Text(
+                              petData?['pet_name'] ?? 'Unknown',
+                              style: const TextStyle(
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 10),
-
-                        // Edit Button below the card
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.lightBlue,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              minimumSize: const Size(double.infinity, 50),
-                            ),
-                            onPressed: () async {
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EditPetScreen(
-                                    petId: widget.petId,
-                                    shelterId: widget.shelterId,
-                                  ),
-                                ),
-                              );
-                              if (result == true) {
-                                fetchPetDetails();
-                              }
-                            },
-                            child: const Text(
-                              'Edit Pet Profile',
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 16),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              minimumSize: const Size(double.infinity, 50),
-                            ),
-                            onPressed: () async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  // title: const Text("Confirm Archive"),
-                                  content: const Text(
-                                      "Are you sure you want to unarchive this pet?"),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(false),
-                                      child: const Text("Cancel"),
-                                    ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(true),
-                                      child: const Text(
-                                        "Confirm",
-                                        style: TextStyle(color: Colors.green),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-
-                              if (confirm == true) {
-                                await unarchivePets(); // Call the archive function only if confirmed
-                              }
-                            },
-                            child: const Text(
-                              'Unarchive Pet',
-                              style: TextStyle(color: Colors.white, fontSize: 16),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 10),
+                      Divider(thickness: 1, color: Colors.grey[400]),
+                      const SizedBox(height: 10),
+                      _infoRow('Type of Pet',
+                          petData?['pet_type'] ?? 'Unknown'),
+                      _infoRow('Sex', petData?['pet_sex']),
+                      _infoRow(
+                        'Age ',
+                        '(Approx.) ${petData?['pet_age'] ?? 'Unknown'} ${petData?['age_type'] ?? ''} old',
+                      ),
+                      const SizedBox(height: 10),
+                      Divider(thickness: 1, color: Colors.grey[400]),
+                      const Text(
+                        'Pet Description',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        petData?['pet_descriptions'] ??
+                            'No description available.',
+                        textAlign: TextAlign.justify,
+                        style: const TextStyle(
+                            height: 1.5, fontSize: 13),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
                   ),
                 ),
+              ),
+              const SizedBox(height: 10),
+
+              // Edit Button below the card
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.lightBlue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => EditPetScreen(
+                          petId: widget.petId,
+                          shelterId: widget.shelterId,
+                        ),
+                      ),
+                    );
+                    if (result == true) {
+                      fetchPetDetails();
+                    }
+                  },
+                  child: const Text(
+                    'Edit Pet Profile',
+                    style:
+                    TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5.0),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                  onPressed: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        // title: const Text("Confirm Archive"),
+                        content: const Text(
+                            "Are you sure you want to unarchive this pet?"),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.of(context).pop(false),
+                            child: const Text("Cancel"),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.of(context).pop(true),
+                            child: const Text(
+                              "Confirm",
+                              style: TextStyle(color: Colors.green),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (confirm == true) {
+                      await unarchivePets(); // Call the archive function only if confirmed
+                    }
+                  },
+                  child: const Text(
+                    'Unarchive Pet',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

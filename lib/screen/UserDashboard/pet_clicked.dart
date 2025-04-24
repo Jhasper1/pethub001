@@ -6,14 +6,14 @@ import 'package:march24/screen/UserDashboard/adopt_pet_screen.dart';
 class PetDetailsScreen extends StatefulWidget {
   final int petId;
 
-  PetDetailsScreen({required this.petId, required petData});
+  PetDetailsScreen({required this.petId});
 
   @override
   _PetDetailsScreenState createState() => _PetDetailsScreenState();
 }
 
 class _PetDetailsScreenState extends State<PetDetailsScreen> {
-  Map<String, dynamic>? petDetails;
+  Map<String, dynamic>? petData;
   bool isLoading = true;
   bool hasError = false;
 
@@ -28,19 +28,35 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
 
     try {
       final response = await http.get(url);
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data is Map<String, dynamic> && data.containsKey("data") && data["data"].containsKey("info")) {
-          setState(() {
-            petDetails = data["data"]["info"];
-            isLoading = false;
-          });
-        } else {
-          setState(() {
-            hasError = true;
-            isLoading = false;
-          });
+
+        // Handle different response structures
+        if (data is Map<String, dynamic>) {
+          if (data.containsKey('data')) {
+            // Case 1: Data is nested under "data"
+            if (data['data'] is Map && data['data'].containsKey('info')) {
+              // Subcase: Data is in data->info
+              petData = Map<String, dynamic>.from(data['data']['info']);
+            } else {
+              // Subcase: Data is directly in data
+              petData = Map<String, dynamic>.from(data['data']);
+            }
+          } else {
+            // Case 2: Data is at root level
+            petData = data;
+          }
         }
+
+        print("Extracted petData: $petData");
+
+        setState(() {
+          isLoading = false;
+          hasError = petData == null;
+        });
       } else {
         setState(() {
           hasError = true;
@@ -58,24 +74,45 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   }
 
   void _onAdoptPressed() {
-    if (petDetails != null) {
+    if (petData != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => QuestionnaireScreen(
             petId: widget.petId,
-            petName: petDetails?["pet_name"] ?? "Unknown", // Use safe call to avoid null errors
+            petName: _getPetField('name') ?? "Unknown",
           ),
         ),
       );
     }
   }
 
-  Widget _buildSquareImage(String? base64String) {
+  // Helper method to get field with multiple possible keys
+  String? _getPetField(String fieldName) {
+    if (petData == null) return null;
+
+    // Try different key variations
+    final possibleKeys = [
+      fieldName,
+      'pet_$fieldName',
+      '${fieldName}_pet',
+      fieldName.toLowerCase(),
+      fieldName.toUpperCase(),
+    ];
+
+    for (var key in possibleKeys) {
+      if (petData!.containsKey(key)) {
+        return petData![key]?.toString();
+      }
+    }
+    return null;
+  }
+
+  Widget _buildSquareImage(String? imageData) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double imageSize = screenWidth - 32;
 
-    if (base64String == null || base64String.isEmpty) {
+    if (imageData == null || imageData.isEmpty) {
       return SizedBox(
         width: imageSize,
         height: imageSize,
@@ -90,9 +127,9 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     }
 
     try {
-      final cleanBase64 = base64String.contains(',')
-          ? base64String.split(',').last
-          : base64String;
+      final cleanBase64 = imageData.contains(',')
+          ? imageData.split(',').last
+          : imageData;
 
       return SizedBox(
         width: imageSize,
@@ -137,13 +174,14 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
             Text(
               label,
               style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.black45),
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: Colors.black45,
+              ),
             ),
             SizedBox(height: 6),
             Text(
-              value ?? "N/A", // Default value for null
+              value ?? "N/A",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               textAlign: TextAlign.center,
             ),
@@ -164,7 +202,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : hasError || petDetails == null
+          : hasError || petData == null
           ? Center(
         child: Text(
           "Failed to load pet details.",
@@ -179,10 +217,12 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSquareImage(petDetails?["pet_image1"]),
+                  _buildSquareImage(_getPetField('image1') ??
+                      _getPetField('photo') ??
+                      _getPetField('picture')),
                   SizedBox(height: 16),
                   Text(
-                    petDetails?["pet_name"] ?? "Unknown",
+                    _getPetField('name') ?? "Unknown",
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -193,10 +233,16 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       _squareInfoBox(
-                          "Type", petDetails?["pet_type"], Color(0xFFFFEFED)),
+                          "Type",
+                          _getPetField('type') ?? _getPetField('species'),
+                          Color(0xFFFFEFED)),
                       _squareInfoBox(
-                          "Gender", petDetails?["pet_sex"], Color(0xFFEDF2FF)),
-                      _squareInfoBox("Age", petDetails?["pet_age"]?.toString(),
+                          "Gender",
+                          _getPetField('sex') ?? _getPetField('gender'),
+                          Color(0xFFEDF2FF)),
+                      _squareInfoBox(
+                          "Age",
+                          _getPetField('age'),
                           Color(0xFFEBF8F3)),
                     ],
                   ),
@@ -207,10 +253,24 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    petDetails?["pet_descriptions"] ??
+                    _getPetField('description') ??
+                        _getPetField('descriptions') ??
                         "No description available.",
                     style: TextStyle(fontSize: 15, color: Colors.grey[700]),
                   ),
+                  SizedBox(height: 24),
+                  if (_getPetField('breed') != null) ...[
+                    Text(
+                      "Breed",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      _getPetField('breed')!,
+                      style: TextStyle(fontSize: 15, color: Colors.grey[700]),
+                    ),
+                    SizedBox(height: 24),
+                  ],
                 ],
               ),
             ),
