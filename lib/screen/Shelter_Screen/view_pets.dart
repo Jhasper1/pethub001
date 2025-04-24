@@ -49,9 +49,9 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
             'pet_name': pet['pet_name'],
             'priority_status': pet['priority_status'],
             'pet_image1':
-                pet['pet_image1'] != null && pet['pet_image1'].isNotEmpty
-                    ? _decodeBase64Image(pet['pet_image1'][0])
-                    : null,
+            pet['pet_image1'] != null && pet['pet_image1'].isNotEmpty
+                ? _decodeBase64Image(pet['pet_image1'][0])
+                : null,
           };
         }).toList();
 
@@ -150,10 +150,10 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                           value: selectedSex,
                           items: ['All', 'Male', 'Female']
                               .map((sex) => DropdownMenuItem(
-                                    value: sex,
-                                    child: Text(sex,
-                                        style: TextStyle(fontSize: 12)),
-                                  ))
+                            value: sex,
+                            child: Text(sex,
+                                style: TextStyle(fontSize: 12)),
+                          ))
                               .toList(),
                           onChanged: (value) {
                             setState(() {
@@ -161,7 +161,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             });
                             fetchPets();
                           },
-                          decoration: InputDecoration(
+                          decoration:InputDecoration(
                             labelText: 'Sex',
                             labelStyle: GoogleFonts.poppins(fontSize: 12),
                             contentPadding: EdgeInsets.symmetric(
@@ -179,10 +179,10 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                           value: selectedPetType,
                           items: ['All', 'Dog', 'Cat']
                               .map((type) => DropdownMenuItem(
-                                    value: type,
-                                    child: Text(type,
-                                        style: TextStyle(fontSize: 12)),
-                                  ))
+                            value: type,
+                            child: Text(type,
+                                style: TextStyle(fontSize: 12)),
+                          ))
                               .toList(),
                           onChanged: (value) {
                             setState(() {
@@ -211,24 +211,21 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : pets.isEmpty
-                      ? Center(
-                          child: Text(
-                          "No Pets Found",
-                          style: GoogleFonts.poppins(),
-                        ))
-                      : GridView.builder(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 0.8,
-                          ),
-                          itemCount: pets.length,
-                          itemBuilder: (context, index) {
-                            return _buildPetCard(pets[index]);
-                          },
-                        ),
+                  ? Center(child: Text("No Pets Found",
+                style: GoogleFonts.poppins(),))
+                  : GridView.builder(
+                gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 0.8,
+                ),
+                itemCount: pets.length,
+                itemBuilder: (context, index) {
+                  return _buildPetCard(pets[index]);
+                },
+              ),
             ),
           ),
         ],
@@ -273,13 +270,13 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                     children: [
                       pet['pet_image1'] != null
                           ? Image.memory(
-                              pet['pet_image1'],
-                              fit: BoxFit.cover,
-                            )
+                        pet['pet_image1'],
+                        fit: BoxFit.cover,
+                      )
                           : Image.asset(
-                              'assets/images/logo.png',
-                              fit: BoxFit.cover,
-                            ),
+                        'assets/images/logo.png',
+                        fit: BoxFit.cover,
+                      ),
                       Container(
                         color: Colors.black
                             .withOpacity(0.4), // adjust opacity here
