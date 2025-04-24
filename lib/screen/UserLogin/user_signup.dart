@@ -12,6 +12,10 @@ class UserSignUpScreen extends StatefulWidget {
 
 class _UserSignUpScreenState extends State<UserSignUpScreen> {
   final _formKey = GlobalKey<FormState>();
+  final PageController _pageController = PageController();
+  int currentPage = 0;
+
+  // Controllers
   final TextEditingController firstNameController = TextEditingController();
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController ageController = TextEditingController();
@@ -44,10 +48,7 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
   }
 
   Future<void> registerUser() async {
-    setState(() {
-      isLoading = true;
-    });
-
+    setState(() => isLoading = true);
     final url = Uri.parse(apiUrl);
     final Map<String, dynamic> userData = {
       "first_name": firstNameController.text,
@@ -72,7 +73,6 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
       );
 
       if (response.statusCode == 201) {
-        // Registration success
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Registration Successful!")),
         );
@@ -81,7 +81,6 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
           MaterialPageRoute(builder: (_) => UserSignInScreen()),
         );
       } else {
-        // Registration failed
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Registration Failed: ${response.body}")),
         );
@@ -91,132 +90,271 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
         SnackBar(content: Text("Error: $e")),
       );
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
+  }
+
+  Widget _buildPageIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(2, (index) {
+        return Container(
+          width: 12,
+          height: 12,
+          margin: EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: currentPage == index ? Colors.blue : Colors.grey[300],
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildInputField(TextEditingController controller, String label,
+      {TextInputType? keyboardType, bool obscureText = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          filled: true,
+          fillColor: Colors.grey[50],
+        ),
+        keyboardType: keyboardType,
+        obscureText: obscureText,
+        onChanged: (_) => setState(() {}),
+      ),
+    );
+  }
+
+  Widget _buildDropdownField(
+      String label, String? value, List<String> items, Function(String?) onChanged) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          filled: true,
+          fillColor: Colors.grey[50],
+        ),
+        value: value,
+        onChanged: onChanged,
+        items: items
+            .map((item) => DropdownMenuItem(
+          value: item,
+          child: Text(item),
+        ))
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _buildPageOne() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildInputField(firstNameController, "First Name"),
+          _buildInputField(lastNameController, "Last Name"),
+          _buildInputField(ageController, "Age", keyboardType: TextInputType.number),
+          _buildDropdownField(
+            "Sex",
+            selectedSex,
+            ["Male", "Female"],
+                (newValue) => setState(() => selectedSex = newValue),
+          ),
+          _buildInputField(addressController, "Address"),
+          _buildInputField(contactNumberController, "Contact Number",
+              keyboardType: TextInputType.phone),
+          _buildInputField(emailController, "Email",
+              keyboardType: TextInputType.emailAddress),
+          _buildInputField(occupationController, "Occupation"),
+          _buildDropdownField(
+            "Civil Status",
+            selectedCivilStatus,
+            ["Single", "Married", "Divorced", "Widowed"],
+                (newValue) => setState(() => selectedCivilStatus = newValue),
+          ),
+          _buildInputField(socialMediaController, "Social Media"),
+          SizedBox(height: 20),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              minimumSize: Size(double.infinity, 50),
+              backgroundColor: Colors.blue,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () {
+              _pageController.nextPage(
+                duration: Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+              setState(() => currentPage = 1);
+            },
+            child: Text("Next", style: TextStyle(color: Colors.white, fontSize: 16)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPageTwo() {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                _buildInputField(usernameController, "Username"),
+                _buildInputField(passwordController, "Password", obscureText: true),
+                SizedBox(height: 20),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: () {
+                    _pageController.previousPage(
+                      duration: Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                    setState(() => currentPage = 0);
+                  },
+                  child: Text("Back", style: TextStyle(color: Colors.blue)),
+                ),
+              ),
+              SizedBox(width: 15),
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                    backgroundColor: isButtonEnabled() ? Colors.blue : Colors.grey,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  onPressed: isButtonEnabled() && !isLoading ? registerUser : null,
+                  child: isLoading
+                      ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : Text("Sign Up", style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blue.shade50,
       appBar: AppBar(
-        title: Image.asset('assets/images/logo.png', width: 35),
+        backgroundColor: Colors.white,
+        elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: Colors.blue),
           onPressed: () => Navigator.pop(context),
         ),
+        title: Text(
+          "Create Account",
+          style: TextStyle(
+            color: Colors.blue,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
+      body: SafeArea(
+        child: Center(
+          child: Container(
+            margin: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(25),
+            constraints: BoxConstraints(
+              maxWidth: 500,
+              maxHeight: MediaQuery.of(context).size.height * 0.8,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: Offset(0, 5),
+                ),
+              ],
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Sign up',
-                    style:
-                    TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                _buildPageIndicator(),
                 SizedBox(height: 20),
-                TextFormField(
-                  controller: firstNameController,
-                  decoration: InputDecoration(labelText: "First Name"),
-                  onChanged: (text) => setState(() {}),
-                ),
-                TextFormField(
-                  controller: lastNameController,
-                  decoration: InputDecoration(labelText: "Last Name"),
-                  onChanged: (text) => setState(() {}),
-                ),
-                TextFormField(
-                  controller: ageController,
-                  decoration: InputDecoration(labelText: "Age"),
-                  keyboardType: TextInputType.number,
-                  onChanged: (text) => setState(() {}),
-                ),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: "Sex"),
-                  value: selectedSex,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedSex = newValue;
-                    });
-                  },
-                  items: ["Male", "Female"]
-                      .map((sex) =>
-                      DropdownMenuItem(value: sex, child: Text(sex)))
-                      .toList(),
-                ),
-                TextFormField(
-                  controller: addressController,
-                  decoration: InputDecoration(labelText: "Address"),
-                  onChanged: (text) => setState(() {}),
-                ),
-                TextFormField(
-                  controller: contactNumberController,
-                  decoration: InputDecoration(labelText: "Contact Number"),
-                  keyboardType: TextInputType.phone,
-                  onChanged: (text) => setState(() {}),
-                ),
-                TextFormField(
-                  controller: emailController,
-                  decoration: InputDecoration(labelText: "Email"),
-                  keyboardType: TextInputType.emailAddress,
-                  onChanged: (text) => setState(() {}),
-                  validator: (value) {
-                    if (value == null || !value.contains("@")) {
-                      return "Enter a valid email address";
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: occupationController,
-                  decoration: InputDecoration(labelText: "Occupation"),
-                  onChanged: (text) => setState(() {}),
-                ),
-                DropdownButtonFormField<String>(
-                  decoration: InputDecoration(labelText: "Civil Status"),
-                  value: selectedCivilStatus,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      selectedCivilStatus = newValue;
-                    });
-                  },
-                  items: ["Single", "Married", "Divorced", "Widowed"]
-                      .map((status) =>
-                      DropdownMenuItem(value: status, child: Text(status)))
-                      .toList(),
-                ),
-                TextFormField(
-                  controller: socialMediaController,
-                  decoration: InputDecoration(labelText: "Social Media"),
-                  onChanged: (text) => setState(() {}),
-                ),
-                TextFormField(
-                  controller: usernameController,
-                  decoration: InputDecoration(labelText: "Username"),
-                  onChanged: (text) => setState(() {}),
-                ),
-                TextFormField(
-                  controller: passwordController,
-                  decoration: InputDecoration(labelText: "Password"),
-                  obscureText: true,
-                  onChanged: (text) => setState(() {}),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 50),
-                    backgroundColor:
-                    isButtonEnabled() ? Colors.orange : Colors.grey,
+                Form(
+                  key: _formKey,
+                  child: Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      physics: NeverScrollableScrollPhysics(),
+                      onPageChanged: (page) => setState(() => currentPage = page),
+                      children: [
+                        _buildPageOne(),
+                        _buildPageTwo(),
+                      ],
+                    ),
                   ),
-                  onPressed:
-                  isButtonEnabled() && !isLoading ? registerUser : null,
-                  child: isLoading
-                      ? CircularProgressIndicator(color: Colors.white)
-                      : Text("Sign Up", style: TextStyle(color: Colors.white)),
+                ),
+                SizedBox(height: 10),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => UserSignInScreen()),
+                    );
+                  },
+                  child: RichText(
+                    text: TextSpan(
+                      text: "Already have an account? ",
+                      style: TextStyle(color: Colors.grey),
+                      children: [
+                        TextSpan(
+                          text: "Sign In",
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
