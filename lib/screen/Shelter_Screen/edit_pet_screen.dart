@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 // import 'bottom_nav_bar.dart';
 // import 'pet_info_screen.dart';
 
@@ -24,6 +25,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _sizeController = TextEditingController();
 
   String? _selectedPetType;
   String? _selectedAgeType;
@@ -39,9 +41,14 @@ class _EditPetScreenState extends State<EditPetScreen> {
   }
 
   Future<void> fetchPetDetails() async {
-    final url = 'http://127.0.0.1:5566/shelter/${widget.petId}/petinfo';
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url = 'http://127.0.0.1:5566/api/shelter/${widget.petId}/petinfo';
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url), headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print("API Response: $data");
@@ -55,6 +62,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
               petDataResponse['pet_descriptions'] ?? '';
           _selectedAgeType = petDataResponse['age_type'];
           _selectedSex = petDataResponse['pet_sex'];
+          _sizeController.text = petDataResponse['pet_size'].toString();
           _selectedPetType = petDataResponse['pet_type'];
 
           // Decode image if available
@@ -88,14 +96,22 @@ class _EditPetScreenState extends State<EditPetScreen> {
   }
 
   Future<void> _updateForm() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
     final url = Uri.parse(
-        'http://127.0.0.1:5566/shelter/${widget.petId}/update-pet-info');
+        'http://127.0.0.1:5566/api/shelter/${widget.petId}/update-pet-info');
 
     var request = http.MultipartRequest('PUT', url);
+
+    request.headers.addAll({
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    });
 
     // Add text fields
     request.fields['pet_name'] = _nameController.text;
     request.fields['pet_age'] = _ageController.text;
+    request.fields['pet_size'] = _sizeController.text;
     request.fields['age_type'] = _selectedAgeType!;
     request.fields['pet_sex'] = _selectedSex!;
     request.fields['pet_type'] = _selectedPetType!;
@@ -134,6 +150,13 @@ class _EditPetScreenState extends State<EditPetScreen> {
     }
   }
 
+  String? _validateSize(String? value) {
+    if (value == null || value.isEmpty) return 'Enter pet size';
+    if (!RegExp(r'^\d+(\.\d+)?$').hasMatch(value))
+      return 'Only numbers allowed';
+    return null;
+  }
+
   InputDecoration _buildTextFieldDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
@@ -146,15 +169,11 @@ class _EditPetScreenState extends State<EditPetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Edit Pet'),
-      backgroundColor: Colors.lightBlue,
+      appBar: AppBar(
+        title: Text('Edit Pet'),
+        backgroundColor: Colors.lightBlue,
       ),
-      backgroundColor: Colors.grey[200],
       body: _buildBodyContent(),
-      // bottomNavigationBar: BottomNavBar(
-      //   shelterId: widget.shelterId,
-      //   currentIndex: 1,
-      // ),
     );
   }
 
@@ -175,7 +194,6 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 alignment: Alignment.center,
                 child: GestureDetector(
                   onTap: _pickImage,
-                  
                   child: CircleAvatar(
                     radius: 75,
                     backgroundImage: _imageBytes != null
@@ -219,6 +237,19 @@ class _EditPetScreenState extends State<EditPetScreen> {
                     val == null || val.isEmpty ? 'Enter pet name' : null,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]'))
+                ],
+              ),
+              SizedBox(height: 15),
+              TextFormField(
+                controller: _sizeController,
+                decoration: _buildTextFieldDecoration('Pet Size').copyWith(
+                  suffixText: 'KG',
+                  suffixStyle: TextStyle(color: Colors.grey[600]),
+                ),
+                validator: _validateSize,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
                 ],
               ),
               SizedBox(height: 15),
@@ -269,7 +300,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 style: TextStyle(
                     fontSize: 10,
                     fontStyle: FontStyle.italic,
-                    color: Colors.grey[600]),
+                    color: Colors.black),
               ),
               TextFormField(
                 controller: _descriptionController,
@@ -299,13 +330,12 @@ class _EditPetScreenState extends State<EditPetScreen> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
+                  backgroundColor: Colors.orangeAccent,
                   minimumSize: Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
-                child:
-                    Text('Save updates', style: TextStyle(color: Colors.white)),
+                child: Text('Save edit', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),

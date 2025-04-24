@@ -3,11 +3,12 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'edit_pet_screen.dart';
 
 class PetDetailsScreen extends StatefulWidget {
   final int petId;
-  final int shelterId; 
+  final int shelterId;
 
   const PetDetailsScreen(
       {super.key, required this.petId, required this.shelterId});
@@ -29,10 +30,16 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   }
 
   Future<void> fetchPetDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
     final url =
-        'http://127.0.0.1:5566/shelter/${widget.petId}/petinfo'; // Adjusted URL to use petId
+        'http://127.0.0.1:5566/api/shelter/${widget.petId}/petinfo'; // Adjusted URL to use petId
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url),
+      headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    });
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print("API Response: $data"); // Debugging
@@ -73,10 +80,16 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   }
 
   Future<void> archivePets() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
     final url =
-        'http://127.0.0.1:5566/shelter/${widget.petId}/archive-pet'; // Adjusted URL to use petId
+        'http://127.0.0.1:5566/api/shelter/${widget.petId}/archive-pet'; // Adjusted URL to use petId
     try {
-      final response = await http.put(Uri.parse(url));
+      final response = await http.put(Uri.parse(url),
+      headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    });
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print("API Response: $data"); // Debugging
@@ -110,10 +123,16 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   }
 
   Future<void> togglePriorityStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
     final url =
-        'http://127.0.0.1:5566/shelter/${widget.petId}/pet/update-priority-status';
+        'http://127.0.0.1:5566/api/shelter/${widget.petId}/pet/update-priority-status';
     try {
-      final response = await http.put(Uri.parse(url));
+      final response = await http.put(Uri.parse(url),
+      headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    });
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print("API Response: $data");
@@ -251,8 +270,8 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                 icon: const Icon(Icons.arrow_back,
                                     color: Colors.black),
                                 onPressed: () {
-                                  Navigator.pop(
-                                      context, true); // Go back to the previous screen
+                                  Navigator.pop(context,
+                                      true); // Go back to the previous screen
                                 },
                               ),
                             ),
@@ -260,7 +279,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                               top: 8,
                               right: 8,
                               child: IconButton(
-                                iconSize: 30,
+                                iconSize: 40,
                                 icon: Icon(
                                   petData?['priority_status'] == true
                                       ? Icons.star
@@ -326,8 +345,8 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                             },
                             child: Text(
                               'Edit Pet Profile',
-                              style:
-                                  GoogleFonts.poppins(color: Colors.white, fontSize: 16),
+                              style: GoogleFonts.poppins(
+                                  color: Colors.white, fontSize: 16),
                             ),
                           ),
                         ),
@@ -372,7 +391,8 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                             },
                             child: Text(
                               'Move to Archive',
-                              style: GoogleFonts.poppins(color: Colors.red, fontSize: 16),
+                              style: GoogleFonts.poppins(
+                                  color: Colors.red, fontSize: 16),
                             ),
                           ),
                         ),
@@ -388,7 +408,10 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-        Text(value ?? 'Unknown', style: GoogleFonts.poppins(),),
+        Text(
+          value ?? 'Unknown',
+          style: GoogleFonts.poppins(),
+        ),
       ],
     );
   }

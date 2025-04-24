@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'change_password_screen.dart';
 import 'shelter_donations_screen.dart';
 import 'bottom_nav_bar.dart';
@@ -27,9 +28,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> fetchShelterInfo() async {
-    final url = 'http://127.0.0.1:5566/shelter/${widget.shelterId}';
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url = 'http://127.0.0.1:5566/api/shelter/${widget.shelterId}';
+    
+    
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url),
+      headers: {
+    "Content-Type": "application/json",
+    "Authorization": "Bearer $token",
+  },);
+      
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);

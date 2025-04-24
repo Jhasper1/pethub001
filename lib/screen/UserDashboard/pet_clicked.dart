@@ -253,8 +253,8 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    _getPetField('description') ??
-                        _getPetField('descriptions') ??
+                    _getPetField('pet_descriptions') ??
+                        _getPetField('pet_descriptions') ??
                         "No description available.",
                     style: TextStyle(fontSize: 15, color: Colors.grey[700]),
                   ),

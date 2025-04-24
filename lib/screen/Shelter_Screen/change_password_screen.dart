@@ -39,7 +39,7 @@ class _ShelterChangePasswordScreenState
   Future<void> shelterChangePassword() async {
     if (_formKey.currentState!.validate()) {
       final url = Uri.parse(
-          'http://127.0.0.1:5566/shelter/${widget.shelterId}/change-password');
+          'http://127.0.0.1:5566/api/shelter/${widget.shelterId}/change-password');
 
       final response = await http.put(
         url,
