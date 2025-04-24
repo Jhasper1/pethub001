@@ -57,7 +57,7 @@ class _ShelterScreenState extends State<ShelterScreen> {
       if (shelter["shelter_profile"] != null && shelter["shelter_profile"].isNotEmpty) {
         final imageBytes = base64Decode(shelter["shelter_profile"]);
         return CircleAvatar(
-          radius: 25,
+          radius: 28,
           backgroundImage: MemoryImage(imageBytes),
         );
       }
@@ -65,58 +65,88 @@ class _ShelterScreenState extends State<ShelterScreen> {
       print("Error decoding shelter profile image: $e");
     }
     return CircleAvatar(
-      radius: 25,
-      backgroundColor: Colors.orange[100],
-      child: Icon(Icons.home, color: Colors.orange),
+      radius: 28,
+      backgroundColor: Colors.blue.shade100,
+      child: Icon(Icons.home, color: Colors.blue.shade700, size: 28),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blue.shade50,
       appBar: AppBar(
-        title: Text("Shelters"),
+        title: Text("Available Shelters"),
         centerTitle: true,
+        backgroundColor: Colors.blue.shade600,
+        foregroundColor: Colors.white,
+        elevation: 4,
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(color: Colors.blue))
           : errorMessage.isNotEmpty
           ? Center(child: Text(errorMessage, style: TextStyle(color: Colors.red)))
           : shelters.isEmpty
-          ? Center(child: Text("No shelters available"))
+          ? Center(child: Text("No shelters available", style: TextStyle(color: Colors.grey[600])))
           : ListView.builder(
+        padding: EdgeInsets.all(16),
         itemCount: shelters.length,
         itemBuilder: (context, index) {
           final shelter = shelters[index];
           return Card(
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            elevation: 2,
+            color: Colors.white,
+            elevation: 3,
+            shadowColor: Colors.blue.shade100,
+            margin: EdgeInsets.only(bottom: 12),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: ListTile(
-              contentPadding: EdgeInsets.all(12),
-              leading: _buildShelterImage(shelter),
-              title: Text(
-                shelter["shelter_name"] ?? "Unknown Shelter",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(shelter["shelter_address"] ?? "No address available"),
-                  SizedBox(height: 4),
-                ],
-              ),
-              trailing: Icon(Icons.chevron_right, color: Colors.grey),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ShelterDetailsScreen(shelterId: shelter["shelter_id"]),
+                    builder: (context) => ShelterDetailsScreen(
+                      shelterId: shelter["shelter_id"],
+                    ),
                   ),
                 );
               },
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildShelterImage(shelter),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            shelter["shelter_name"] ?? "Unknown Shelter",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade800,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            shelter["shelter_address"] ?? "No address available",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.blueGrey,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: Colors.blue.shade300),
+                  ],
+                ),
+              ),
             ),
           );
         },

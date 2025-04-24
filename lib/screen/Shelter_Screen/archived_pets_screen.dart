@@ -45,9 +45,9 @@ class _ArchivedPetsScreenState extends State<ArchivedPetsScreen> {
             'pet_id': pet['pet_id'],
             'pet_name': pet['pet_name'],
             'pet_image1':
-                pet['pet_image1'] != null && pet['pet_image1'].isNotEmpty
-                    ? _decodeBase64Image(pet['pet_image1'][0])
-                    : null,
+            pet['pet_image1'] != null && pet['pet_image1'].isNotEmpty
+                ? _decodeBase64Image(pet['pet_image1'][0])
+                : null,
           };
         }).toList();
 
@@ -133,10 +133,10 @@ class _ArchivedPetsScreenState extends State<ArchivedPetsScreen> {
                           value: selectedSex,
                           items: ['All', 'Male', 'Female']
                               .map((sex) => DropdownMenuItem(
-                                    value: sex,
-                                    child: Text(sex,
-                                        style: TextStyle(fontSize: 12)),
-                                  ))
+                            value: sex,
+                            child: Text(sex,
+                                style: TextStyle(fontSize: 12)),
+                          ))
                               .toList(),
                           onChanged: (value) {
                             setState(() {
@@ -162,10 +162,10 @@ class _ArchivedPetsScreenState extends State<ArchivedPetsScreen> {
                           value: selectedPetType,
                           items: ['All', 'Dog', 'Cat']
                               .map((type) => DropdownMenuItem(
-                                    value: type,
-                                    child: Text(type,
-                                        style: TextStyle(fontSize: 12)),
-                                  ))
+                            value: type,
+                            child: Text(type,
+                                style: TextStyle(fontSize: 12)),
+                          ))
                               .toList(),
                           onChanged: (value) {
                             setState(() {
@@ -194,20 +194,20 @@ class _ArchivedPetsScreenState extends State<ArchivedPetsScreen> {
               child: isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : pets.isEmpty
-                      ? const Center(child: Text("No Pets Found"))
-                      : GridView.builder(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 0.8,
-                          ),
-                          itemCount: pets.length,
-                          itemBuilder: (context, index) {
-                            return _buildPetCard(pets[index]);
-                          },
-                        ),
+                  ? const Center(child: Text("No Pets Found"))
+                  : GridView.builder(
+                gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 0.8,
+                ),
+                itemCount: pets.length,
+                itemBuilder: (context, index) {
+                  return _buildPetCard(pets[index]);
+                },
+              ),
             ),
           ),
         ],
@@ -248,15 +248,15 @@ class _ArchivedPetsScreenState extends State<ArchivedPetsScreen> {
                 Expanded(
                   child: pet['pet_image1'] != null
                       ? Image.memory(
-                          pet['pet_image1'],
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        )
+                    pet['pet_image1'],
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  )
                       : Image.asset(
-                          'assets/images/logo.png',
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
+                    'assets/images/logo.png',
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ],
             ),

@@ -108,7 +108,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         borderRadius: BorderRadius.circular(8.0),
       ),
       filled: true,
-      fillColor: Colors.grey[200],
+      fillColor: Colors.blue[50], // Light blue background for form fields
       contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12), // Adjust height
     );
   }
@@ -116,6 +116,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.blue[50], // Light blue background for the whole screen
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
@@ -125,7 +126,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back),
+                  icon: const Icon(Icons.arrow_back, color: Colors.blue), // Back button in blue
                   onPressed: () {
                     Navigator.pop(context);
                   },
@@ -140,7 +141,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   const SizedBox(height: 20),
                   const Text(
                     'Sign up as Shelter Account',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue), // Blue text
                   ),
                 ],
               ),
@@ -172,28 +173,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Shelter Name', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Shelter Name', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)), // Blue text
               TextFormField(
                 controller: shelterNameController,
                 decoration: _inputDecoration("Enter shelter name"),
                 validator: (value) => value!.isEmpty ? "Shelter name is required" : null,
               ),
               SizedBox(height: 10),
-              const Text('Address', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Address', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)), // Blue text
               TextFormField(
                 controller: addressController,
                 decoration: _inputDecoration("Enter address"),
                 validator: (value) => value!.isEmpty ? "Address is required" : null,
               ),
               SizedBox(height: 10),
-              const Text('Landmark', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Landmark', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)), // Blue text
               TextFormField(
                 controller: landmarkController,
                 decoration: _inputDecoration("Enter landmark"),
                 validator: (value) => value!.isEmpty ? "Landmark is required" : null,
               ),
               SizedBox(height: 10),
-              const Text('Contact Number', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Contact Number', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)), // Blue text
               TextFormField(
                 controller: contactNumberController,
                 decoration: _inputDecoration("Enter contact number"),
@@ -201,7 +202,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 validator: validatePhoneNumber,
               ),
               SizedBox(height: 10),
-              const Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Email', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)), // Blue text
               TextFormField(
                 controller: emailController,
                 decoration: _inputDecoration("Enter email"),
@@ -209,14 +210,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 validator: (value) => (value != null && !_isValidEmail(value)) ? "Must end with @gmail.com" : null,
               ),
               SizedBox(height: 10),
-              const Text('Owner\'s Name', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Owner\'s Name', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)), // Blue text
               TextFormField(
                 controller: ownerNameController,
                 decoration: _inputDecoration("Enter owner's name"),
                 validator: (value) => value!.isEmpty ? "Owner's name is required" : null,
               ),
               SizedBox(height: 10),
-              const Text('Description', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Description', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)), // Blue text
               TextFormField(
                 controller: descriptionController,
                 decoration: _inputDecoration("Enter description"),
@@ -224,7 +225,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 validator: (value) => value!.isEmpty ? "Description is required" : null,
               ),
               SizedBox(height: 10),
-              const Text('Social Media', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Social Media', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)), // Blue text
               TextFormField(
                 controller: socialMediaController,
                 decoration: _inputDecoration("Enter social media link"),
@@ -234,7 +235,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   minimumSize: Size(double.infinity, 50),
-                  backgroundColor: Colors.orange,
+                  backgroundColor: Colors.blue, // Blue button
                 ),
                 onPressed: () {
                   if (_formKeyStep1.currentState!.validate()) {
@@ -262,16 +263,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Create Account', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text('Create Account', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blue)), // Blue text
             SizedBox(height: 20),
-            const Text('Username', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Username', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)), // Blue text
             TextFormField(
               controller: usernameController,
               decoration: _inputDecoration("Enter username"),
               validator: (value) => value!.isEmpty ? "Username is required" : null,
             ),
             SizedBox(height: 10),
-            const Text('Password', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Password', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)), // Blue text
             TextFormField(
               controller: passwordController,
               decoration: _inputDecoration("Enter password"),
@@ -279,7 +280,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               validator: (value) => value!.isEmpty ? "Password is required" : null,
             ),
             SizedBox(height: 10),
-            const Text('Confirm Password', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text('Confirm Password', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)), // Blue text
             TextFormField(
               controller: confirmPasswordController,
               decoration: _inputDecoration("Confirm password"),
@@ -292,7 +293,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 : ElevatedButton(
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 50),
-                backgroundColor: Colors.orange,
+                backgroundColor: Colors.blue, // Blue button
               ),
               onPressed: () async {
                 if (_formKeyStep2.currentState!.validate()) {
