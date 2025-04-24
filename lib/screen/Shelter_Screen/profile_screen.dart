@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:march24/screen/Shelter_Screen/change_password_screen.dart';
-import 'package:march24/screen/Shelter_Screen/shelter_donations_screen.dart';
+import 'change_password_screen.dart';
+import 'shelter_donations_screen.dart';
 import 'bottom_nav_bar.dart';
 import 'edit_profile_screen.dart';
 import '../splash_screen.dart';
-import 'change_password_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int shelterId;

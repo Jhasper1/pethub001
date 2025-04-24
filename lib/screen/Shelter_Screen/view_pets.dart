@@ -287,7 +287,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.55),
+                  color: Colors.white.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(5),
                 ),
                 child: Text(

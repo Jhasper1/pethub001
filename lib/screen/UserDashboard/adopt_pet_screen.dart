@@ -174,28 +174,28 @@ class _QuestionnaireScreenState extends State<QuestionnaireScreen> {
     );
   }
 
-  Widget _buildImagePreview(List<File> images) {
-    if (images.isEmpty) return Container();
+  // Widget _buildImagePreview(List<File> images) {
+  //   if (images.isEmpty) return Container();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Selected Photos:', style: TextStyle(fontWeight: FontWeight.w500)),
-        SizedBox(height: 8),
-        SizedBox(
-          height: 100,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: images.length,
-            itemBuilder: (context, index) => Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: Image.file(images[index], width: 100, height: 100, fit: BoxFit.cover),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Text('Selected Photos:', style: TextStyle(fontWeight: FontWeight.w500)),
+  //       SizedBox(height: 8),
+  //       SizedBox(
+  //         height: 100,
+  //         child: ListView.builder(
+  //           scrollDirection: Axis.horizontal,
+  //           itemCount: images.length,
+  //           itemBuilder: (context, index) => Padding(
+  //             padding: const EdgeInsets.only(right: 8.0),
+  //             child: Image.file(images[index], width: 100, height: 100, fit: BoxFit.cover),
+  //           ),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
