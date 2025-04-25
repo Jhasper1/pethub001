@@ -8,6 +8,8 @@ void main() {
 }
 
 class PetApp extends StatelessWidget {
+  const PetApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -18,6 +20,8 @@ class PetApp extends StatelessWidget {
 }
 
 class PetsScreen extends StatefulWidget {
+  const PetsScreen({super.key});
+
   @override
   _PetsScreenState createState() => _PetsScreenState();
 }

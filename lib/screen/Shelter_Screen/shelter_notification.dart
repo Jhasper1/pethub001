@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'dart:async'; // Import the Timer class
 
 class ShelterNotificationScreen extends StatefulWidget {
+  const ShelterNotificationScreen({super.key});
+
   @override
   _ShelterNotificationScreenState createState() =>
       _ShelterNotificationScreenState();

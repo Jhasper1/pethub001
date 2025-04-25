@@ -8,7 +8,7 @@ import 'package:http_parser/http_parser.dart';
 class UserEditProfileScreen extends StatefulWidget {
   final int adopterId;
 
-  const UserEditProfileScreen({Key? key, required this.adopterId}) : super(key: key);
+  const UserEditProfileScreen({super.key, required this.adopterId});
 
   @override
   _UserEditProfileScreenState createState() => _UserEditProfileScreenState();

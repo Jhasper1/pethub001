@@ -95,6 +95,17 @@ Future<void> _submitForm() async {
       ),
     );
   }
+    if (_imageBytes != null && _imageFile != null) {
+      final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'pet_image1',
+          _imageBytes!,
+          filename: 'pet_image.$fileExtension',
+          contentType: MediaType('image', fileExtension),
+        ),
+      );
+    }
 
   try {
     var response = await request.send();

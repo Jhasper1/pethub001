@@ -59,7 +59,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> fetchShelterInfo() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-    final String apiUrl = 'http://127.0.0.1:5566/api/shelter/${widget.shelterId}';
+    final String apiUrl =
+        'http://127.0.0.1:5566/api/shelter/${widget.shelterId}';
 
     try {
       final response = await http.get(Uri.parse(apiUrl), headers: {

@@ -72,9 +72,10 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
               decoration: BoxDecoration(
                 image: shelter!['shelter_cover'] != null
                     ? DecorationImage(
-                  image: MemoryImage(base64Decode(shelter!['shelter_cover'])),
-                  fit: BoxFit.cover,
-                )
+                        image: MemoryImage(
+                            base64Decode(shelter!['shelter_cover'])),
+                        fit: BoxFit.cover,
+                      )
                     : null,
                 color: Colors.grey[300],
               ),
@@ -96,9 +97,10 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
                   ],
                   image: shelter!['shelter_profile'] != null
                       ? DecorationImage(
-                    image: MemoryImage(base64Decode(shelter!['shelter_profile'])),
-                    fit: BoxFit.cover,
-                  )
+                          image: MemoryImage(
+                              base64Decode(shelter!['shelter_profile'])),
+                          fit: BoxFit.cover,
+                        )
                       : null,
                 ),
               ),
@@ -112,7 +114,8 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
             children: [
               Text(
                 shelter!['shelter_name'] ?? 'N/A',
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Row(
@@ -184,13 +187,13 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
                   borderRadius: BorderRadius.circular(12),
                   image: base64Image != null
                       ? DecorationImage(
-                    image: MemoryImage(base64Decode(base64Image)),
-                    fit: BoxFit.cover,
-                  )
+                          image: MemoryImage(base64Decode(base64Image)),
+                          fit: BoxFit.cover,
+                        )
                       : const DecorationImage(
-                    image: AssetImage('assets/placeholder.jpg'),
-                    fit: BoxFit.cover,
-                  ),
+                          image: AssetImage('assets/placeholder.jpg'),
+                          fit: BoxFit.cover,
+                        ),
                 ),
               ),
               Positioned(
@@ -200,12 +203,15 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
                 child: Container(
                   decoration: BoxDecoration(
                     color: Colors.black54,
-                    borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                    borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(12)),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
                   child: Text(
                     petName,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -224,68 +230,79 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildShelterInfo(),
-            const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedTab = 'pets';
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: selectedTab == 'pets' ? Colors.blue : Colors.grey[300],
-                      foregroundColor: selectedTab == 'pets' ? Colors.white : Colors.black,
-                    ),
-                    child: const Text("Pets"),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildShelterInfo(),
+                  const SizedBox(height: 24),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedTab = 'pets';
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: selectedTab == 'pets'
+                                ? Colors.blue
+                                : Colors.grey[300],
+                            foregroundColor: selectedTab == 'pets'
+                                ? Colors.white
+                                : Colors.black,
+                          ),
+                          child: const Text("Pets"),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              selectedTab = 'policy';
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: selectedTab == 'policy'
+                                ? Colors.blue
+                                : Colors.grey[300],
+                            foregroundColor: selectedTab == 'policy'
+                                ? Colors.white
+                                : Colors.black,
+                          ),
+                          child: const Text("Adoption Policy"),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        selectedTab = 'policy';
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: selectedTab == 'policy' ? Colors.blue : Colors.grey[300],
-                      foregroundColor: selectedTab == 'policy' ? Colors.white : Colors.black,
+                  const SizedBox(height: 16),
+                  if (selectedTab == 'pets') ...[
+                    const Text(
+                      "Available Pets",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
-                    child: const Text("Adoption Policy"),
-                  ),
-                ),
-              ],
+                    const SizedBox(height: 12),
+                    _buildPetList(),
+                  ] else ...[
+                    const Text(
+                      "Adoption Policy",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      shelter?['adoption_policy'] ??
+                          "No policy provided by the shelter.",
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                  ],
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
-            if (selectedTab == 'pets') ...[
-              const Text(
-                "Available Pets",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              _buildPetList(),
-            ] else ...[
-              const Text(
-                "Adoption Policy",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                shelter?['adoption_policy'] ?? "No policy provided by the shelter.",
-                style: const TextStyle(fontSize: 15),
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 }
