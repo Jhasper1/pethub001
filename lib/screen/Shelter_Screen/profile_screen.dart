@@ -31,15 +31,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url = 'http://127.0.0.1:5566/api/shelter/${widget.shelterId}';
-    
-    
+
     try {
-      final response = await http.get(Uri.parse(url),
-      headers: {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer $token",
-  },);
-      
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -122,16 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                 ),
-                // Positioned(
-                //   top: 40,
-                //   right: 20,
-                //   child: Container(
-                //     decoration: BoxDecoration(
-                //       color: Colors.white.withOpacity(0.2),
-                //       borderRadius: BorderRadius.circular(20),
-                //     ),
-                //   ),
-                // ),
+            
                 Padding(
                   padding: const EdgeInsets.all(5), // adjust padding as needed
                   child: Row(
@@ -417,7 +408,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
-
       bottomNavigationBar: BottomNavBar(
         shelterId: widget.shelterId,
         currentIndex: 4,

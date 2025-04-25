@@ -103,22 +103,20 @@ Future<PetStatusCount?> fetchPetCounts(int shelterId) async {
                 Row(
                   children: [
                     IconButton(
-                        icon: const Icon(Icons.search), onPressed: () {}),
-                    IconButton(
                         icon: const Icon(Icons.notifications),
                         onPressed: () {}),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            Text(
-              'Welcome, Shelter ID: ${widget.shelterId}',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            // const SizedBox(height: 20),
+            // Text(
+            //   'Welcome, Shelter ID: ${widget.shelterId}',
+            //   style: GoogleFonts.poppins(
+            //     fontSize: 16,
+            //     fontWeight: FontWeight.bold,
+            //   ),
+            // ),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),

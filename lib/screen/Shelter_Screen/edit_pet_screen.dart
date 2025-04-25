@@ -13,8 +13,7 @@ class EditPetScreen extends StatefulWidget {
   final int petId;
   final int shelterId;
 
-  const EditPetScreen(
-      {super.key, required this.petId, required this.shelterId});
+  const EditPetScreen({super.key, required this.petId, required this.shelterId});
 
   @override
   _EditPetScreenState createState() => _EditPetScreenState();

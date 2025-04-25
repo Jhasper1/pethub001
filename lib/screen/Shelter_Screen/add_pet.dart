@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'bottom_nav_bar.dart';
 import 'view_pets.dart';
 
@@ -60,56 +61,66 @@ class _AddPetScreenState extends State<AddPetScreen>
     }
   }
 
-  Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) return;
+Future<void> _submitForm() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('auth_token');
+  if (!_formKey.currentState!.validate()) return;
 
-    var uri = Uri.parse(
-        "http://127.0.0.1:5566/shelter/${widget.shelterId}/add-pet-info");
-    var request = http.MultipartRequest("POST", uri);
-    request.fields['pet_type'] = _selectedPetType ?? "";
-    request.fields['pet_name'] = _nameController.text;
-    request.fields['pet_age'] = _ageController.text;
-    request.fields['age_type'] = _selectedAgeType ?? "";
-    request.fields['pet_sex'] = _selectedSex ?? "";
-    request.fields['pet_size'] = _sizeController.text;
-    request.fields['pet_descriptions'] = _descriptionController.text;
-    request.fields['priority_status'] = _priorityStatus ? '1' : '0';
+  var uri = Uri.parse(
+      "http://127.0.0.1:5566/api/shelter/${widget.shelterId}/add-pet-info");
+  var request = http.MultipartRequest("POST", uri);
 
-    if (_imageBytes != null && _imageFile != null) {
-      final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'pet_image1',
-          _imageBytes!,
-          filename: 'pet_image.${fileExtension}',
-          contentType: MediaType('image', fileExtension),
-        ),
-      );
-    }
+  // Add headers before sending
+  request.headers.addAll({
+    "Authorization": "Bearer $token",
+  });
 
-    try {
-      var response = await request.send();
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Pet added successfully!")),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  ViewPetsScreen(shelterId: widget.shelterId)),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to add pet")),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
-    }
+  request.fields['pet_type'] = _selectedPetType ?? "";
+  request.fields['pet_name'] = _nameController.text;
+  request.fields['pet_age'] = _ageController.text;
+  request.fields['age_type'] = _selectedAgeType ?? "";
+  request.fields['pet_sex'] = _selectedSex ?? "";
+  request.fields['pet_size'] = _sizeController.text;
+  request.fields['pet_descriptions'] = _descriptionController.text;
+  request.fields['priority_status'] = _priorityStatus ? '1' : '0';
+
+  if (_imageBytes != null && _imageFile != null) {
+    final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'pet_image1',
+        _imageBytes!,
+        filename: 'pet_image.${fileExtension}',
+        contentType: MediaType('image', fileExtension),
+      ),
+    );
   }
+
+  try {
+    var response = await request.send();
+
+    if (response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Pet added successfully!")),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>
+                ViewPetsScreen(shelterId: widget.shelterId)),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to add pet")),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: $e")),
+    );
+  }
+}
+
 
   InputDecoration _buildTextFieldDecoration(String hintText) {
     return InputDecoration(
@@ -198,29 +209,43 @@ class _AddPetScreenState extends State<AddPetScreen>
     return GestureDetector(
       onTap: _pickImage,
       child: Center(
-        child: Stack(
-          alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            for (int i = 3; i >= 1; i--)
-              Container(
-                width: 150 + i * 20,
-                height: 150 + i * 20,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.blue.withOpacity(0.05 * i),
-                    width: 1,
-                  ),
-                ),
+            const Text(
+              'Add Pet',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
               ),
-            CircleAvatar(
-              radius: 70,
-              backgroundColor: Colors.grey[200],
-              backgroundImage:
-                  _imageBytes != null ? MemoryImage(_imageBytes!) : null,
-              child: _imageBytes == null
-                  ? Icon(Icons.camera_alt, size: 50, color: Colors.grey[600])
-                  : null,
+            ),
+            const SizedBox(height: 20), // Spacing between title and avatar
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                for (int i = 3; i >= 1; i--)
+                  Container(
+                    width: 150 + i * 20,
+                    height: 150 + i * 20,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.blue.withOpacity(0.05 * i),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                CircleAvatar(
+                  radius: 70,
+                  backgroundColor: Colors.grey[200],
+                  backgroundImage:
+                      _imageBytes != null ? MemoryImage(_imageBytes!) : null,
+                  child: _imageBytes == null
+                      ? Icon(Icons.camera_alt,
+                          size: 50, color: Colors.grey[600])
+                      : null,
+                ),
+              ],
             ),
           ],
         ),

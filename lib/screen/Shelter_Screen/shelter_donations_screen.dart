@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ShelterDonationsScreen extends StatefulWidget {
   final int shelterId;
@@ -53,10 +54,16 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
   }
 
   Future<void> fetchShelterDonations() async {
+        final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
     final url =
-        'http://127.0.0.1:5566/shelter/${widget.shelterId}/get/donationinfo';
+        'http://127.0.0.1:5566/api/shelter/${widget.shelterId}/get/donationinfo';
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print("API Response: $data");
