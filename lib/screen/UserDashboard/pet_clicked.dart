@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:march24/screen/UserDashboard/adoption_submission.dart';
+import 'package:path/path.dart' as base64String;
 
 class PetDetailsScreen extends StatefulWidget {
   final int petId;
@@ -202,7 +203,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : hasError || petDetails == null
+          : hasError || petData == null
               ? Center(
                   child: Text(
                     "Failed to load pet details.",
@@ -217,10 +218,10 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildSquareImage(petDetails!["pet_image1"]),
+                          _buildSquareImage(petData!["pet_image1"]),
                           SizedBox(height: 16),
                           Text(
-                            petDetails!["pet_name"] ?? "Unknown",
+                            petData!["pet_name"] ?? "Unknown",
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
@@ -231,13 +232,13 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              _squareInfoBox("Type", petDetails!["pet_type"],
+                              _squareInfoBox("Type", petData!["pet_type"],
                                   Color(0xFFFFEFED)),
-                              _squareInfoBox("Gender", petDetails!["pet_sex"],
+                              _squareInfoBox("Gender", petData!["pet_sex"],
                                   Color(0xFFEDF2FF)),
                               _squareInfoBox(
                                   "Age",
-                                  petDetails!["pet_age"]?.toString(),
+                                  petData!["pet_age"]?.toString(),
                                   Color(0xFFEBF8F3)),
                             ],
                           ),
@@ -249,7 +250,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           ),
                           SizedBox(height: 4),
                           Text(
-                            petDetails!["pet_descriptions"] ??
+                            petData!["pet_descriptions"] ??
                                 "No description available.",
                             style: TextStyle(
                                 fontSize: 15, color: Colors.grey[700]),
