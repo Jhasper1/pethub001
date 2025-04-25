@@ -11,7 +11,7 @@ import 'package:march24/screen/Shelter_Screen/shelter_notification.dart';
 class UserHomeScreen extends StatefulWidget {
   final int adopterId;
 
-  const UserHomeScreen({Key? key, required this.adopterId}) : super(key: key);
+  const UserHomeScreen({super.key, required this.adopterId});
 
   @override
   _UserHomeScreenState createState() => _UserHomeScreenState();
@@ -43,7 +43,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
         setState(() {
           pets = List<Map<String, dynamic>>.from(petData).take(3).toList();
-          shelters = List<Map<String, dynamic>>.from(shelterData).take(3).toList();
+          shelters =
+              List<Map<String, dynamic>>.from(shelterData).take(3).toList();
           isLoading = false;
         });
       } else {
@@ -98,26 +99,26 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
-          ? Center(child: Text(errorMessage))
-          : RefreshIndicator(
-        onRefresh: fetchPetsAndShelters,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(bottom: 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildWelcomeBanner(),
-              const SizedBox(height: 20),
-              _buildSectionTitle('Featured Pets', PetApp()),
-              _buildFeaturedPetsList(),
-              const SizedBox(height: 20),
-              _buildSectionTitle('Shelters', ShelterScreen()),
-              _buildSheltersList(),
-            ],
-          ),
-        ),
-      ),
+              ? Center(child: Text(errorMessage))
+              : RefreshIndicator(
+                  onRefresh: fetchPetsAndShelters,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildWelcomeBanner(),
+                        const SizedBox(height: 20),
+                        _buildSectionTitle('Featured Pets', PetApp()),
+                        _buildFeaturedPetsList(),
+                        const SizedBox(height: 20),
+                        _buildSectionTitle('Shelters', ShelterScreen()),
+                        _buildSheltersList(),
+                      ],
+                    ),
+                  ),
+                ),
     );
   }
 
@@ -199,72 +200,71 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       child: pets.isEmpty
           ? const Center(child: Text("No pets available"))
           : ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: pets.length,
-        itemBuilder: (context, index) {
-          final pet = pets[index];
-          String image = pet['pet_image1'] ?? '';
-          return GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    PetDetailsScreen(petId: pet["pet_id"]),
-              ),
-            ),
-            child: Container(
-              width: 160,
-              margin: const EdgeInsets.only(right: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blue.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(12)),
-                    child: image.isNotEmpty
-                        ? Image.memory(
-                      base64Decode(image),
-                      height: 140,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    )
-                        : Container(
-                      height: 140,
-                      color: Colors.blue.shade50,
-                      child: const Icon(Icons.pets, size: 40),
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: pets.length,
+              itemBuilder: (context, index) {
+                final pet = pets[index];
+                String image = pet['pet_image1'] ?? '';
+                return GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PetDetailsScreen(petId: pet["pet_id"]),
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
+                  child: Container(
+                    width: 160,
+                    margin: const EdgeInsets.only(right: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(pet['pet_name'] ?? '',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold)),
-                        Text(pet['pet_type'] ?? '',
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey)),
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(12)),
+                          child: image.isNotEmpty
+                              ? Image.memory(
+                                  base64Decode(image),
+                                  height: 140,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  height: 140,
+                                  color: Colors.blue.shade50,
+                                  child: const Icon(Icons.pets, size: 40),
+                                ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(pet['pet_name'] ?? '',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold)),
+                              Text(pet['pet_type'] ?? '',
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Colors.grey)),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 
@@ -305,17 +305,18 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   borderRadius: BorderRadius.circular(8),
                   child: image.isNotEmpty
                       ? Image.memory(
-                    base64Decode(image),
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                  )
+                          base64Decode(image),
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                        )
                       : Container(
-                    width: 50,
-                    height: 50,
-                    color: Colors.blue.shade50,
-                    child: const Icon(Icons.home_work, color: Colors.blue),
-                  ),
+                          width: 50,
+                          height: 50,
+                          color: Colors.blue.shade50,
+                          child:
+                              const Icon(Icons.home_work, color: Colors.blue),
+                        ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(

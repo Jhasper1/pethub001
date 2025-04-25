@@ -7,7 +7,7 @@ import 'pet_clicked.dart';
 class ShelterDetailsPage extends StatefulWidget {
   final int shelterId;
 
-  const ShelterDetailsPage({Key? key, required this.shelterId}) : super(key: key);
+  const ShelterDetailsPage({super.key, required this.shelterId});
 
   @override
   _ShelterDetailsPageState createState() => _ShelterDetailsPageState();

@@ -50,7 +50,7 @@ Future<List<AdoptedPet>> fetchAdoptedPets(int adopterId) async {
 class AdoptedPetsScreen extends StatefulWidget {
   final int adopterId;
 
-  AdoptedPetsScreen({required this.adopterId});
+  const AdoptedPetsScreen({super.key, required this.adopterId});
 
   @override
   _AdoptedPetsScreenState createState() => _AdoptedPetsScreenState();
@@ -129,6 +129,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

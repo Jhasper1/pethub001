@@ -9,7 +9,7 @@ import 'package:http_parser/http_parser.dart';
 class EditProfileScreen extends StatefulWidget {
   final int shelterId;
 
-  const EditProfileScreen({Key? key, required this.shelterId}) : super(key: key);
+  const EditProfileScreen({super.key, required this.shelterId});
 
   @override
   _EditProfileScreenState createState() => _EditProfileScreenState();

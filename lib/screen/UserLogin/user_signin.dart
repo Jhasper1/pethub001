@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import '../UserDashboard/user_home_screen.dart';
 import 'user_signup.dart';
+import '/services/api_services.dart';
+import '/services/jwt_storage.dart'; // Import your jwt_storage.dart here
 
 class UserSignInScreen extends StatefulWidget {
   const UserSignInScreen({super.key});
@@ -23,40 +23,72 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
       _errorMessage = null;
     });
 
-    final url = Uri.parse('http://127.0.0.1:5566/user/login');
-
     try {
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "username": _usernameController.text.trim(),
-          "password": _passwordController.text.trim(),
-        }),
+      final response = await ApiService().postData(
+        'user/login',
+        {
+          'username': _usernameController.text.trim(),
+          'password': _passwordController.text.trim(),
+        },
       );
 
-      final responseData = jsonDecode(response.body);
+      if (response != null && response['token'] != null) {
+        final String token = response['token'];
+        final int adopterId = response['data']['adopter']['adopter_id'];
 
-      if (response.statusCode == 200 && responseData['data'] != null) {
-        final adopterData = responseData['data']['adopter'];
+        // ✅ Save token securely
+        await TokenStorage.saveToken(token);
 
-        if (adopterData != null && adopterData.containsKey('adopter_id')) {
-          final int adopterId = adopterData['adopter_id'];
+        // ✅ Optional: Print or verify token
+        debugPrint("JWT token saved: $token");
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => UserHomeScreen(adopterId: adopterId)),
-          );
-          return;
-        }
+        // ✅ Success snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Login successful!"),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        // ✅ Navigate to home
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => UserHomeScreen(adopterId: adopterId),
+          ),
+        );
+      } else {
+        setState(() {
+          _errorMessage = response['message'] ?? "Invalid username or password";
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_errorMessage!),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
-
-      setState(() => _errorMessage = responseData['message'] ?? "Invalid username or password");
     } catch (e) {
-      setState(() => _errorMessage = "Server error. Please try again later.");
-      print("Error: $e");
+      setState(() {
+        _errorMessage = "Server error. Please try again later.";
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_errorMessage!),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      print("Login error: $e");
     } finally {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -92,7 +124,8 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                           const SizedBox(height: 20),
                           const Text(
                             'Sign in as Adopter Account',
-                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -116,26 +149,30 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Text('Username', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const Text('Username',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _usernameController,
                             decoration: InputDecoration(
                               hintText: 'Enter your username',
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                               filled: true,
                               fillColor: Colors.grey[100],
                             ),
                           ),
                           const SizedBox(height: 20),
-                          const Text('Password', style: TextStyle(fontWeight: FontWeight.bold)),
+                          const Text('Password',
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                           const SizedBox(height: 8),
                           TextField(
                             controller: _passwordController,
                             obscureText: true,
                             decoration: InputDecoration(
                               hintText: 'Enter your password',
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                              border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8)),
                               filled: true,
                               fillColor: Colors.grey[100],
                             ),
@@ -171,19 +208,20 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                           _isLoading
                               ? const Center(child: CircularProgressIndicator())
                               : ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF0288D1),
-                              padding: const EdgeInsets.symmetric(vertical: 15),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                            ),
-                            onPressed: _login,
-                            child: const Text(
-                              'Sign in',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0288D1),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 15),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  onPressed: _login,
+                                  child: const Text(
+                                    'Sign in',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
                         ],
                       ),
                     ),
@@ -194,7 +232,8 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const UserSignUpScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => const UserSignUpScreen()),
                         );
                       },
                       child: const Text(

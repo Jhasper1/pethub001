@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:march24/screen/UserDashboard/shelter_clicked.dart';
 
 class ShelterScreen extends StatefulWidget {
+  const ShelterScreen({super.key});
+
   @override
   _ShelterScreenState createState() => _ShelterScreenState();
 }

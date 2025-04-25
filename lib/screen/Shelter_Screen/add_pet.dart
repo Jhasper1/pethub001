@@ -63,7 +63,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
         http.MultipartFile.fromBytes(
           'pet_image1',
           _imageBytes!,
-          filename: 'pet_image.${fileExtension}',
+          filename: 'pet_image.$fileExtension',
           contentType: MediaType('image', fileExtension),
         ),
       );

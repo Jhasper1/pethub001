@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:march24/screen/UserDashboard/adopt_pet_screen.dart';
+import 'package:march24/screen/UserDashboard/adoption_submission.dart';
 
 class PetDetailsScreen extends StatefulWidget {
   final int petId;
@@ -13,7 +13,7 @@ class PetDetailsScreen extends StatefulWidget {
 }
 
 class _PetDetailsScreenState extends State<PetDetailsScreen> {
-  Map<String, dynamic>? petDetails;
+  Map<String, dynamic>? petData;
   bool isLoading = true;
   bool hasError = false;
 
@@ -28,21 +28,35 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
 
     try {
       final response = await http.get(url);
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data is Map<String, dynamic> &&
-            data.containsKey("data") &&
-            data["data"].containsKey("info")) {
-          setState(() {
-            petDetails = data["data"]["info"];
-            isLoading = false;
-          });
-        } else {
-          setState(() {
-            hasError = true;
-            isLoading = false;
-          });
+
+        // Handle different response structures
+        if (data is Map<String, dynamic>) {
+          if (data.containsKey('data')) {
+            // Case 1: Data is nested under "data"
+            if (data['data'] is Map && data['data'].containsKey('info')) {
+              // Subcase: Data is in data->info
+              petData = Map<String, dynamic>.from(data['data']['info']);
+            } else {
+              // Subcase: Data is directly in data
+              petData = Map<String, dynamic>.from(data['data']);
+            }
+          } else {
+            // Case 2: Data is at root level
+            petData = data;
+          }
         }
+
+        print("Extracted petData: $petData");
+
+        setState(() {
+          isLoading = false;
+          hasError = petData == null;
+        });
       } else {
         setState(() {
           hasError = true;
@@ -60,24 +74,45 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   }
 
   void _onAdoptPressed() {
-    if (petDetails != null) {
+    if (petData != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => QuestionnaireScreen(
+          builder: (context) => AdoptionSubmissionForm(
             petId: widget.petId,
-            petName: petDetails!["pet_name"] ?? "Unknown",
+            petName: _getPetField('name') ?? "Unknown",
           ),
         ),
       );
     }
   }
 
-  Widget _buildSquareImage(String? base64String) {
+  // Helper method to get field with multiple possible keys
+  String? _getPetField(String fieldName) {
+    if (petData == null) return null;
+
+    // Try different key variations
+    final possibleKeys = [
+      fieldName,
+      'pet_$fieldName',
+      '${fieldName}_pet',
+      fieldName.toLowerCase(),
+      fieldName.toUpperCase(),
+    ];
+
+    for (var key in possibleKeys) {
+      if (petData!.containsKey(key)) {
+        return petData![key]?.toString();
+      }
+    }
+    return null;
+  }
+
+  Widget _buildSquareImage(String? imageData) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double imageSize = screenWidth - 32;
 
-    if (base64String == null || base64String.isEmpty) {
+    if (imageData == null || imageData.isEmpty) {
       return SizedBox(
         width: imageSize,
         height: imageSize,
@@ -92,9 +127,8 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     }
 
     try {
-      final cleanBase64 = base64String.contains(',')
-          ? base64String.split(',').last
-          : base64String;
+      final cleanBase64 =
+          imageData.contains(',') ? imageData.split(',').last : imageData;
 
       return SizedBox(
         width: imageSize,
@@ -125,8 +159,8 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
 
   Widget _squareInfoBox(String label, String? value, Color color) {
     return Container(
-      width: 120,
-      height: 90,
+      width: 100,
+      height: 80,
       margin: EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         color: color,
@@ -139,9 +173,10 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
             Text(
               label,
               style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                  color: Colors.black45),
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: Colors.black45,
+              ),
             ),
             SizedBox(height: 6),
             Text(
@@ -166,91 +201,111 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : hasError || petDetails == null
-          ? Center(
-        child: Text(
-          "Failed to load pet details.",
-          style: TextStyle(fontSize: 16),
-        ),
-      )
-          : Stack(
-        children: [
-          SingleChildScrollView(
-            padding:
-            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSquareImage(petDetails!["pet_image1"]),
-                SizedBox(height: 16),
-                Text(
-                  petDetails!["pet_name"] ?? "Unknown",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+          : hasError || petData == null
+              ? Center(
+                  child: Text(
+                    "Failed to load pet details.",
+                    style: TextStyle(fontSize: 16),
                   ),
-                  textAlign: TextAlign.left,
-                ),
-                SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                )
+              : Column(
                   children: [
-                    _squareInfoBox("Type", petDetails!["pet_type"],
-                        Color(0xFFFFEFED)),
-                    _squareInfoBox("Gender", petDetails!["pet_sex"],
-                        Color(0xFFEDF2FF)),
-                    _squareInfoBox(
-                        "Age",
-                        petDetails!["pet_age"]?.toString(),
-                        Color(0xFFEBF8F3)),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSquareImage(_getPetField('image1') ??
+                                _getPetField('photo') ??
+                                _getPetField('picture')),
+                            SizedBox(height: 16),
+                            Text(
+                              _getPetField('name') ?? "Unknown",
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _squareInfoBox(
+                                    "Type",
+                                    _getPetField('type') ??
+                                        _getPetField('species'),
+                                    Color(0xFFFFEFED)),
+                                _squareInfoBox(
+                                    "Gender",
+                                    _getPetField('sex') ??
+                                        _getPetField('gender'),
+                                    Color(0xFFEDF2FF)),
+                                _squareInfoBox("Age", _getPetField('age'),
+                                    Color(0xFFEBF8F3)),
+                              ],
+                            ),
+                            SizedBox(height: 24),
+                            Text(
+                              "Description",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              _getPetField('description') ??
+                                  _getPetField('descriptions') ??
+                                  "No description available.",
+                              style: TextStyle(
+                                  fontSize: 15, color: Colors.grey[700]),
+                            ),
+                            SizedBox(height: 24),
+                            if (_getPetField('breed') != null) ...[
+                              Text(
+                                "Breed",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w600),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                _getPetField('breed')!,
+                                style: TextStyle(
+                                    fontSize: 15, color: Colors.grey[700]),
+                              ),
+                              SizedBox(height: 24),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _onAdoptPressed,
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: Color(0xFF1B85F3),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: Text(
+                            "Adopt",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-                SizedBox(height: 24),
-                Text(
-                  "Description",
-                  style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  petDetails!["pet_descriptions"] ??
-                      "No description available.",
-                  style: TextStyle(
-                      fontSize: 15, color: Colors.grey[700]),
-                ),
-                SizedBox(height: 40),
-              ],
-            ),
-          ),
-          Positioned(
-            bottom: 16,
-            left: 16,
-            right: 16,
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _onAdoptPressed,
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Color(0xFF1B85F3), // Teal 500
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  elevation: 2,
-                ),
-                child: Text(
-                  "Adopt",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          )
-        ],
-      ),
     );
   }
 }

@@ -8,10 +8,10 @@ class UserBottomNavBar extends StatelessWidget {
   final int currentIndex;
 
   const UserBottomNavBar({
-    Key? key,
+    super.key,
     required this.adopterId,
     required this.currentIndex
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
