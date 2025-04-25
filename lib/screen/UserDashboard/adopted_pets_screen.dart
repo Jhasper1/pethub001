@@ -9,6 +9,7 @@ class AdoptedPet {
   final String petType;
   final int petAge;
   final String ageType;
+  final String petDescription; // Optional: Add description if needed
   final String petImage1;
 
   AdoptedPet({
@@ -16,6 +17,7 @@ class AdoptedPet {
     required this.petType,
     required this.petAge,
     required this.ageType,
+    required this.petDescription,
     required this.petImage1,
   });
 
@@ -26,6 +28,7 @@ class AdoptedPet {
       petType: json['pet_type'] ?? 'Unknown',
       petAge: json['pet_age'] ?? 0,
       ageType: json['age_type'] ?? 'Unknown',
+      petDescription: json['pet_descriptions'] ?? 'No description available',
       petImage1: json['pet_image1'] ?? '', // Base64 string
     );
   }

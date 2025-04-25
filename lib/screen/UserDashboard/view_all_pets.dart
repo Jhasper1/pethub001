@@ -81,10 +81,11 @@ class _PetsScreenState extends State<PetsScreen> {
         label: Text(
           label,
           style: TextStyle(
-              color: isSelected ? Colors.white : Colors.black87),
+            color: isSelected ? Colors.white : Colors.black87,
+          ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? Colors.orange : Colors.white,
+          backgroundColor: isSelected ? Colors.blueAccent : Colors.white,
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -106,7 +107,6 @@ class _PetsScreenState extends State<PetsScreen> {
     }
 
     try {
-      // Remove potential data:image/*;base64, prefix if present
       final cleanBase64 = base64String.contains(',')
           ? base64String.split(',').last
           : base64String;
@@ -139,7 +139,7 @@ class _PetsScreenState extends State<PetsScreen> {
     return Scaffold(
       backgroundColor: Color(0xFFF7F1FF),
       appBar: AppBar(
-        backgroundColor: Colors.orange,
+        backgroundColor: Colors.blueAccent,
         title: Text("Pet Library", style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         elevation: 0,
@@ -179,14 +179,13 @@ class _PetsScreenState extends State<PetsScreen> {
                 itemBuilder: (context, index) {
                   final pet = pets[index];
                   return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PetDetailsScreen(petId: pet["pet_id"]),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PetDetailsScreen(petId: pet['pet_id'],
                         ),
-                      );
-                    },
+                      ),
+                    ),
                     child: Card(
                       elevation: 4,
                       shape: RoundedRectangleBorder(
@@ -214,7 +213,9 @@ class _PetsScreenState extends State<PetsScreen> {
                                 child: Text(
                                   pet["pet_name"] ?? "Unknown",
                                   style: TextStyle(
-                                      color: Colors.white, fontSize: 14),
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
                             ),

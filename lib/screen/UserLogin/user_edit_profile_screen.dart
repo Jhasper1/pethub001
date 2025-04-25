@@ -201,7 +201,7 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
                       alignment: Alignment.bottomRight,
                       child: CircleAvatar(
                         radius: 15,
-                        backgroundColor: Colors.orange,
+                        backgroundColor: Colors.blueAccent,
                         child: Icon(Icons.camera_alt, size: 15, color: Colors.white),
                       ),
                     ),
@@ -258,7 +258,10 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
                     onPressed: updateAdopterDetails,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: Colors.orange,
+                      backgroundColor: Colors.blueAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: const Text('Save Changes', style: TextStyle(color: Colors.white)),
                   ),

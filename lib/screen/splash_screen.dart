@@ -16,9 +16,13 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(Duration(seconds: 2), () {
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => ChooseUserScreen()),
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => ChooseUserScreen(),
+          transitionDuration: Duration.zero,
+          reverseTransitionDuration: Duration.zero,
+        ),
       );
     });
   }
@@ -42,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> {
               left: 0,
               right: 0,
               child: Image.asset(
-                '/images/logo.png',
+                'assets/images/logo.png',
                 width: 150,
                 height: 150,
               ),
@@ -50,12 +54,13 @@ class _SplashScreenState extends State<SplashScreen> {
 
             // Splash Image
             Positioned(
-              top: 300,
+              top: 400,
               left: 0,
-              right: 40,
+              right: 0,
               child: Image.asset(
-                '/images/splash.png',
-                width: 700,
+                'assets/images/splash.png',
+                width: 1000,
+
               ),
             ),
           ],

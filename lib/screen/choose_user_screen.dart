@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:march24/screen/Shelter_Screen/signin_screen.dart';
-import 'UserLogin/user_start_screen.dart';
+import 'package:march24/screen/UserLogIn/user_signin.dart';
 
 class ChooseUserScreen extends StatefulWidget {
   const ChooseUserScreen({super.key});
@@ -12,21 +13,42 @@ class ChooseUserScreen extends StatefulWidget {
 class _ChooseUserScreenState extends State<ChooseUserScreen>
     with SingleTickerProviderStateMixin {
   bool isAdopterSelected = true;
+
   late AnimationController _animationController;
+  late Animation<Offset> _cardAnimation;
   late Animation<Offset> _imageAnimation;
+  late Animation<double> _imageFadeAnimation;
 
   @override
   void initState() {
     super.initState();
     _animationController =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 500));
+        AnimationController(vsync: this, duration: Duration(milliseconds: 600));
 
-    _imageAnimation = Tween<Offset>(
+    // Card animates first
+    _cardAnimation = Tween<Offset>(
       begin: Offset(0, 1),
       end: Offset(0, 0),
     ).animate(CurvedAnimation(
       parent: _animationController,
-      curve: Curves.easeOut,
+      curve: Interval(0.0, 0.5, curve: Curves.easeInOut),
+    ));
+
+    // Dog image animates after card
+    _imageAnimation = Tween<Offset>(
+      begin: Offset(0, 0.3),
+      end: Offset(0, 0),
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Interval(0.5, 1.0, curve: Curves.easeOut),
+    ));
+
+    _imageFadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Interval(0.5, 1.0, curve: Curves.easeIn),
     ));
 
     _animationController.forward();
@@ -35,16 +57,16 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
   void _toggleSelection(bool adopterSelected) {
     setState(() {
       isAdopterSelected = adopterSelected;
-      _animationController.reset();
-      _animationController.forward();
     });
-  }
 
-  void _navigateToLogin() {
-    Navigator.push(
+    // Navigate without transition
+    Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (_) => isAdopterSelected ? UserStartScreen() : SignInScreen(),
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) =>
+        adopterSelected ? UserSignInScreen() : SignInScreen(),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
       ),
     );
   }
@@ -61,7 +83,7 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
       backgroundColor: Colors.white,
       body: Stack(
         children: [
-          /// Blue Gradient Background
+          /// Background Gradient
           Positioned.fill(
             child: Container(
               decoration: BoxDecoration(
@@ -69,56 +91,40 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.blue.shade50,
-                    Colors.blue.shade200,
-                    Colors.blue.shade500,
+                    Colors.lightBlue.shade50,
+                    Colors.blueAccent,
                   ],
                 ),
               ),
             ),
           ),
 
-          /// Foreground Content
-          Column(
-            children: [
-              Expanded(
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    if (isAdopterSelected)
-                      Positioned(
-                        top: 150,
-                        left: 40,
-                        right: 40,
-                        child: SlideTransition(
-                          position: _imageAnimation,
-                          child: Image.asset(
-                            'assets/images/adopter.png',
-                            width: 300,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                    if (!isAdopterSelected)
-                      Positioned(
-                        top: 135,
-                        left: 20,
-                        right: 20,
-                        child: SlideTransition(
-                          position: _imageAnimation,
-                          child: Image.asset(
-                            'assets/images/shelter.png',
-                            width: 280,
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ),
-                  ],
+          /// Dog PNG Animation
+          FadeTransition(
+            opacity: _imageFadeAnimation,
+            child: SlideTransition(
+              position: _imageAnimation,
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 40),
+                  child: Image.asset(
+                    'assets/images/splash.png',
+                    width: 500,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
+            ),
+          ),
 
-              /// Bottom Card UI
-              Container(
+          /// Bottom Card UI Animation
+          SlideTransition(
+            position: _cardAnimation,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.40,
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -136,18 +142,18 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
                   children: [
                     SizedBox(height: 30),
                     Text(
-                      "Join Adopt Me Today",
-                      style: TextStyle(
+                      "Join PetHub today!",
+                      style: GoogleFonts.poppins(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade800,
+                        color: Colors.lightBlue,
                       ),
                     ),
                     SizedBox(height: 15),
                     Text(
-                      "Adopt This <Tagline>",
-                      style: TextStyle(
-                        color: Colors.blue.shade600,
+                      "Every Paw Deserves a Home 🐾",
+                      style: GoogleFonts.poppins(
+                        color: Colors.lightBlue.shade500,
                         fontSize: 16,
                       ),
                     ),
@@ -164,59 +170,34 @@ class _ChooseUserScreenState extends State<ChooseUserScreen>
                         }),
                       ],
                     ),
-                    SizedBox(height: 40),
-                    /// Confirm Button - Now matches toggle button size
-                    SizedBox(
-                      height: 40,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade700,
-                          minimumSize: Size(double.infinity, 50),
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          elevation: 3,
-                        ),
-                        onPressed: _navigateToLogin,
-                        child: Text(
-                          "Confirm",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 30),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  /// Helper method to create toggle buttons
-  Widget _buildToggleButton(String text, bool isSelected, VoidCallback onTap) {
+  Widget _buildToggleButton(
+      String text, bool isSelected, VoidCallback onTap) {
     return Expanded(
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? Colors.blue.shade700 : Colors.blue.shade50,
+          backgroundColor:
+          isSelected ? Colors.lightBlue : Colors.blue.shade50,
           minimumSize: Size(150, 50),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
         onPressed: onTap,
         child: Text(
           text,
-          style: TextStyle(
+          style: GoogleFonts.poppins(
             fontSize: 12,
-            color: isSelected ? Colors.white : Colors.blue.shade800,
+            color: isSelected ? Colors.white : Colors.lightBlue,
             fontWeight: FontWeight.w600,
           ),
         ),

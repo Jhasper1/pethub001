@@ -42,7 +42,10 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         final shelterData = jsonDecode(shelterResponse.body);
 
         setState(() {
-          pets = List<Map<String, dynamic>>.from(petData).take(3).toList();
+          pets = List<Map<String, dynamic>>.from(petData)
+              .where((pet) => pet['priority_status'] == true)
+              .take(3)
+              .toList();
           shelters =
               List<Map<String, dynamic>>.from(shelterData).take(3).toList();
           isLoading = false;
@@ -196,9 +199,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
   Widget _buildFeaturedPetsList() {
     return SizedBox(
-      height: 230,
+      height: 160,
       child: pets.isEmpty
-          ? const Center(child: Text("No pets available"))
+          ? const Center(child: Text("No featured pets available"))
           : ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -282,7 +285,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             context,
             MaterialPageRoute(
               builder: (_) =>
-                  ShelterDetailsPage(shelterId: shelter["shelter_id"]),
+                  ShelterDetailsScreen(shelterId: shelter["shelter_id"]),
             ),
           ),
           child: Container(

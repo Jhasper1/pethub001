@@ -127,8 +127,9 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     }
 
     try {
-      final cleanBase64 =
-          imageData.contains(',') ? imageData.split(',').last : imageData;
+      final cleanBase64 = base64String.contains(',')
+          ? base64String.split(',').last
+          : base64String;
 
       return SizedBox(
         width: imageSize,
@@ -201,93 +202,73 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : hasError || petData == null
+          : hasError || petDetails == null
               ? Center(
                   child: Text(
                     "Failed to load pet details.",
                     style: TextStyle(fontSize: 16),
                   ),
                 )
-              : Column(
+              : Stack(
                   children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSquareImage(_getPetField('image1') ??
-                                _getPetField('photo') ??
-                                _getPetField('picture')),
-                            SizedBox(height: 16),
-                            Text(
-                              _getPetField('name') ?? "Unknown",
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
+                    SingleChildScrollView(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSquareImage(petDetails!["pet_image1"]),
+                          SizedBox(height: 16),
+                          Text(
+                            petDetails!["pet_name"] ?? "Unknown",
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
                             ),
-                            SizedBox(height: 24),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _squareInfoBox(
-                                    "Type",
-                                    _getPetField('type') ??
-                                        _getPetField('species'),
-                                    Color(0xFFFFEFED)),
-                                _squareInfoBox(
-                                    "Gender",
-                                    _getPetField('sex') ??
-                                        _getPetField('gender'),
-                                    Color(0xFFEDF2FF)),
-                                _squareInfoBox("Age", _getPetField('age'),
-                                    Color(0xFFEBF8F3)),
-                              ],
-                            ),
-                            SizedBox(height: 24),
-                            Text(
-                              "Description",
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w600),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              _getPetField('description') ??
-                                  _getPetField('descriptions') ??
-                                  "No description available.",
-                              style: TextStyle(
-                                  fontSize: 15, color: Colors.grey[700]),
-                            ),
-                            SizedBox(height: 24),
-                            if (_getPetField('breed') != null) ...[
-                              Text(
-                                "Breed",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w600),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                _getPetField('breed')!,
-                                style: TextStyle(
-                                    fontSize: 15, color: Colors.grey[700]),
-                              ),
-                              SizedBox(height: 24),
+                            textAlign: TextAlign.left,
+                          ),
+                          SizedBox(height: 24),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _squareInfoBox("Type", petDetails!["pet_type"],
+                                  Color(0xFFFFEFED)),
+                              _squareInfoBox("Gender", petDetails!["pet_sex"],
+                                  Color(0xFFEDF2FF)),
+                              _squareInfoBox(
+                                  "Age",
+                                  petDetails!["pet_age"]?.toString(),
+                                  Color(0xFFEBF8F3)),
                             ],
-                          ],
-                        ),
+                          ),
+                          SizedBox(height: 24),
+                          Text(
+                            "Description",
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            petDetails!["pet_descriptions"] ??
+                                "No description available.",
+                            style: TextStyle(
+                                fontSize: 15, color: Colors.grey[700]),
+                          ),
+                          SizedBox(height: 40),
+                        ],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
+                    Positioned(
+                      bottom: 16,
+                      left: 16,
+                      right: 16,
                       child: SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _onAdoptPressed,
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: Color(0xFF1B85F3),
+                            backgroundColor: Color(0xFF1B85F3), // Teal 500
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
@@ -303,7 +284,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           ),
                         ),
                       ),
-                    ),
+                    )
                   ],
                 ),
     );
