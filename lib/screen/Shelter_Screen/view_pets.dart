@@ -94,30 +94,6 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: const Color(0xFFE2F3FD),
-      // appBar: AppBar(
-      //   backgroundColor: Colors.lightBlue,
-      //   automaticallyImplyLeading: false,
-      //   centerTitle: false,
-      //   title: Text(
-      //     "Pet Library",
-      //     style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-      //   ),
-      //   actions: [
-      //     IconButton(
-      //       icon: const Icon(Icons.archive, color: Colors.white),
-      //       onPressed: () {
-      //         Navigator.push(
-      //           context,
-      //           MaterialPageRoute(
-      //             builder: (context) =>
-      //                 ArchivedPetsScreen(shelterId: widget.shelterId),
-      //           ),
-      //         );
-      //       },
-      //     ),
-      //   ],
-      // ),
       body: Column(
         children: [
           Padding(
@@ -137,10 +113,9 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                         Text(
                           'Pet Library',
                           style: GoogleFonts.poppins(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.lightBlue
-                          ),
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.lightBlue),
                         ),
                       ],
                     ),

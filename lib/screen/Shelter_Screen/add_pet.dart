@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
@@ -61,40 +62,40 @@ class _AddPetScreenState extends State<AddPetScreen>
     }
   }
 
-Future<void> _submitForm() async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('auth_token');
-  if (!_formKey.currentState!.validate()) return;
+  Future<void> _submitForm() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (!_formKey.currentState!.validate()) return;
 
-  var uri = Uri.parse(
-      "http://127.0.0.1:5566/api/shelter/${widget.shelterId}/add-pet-info");
-  var request = http.MultipartRequest("POST", uri);
+    var uri = Uri.parse(
+        "http://127.0.0.1:5566/api/shelter/${widget.shelterId}/add-pet-info");
+    var request = http.MultipartRequest("POST", uri);
 
-  // Add headers before sending
-  request.headers.addAll({
-    "Authorization": "Bearer $token",
-  });
+    // Add headers before sending
+    request.headers.addAll({
+      "Authorization": "Bearer $token",
+    });
 
-  request.fields['pet_type'] = _selectedPetType ?? "";
-  request.fields['pet_name'] = _nameController.text;
-  request.fields['pet_age'] = _ageController.text;
-  request.fields['age_type'] = _selectedAgeType ?? "";
-  request.fields['pet_sex'] = _selectedSex ?? "";
-  request.fields['pet_size'] = _sizeController.text;
-  request.fields['pet_descriptions'] = _descriptionController.text;
-  request.fields['priority_status'] = _priorityStatus ? '1' : '0';
+    request.fields['pet_type'] = _selectedPetType ?? "";
+    request.fields['pet_name'] = _nameController.text;
+    request.fields['pet_age'] = _ageController.text;
+    request.fields['age_type'] = _selectedAgeType ?? "";
+    request.fields['pet_sex'] = _selectedSex ?? "";
+    request.fields['pet_size'] = _sizeController.text;
+    request.fields['pet_descriptions'] = _descriptionController.text;
+    request.fields['priority_status'] = _priorityStatus ? '1' : '0';
 
-  if (_imageBytes != null && _imageFile != null) {
-    final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
-    request.files.add(
-      http.MultipartFile.fromBytes(
-        'pet_image1',
-        _imageBytes!,
-        filename: 'pet_image.${fileExtension}',
-        contentType: MediaType('image', fileExtension),
-      ),
-    );
-  }
+    if (_imageBytes != null && _imageFile != null) {
+      final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'pet_image1',
+          _imageBytes!,
+          filename: 'pet_image.${fileExtension}',
+          contentType: MediaType('image', fileExtension),
+        ),
+      );
+    }
     if (_imageBytes != null && _imageFile != null) {
       final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
       request.files.add(
@@ -107,31 +108,30 @@ Future<void> _submitForm() async {
       );
     }
 
-  try {
-    var response = await request.send();
+    try {
+      var response = await request.send();
 
-    if (response.statusCode == 201) {
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Pet added successfully!")),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  ViewPetsScreen(shelterId: widget.shelterId)),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to add pet")),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Pet added successfully!")),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (context) =>
-                ViewPetsScreen(shelterId: widget.shelterId)),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to add pet")),
+        SnackBar(content: Text("Error: $e")),
       );
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error: $e")),
-    );
   }
-}
-
 
   InputDecoration _buildTextFieldDecoration(String hintText) {
     return InputDecoration(
@@ -223,13 +223,6 @@ Future<void> _submitForm() async {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Add Pet',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
             const SizedBox(height: 20), // Spacing between title and avatar
             Stack(
               alignment: Alignment.center,
@@ -542,9 +535,38 @@ Future<void> _submitForm() async {
         currentIndex: 2,
       ),
       body: Padding(
-        padding: EdgeInsets.all(15.0),
+        padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/logo.png',
+                      height: 40,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Add Pet',
+                      style: GoogleFonts.poppins(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.lightBlue),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                        icon: const Icon(Icons.notifications),
+                        onPressed: () {}),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
             _buildProgressBar(),
             SizedBox(height: 10),
             Expanded(

@@ -1,8 +1,9 @@
-import 'dart:convert';
+
+import 'dart:convert'; 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:march24/screen/UserDashboard/adoption_submission.dart';
-import 'package:path/path.dart' as base64String;
+// import 'package:path/path.dart' as path;
 
 class PetDetailsScreen extends StatefulWidget {
   final int petId;
@@ -127,27 +128,28 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       );
     }
 
-    try {
-      final cleanBase64 = base64String.contains(',')
-          ? base64String.split(',').last
-          : base64String;
+   try {
+  // Ensure `base64String` is a valid variable containing the base64 string
+  final cleanBase64 = imageData.contains(',')
+      ? imageData.split(',').last
+      : imageData;
 
-      return SizedBox(
-        width: imageSize,
-        height: imageSize,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Image.memory(
-            base64Decode(cleanBase64),
-            fit: BoxFit.cover,
-          ),
-        ),
-      );
-    } catch (e) {
-      print('Error decoding base64 image: $e');
-      return SizedBox(
-        width: imageSize,
-        height: imageSize,
+  return SizedBox(
+    width: imageSize,
+    height: imageSize,
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Image.memory(
+        base64Decode(cleanBase64),
+        fit: BoxFit.cover,
+      ),
+    ),
+  );
+} catch (e) {
+  print('Error decoding base64 image: $e');
+  return SizedBox(
+    width: imageSize,
+    height: imageSize,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: Image.asset(
