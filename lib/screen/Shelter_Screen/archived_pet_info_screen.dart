@@ -31,13 +31,12 @@ class _ArchivedPetInfoScreenState extends State<ArchivedPetInfoScreen> {
   }
 
   Future<void> fetchPetDetails() async {
-       final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url =
         'http://127.0.0.1:5566/api/shelter/${widget.petId}/petinfo'; // Adjusted URL to use petId
     try {
-      final response = await http.get(Uri.parse(url),
-      headers: {
+      final response = await http.get(Uri.parse(url), headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
@@ -46,7 +45,7 @@ class _ArchivedPetInfoScreenState extends State<ArchivedPetInfoScreen> {
         print("API Response: $data"); // Debugging
 
         final petDataResponse =
-        data['data']['pet']; // Adjusted to fetch the 'pet' object
+            data['data']['pet']; // Adjusted to fetch the 'pet' object
 
         setState(() {
           petData = {
@@ -59,9 +58,9 @@ class _ArchivedPetInfoScreenState extends State<ArchivedPetInfoScreen> {
             'pet_age': petDataResponse['pet_age'],
             'age_type': petDataResponse['age_type'],
             'pet_image1': petDataResponse['pet_image1'] != null &&
-                petDataResponse['pet_image1'].isNotEmpty
+                    petDataResponse['pet_image1'].isNotEmpty
                 ? base64Decode(petDataResponse['pet_image1']
-            [0]) // Decode the first image (or handle multiple images)
+                    [0]) // Decode the first image (or handle multiple images)
                 : null, // Handle case where no images are available
           };
           isLoading = false; // Set loading to false once data is fetched
@@ -79,13 +78,12 @@ class _ArchivedPetInfoScreenState extends State<ArchivedPetInfoScreen> {
   }
 
   Future<void> unarchivePets() async {
-      final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url =
         'http://127.0.0.1:5566/api/shelter/${widget.petId}/unarchive-pet'; // Adjusted URL to use petId
     try {
-      final response = await http.put(Uri.parse(url),
-      headers: {
+      final response = await http.put(Uri.parse(url), headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
@@ -97,7 +95,8 @@ class _ArchivedPetInfoScreenState extends State<ArchivedPetInfoScreen> {
           // Handle success
           Navigator.pop(context, true);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Pet moved to unarchive successfully.')),
+            const SnackBar(
+                content: Text('Pet moved to unarchive successfully.')),
           );
           // Return true to indicate success
         } else {
@@ -121,7 +120,7 @@ class _ArchivedPetInfoScreenState extends State<ArchivedPetInfoScreen> {
     }
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFE2F3FD),
@@ -224,8 +223,7 @@ class _ArchivedPetInfoScreenState extends State<ArchivedPetInfoScreen> {
                                 icon: const Icon(Icons.arrow_back,
                                     color: Colors.black),
                                 onPressed: () {
-                                  Navigator.pop(context,
-                                      true); // Go back to the previous screen
+                                  Navigator.pop(context, true); // Go back to the previous screen
                                 },
                               ),
                             ),
