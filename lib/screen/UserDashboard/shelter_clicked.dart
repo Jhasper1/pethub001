@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:march24/screen/UserDashboard/pet_clicked.dart';
+import 'pet_clicked.dart';
 
 class ShelterDetailsScreen extends StatefulWidget {
   final int shelterId;
+  final int adopterId; // Default value, can be changed later
 
-  const ShelterDetailsScreen({required this.shelterId, super.key});
+  const ShelterDetailsScreen(
+      {required this.shelterId, super.key, required this.adopterId});
 
   @override
   State<ShelterDetailsScreen> createState() => _ShelterDetailsScreenState();
@@ -176,6 +178,7 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
               MaterialPageRoute(
                 builder: (context) => PetDetailsScreen(
                   petId: pet['pet_id'],
+                  adopterId: widget.adopterId,
                 ),
               ),
             );
