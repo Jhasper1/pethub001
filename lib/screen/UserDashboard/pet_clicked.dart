@@ -1,14 +1,13 @@
-
-import 'dart:convert'; 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:march24/screen/UserDashboard/adoption_submission.dart';
-// import 'package:path/path.dart' as path;
+import 'adoption_submission.dart';
 
 class PetDetailsScreen extends StatefulWidget {
   final int petId;
+  final int adopterId;
 
-  PetDetailsScreen({required this.petId});
+  PetDetailsScreen({required this.petId, required this.adopterId});
 
   @override
   _PetDetailsScreenState createState() => _PetDetailsScreenState();
@@ -83,6 +82,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
           builder: (context) => AdoptionSubmissionForm(
             petId: widget.petId,
             petName: _getPetField('name') ?? "Unknown",
+            adopterId: widget.adopterId,
           ),
         ),
       );
@@ -128,28 +128,26 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       );
     }
 
-   try {
-  // Ensure `base64String` is a valid variable containing the base64 string
-  final cleanBase64 = imageData.contains(',')
-      ? imageData.split(',').last
-      : imageData;
+    try {
+      final cleanBase64 =
+          imageData.contains(',') ? imageData.split(',').last : imageData;
 
-  return SizedBox(
-    width: imageSize,
-    height: imageSize,
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Image.memory(
-        base64Decode(cleanBase64),
-        fit: BoxFit.cover,
-      ),
-    ),
-  );
-} catch (e) {
-  print('Error decoding base64 image: $e');
-  return SizedBox(
-    width: imageSize,
-    height: imageSize,
+      return SizedBox(
+        width: imageSize,
+        height: imageSize,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Image.memory(
+            base64Decode(cleanBase64),
+            fit: BoxFit.cover,
+          ),
+        ),
+      );
+    } catch (e) {
+      print('Error decoding base64 image: $e');
+      return SizedBox(
+        width: imageSize,
+        height: imageSize,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
           child: Image.asset(
@@ -212,66 +210,86 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                     style: TextStyle(fontSize: 16),
                   ),
                 )
-              : Stack(
+              : Column(
                   children: [
-                    SingleChildScrollView(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildSquareImage(petData!["pet_image1"]),
-                          SizedBox(height: 16),
-                          Text(
-                            petData!["pet_name"] ?? "Unknown",
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: SingleChildScrollView(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSquareImage(_getPetField('image1') ??
+                                _getPetField('photo') ??
+                                _getPetField('picture')),
+                            SizedBox(height: 16),
+                            Text(
+                              _getPetField('name') ?? "Unknown",
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                            textAlign: TextAlign.left,
-                          ),
-                          SizedBox(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _squareInfoBox("Type", petData!["pet_type"],
-                                  Color(0xFFFFEFED)),
-                              _squareInfoBox("Gender", petData!["pet_sex"],
-                                  Color(0xFFEDF2FF)),
-                              _squareInfoBox(
-                                  "Age",
-                                  petData!["pet_age"]?.toString(),
-                                  Color(0xFFEBF8F3)),
+                            SizedBox(height: 24),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _squareInfoBox(
+                                    "Type",
+                                    _getPetField('type') ??
+                                        _getPetField('species'),
+                                    Color(0xFFFFEFED)),
+                                _squareInfoBox(
+                                    "Gender",
+                                    _getPetField('sex') ??
+                                        _getPetField('gender'),
+                                    Color(0xFFEDF2FF)),
+                                _squareInfoBox("Age", _getPetField('age'),
+                                    Color(0xFFEBF8F3)),
+                              ],
+                            ),
+                            SizedBox(height: 24),
+                            Text(
+                              "Description",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              _getPetField('description') ??
+                                  _getPetField('descriptions') ??
+                                  "No description available.",
+                              style: TextStyle(
+                                  fontSize: 15, color: Colors.grey[700]),
+                            ),
+                            SizedBox(height: 24),
+                            if (_getPetField('breed') != null) ...[
+                              Text(
+                                "Breed",
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.w600),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                _getPetField('breed')!,
+                                style: TextStyle(
+                                    fontSize: 15, color: Colors.grey[700]),
+                              ),
+                              SizedBox(height: 24),
                             ],
-                          ),
-                          SizedBox(height: 24),
-                          Text(
-                            "Description",
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            petData!["pet_descriptions"] ??
-                                "No description available.",
-                            style: TextStyle(
-                                fontSize: 15, color: Colors.grey[700]),
-                          ),
-                          SizedBox(height: 40),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                    Positioned(
-                      bottom: 16,
-                      left: 16,
-                      right: 16,
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
                       child: SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _onAdoptPressed,
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: Color(0xFF1B85F3), // Teal 500
+                            backgroundColor: Color(0xFF1B85F3),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30),
@@ -287,9 +305,11 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           ),
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
     );
   }
 }
+
+
