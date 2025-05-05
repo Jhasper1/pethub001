@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'user_home_screen.dart';
-import '../choose_user_screen.dart'; // Import this if not yet
+import '../choose_user_screen.dart';
 import 'user_signup.dart';
+import 'user_forgot_password.dart'; // Import the forgot password screen
 import '/services/api_services.dart';
-import '/services/jwt_storage.dart'; // Import your jwt_storage.dart here
+import '/services/jwt_storage.dart';
 
 class UserSignInScreen extends StatefulWidget {
   const UserSignInScreen({super.key});
@@ -38,22 +39,15 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
         final String token = response['token'];
         final int adopterId = response['data']['adopter']['adopter_id'];
 
-        // ✅ Save token securely
         await TokenStorage.saveToken(token);
-
-        // ✅ Optional: Print or verify token
         debugPrint("JWT token saved: $token");
 
-        // ✅ Success snackbar
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Login successful!"),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("Login successful!"),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ));
 
-        // ✅ Navigate to home
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -97,7 +91,7 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE2F3FD), // light blue background
+      backgroundColor: const Color(0xFFE2F3FD),
       body: SafeArea(
         child: ConstrainedBox(
           constraints: BoxConstraints(
@@ -203,23 +197,22 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Checkbox(value: false, onChanged: (val) {}),
-                                const Text('Remember me'),
-                              ],
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AdopterForgotPasswordScreen(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'Forgot password?',
+                              style: TextStyle(color: Color(0xFF0288D1)),
                             ),
-                            TextButton(
-                              onPressed: () {},
-                              child: const Text(
-                                'Forgot password?',
-                                style: TextStyle(color: Color(0xFF0288D1)),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                         if (_errorMessage != null)
                           Padding(
