@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'adoption_submission.dart';
 
-class PetDetailsScreen extends StatefulWidget {
+class UserPetDetailsScreen extends StatefulWidget {
   final int petId;
   final int adopterId;
 
-  PetDetailsScreen({required this.petId, required this.adopterId});
+  UserPetDetailsScreen({required this.petId, required this.adopterId});
 
   @override
-  _PetDetailsScreenState createState() => _PetDetailsScreenState();
+  _UserPetDetailsScreenState createState() => _UserPetDetailsScreenState();
 }
 
-class _PetDetailsScreenState extends State<PetDetailsScreen> {
+class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
   Map<String, dynamic>? petData;
   bool isLoading = true;
   bool hasError = false;
@@ -311,5 +311,3 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     );
   }
 }
-
-
