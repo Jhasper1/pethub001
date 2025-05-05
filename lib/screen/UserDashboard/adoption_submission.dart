@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
+import 'view_all_pets.dart';
 import '/services/api_services.dart';
 import '/services/jwt_storage.dart';
 import 'dart:convert';
@@ -8,9 +9,13 @@ import 'dart:convert';
 class AdoptionSubmissionForm extends StatefulWidget {
   final int petId;
   final String petName;
+  final int adopterId;
 
   const AdoptionSubmissionForm(
-      {super.key, required this.petId, required this.petName});
+      {super.key,
+      required this.petId,
+      required this.petName,
+      required this.adopterId});
 
   @override
   State<AdoptionSubmissionForm> createState() => _AdoptionSubmissionFormState();
@@ -176,11 +181,17 @@ class _AdoptionSubmissionFormState extends State<AdoptionSubmissionForm> {
     }
 
     try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
       // Create a multipart request
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse(
-            '${ApiService.baseUrl}/submission/${widget.petId}'), // Removed the ()
+        Uri.parse('${ApiService.baseUrl}/submission/${widget.petId}'),
       );
 
       // Add headers
@@ -215,7 +226,7 @@ class _AdoptionSubmissionFormState extends State<AdoptionSubmissionForm> {
         ));
       }
 
-      // Add valid ID photo (only first one if multiple)
+      // Add valid ID photo
       if (_validIDPhoto.isNotEmpty) {
         request.files.add(http.MultipartFile.fromBytes(
           'validIDPhoto',
@@ -224,7 +235,7 @@ class _AdoptionSubmissionFormState extends State<AdoptionSubmissionForm> {
         ));
       }
 
-      // Add alternate valid ID photo (only first one if multiple)
+      // Add alternate valid ID photo
       if (_altValidPhoto.isNotEmpty) {
         request.files.add(http.MultipartFile.fromBytes(
           'altValidIDPhoto',
@@ -233,23 +244,43 @@ class _AdoptionSubmissionFormState extends State<AdoptionSubmissionForm> {
         ));
       }
 
-      // Show loading indicator
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
-      );
-
-      // Send the request
+      // Send the submission request
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
-      Navigator.pop(context); // Dismiss loading indicator
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Submitted successfully')));
-        Navigator.pop(context);
+        // Update the pet status to "pending"
+        final updateResponse = await http.post(
+          Uri.parse('${ApiService.baseUrl}/users/status/${widget.petId}'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+          body: jsonEncode({'status': 'pending'}),
+        );
+
+        Navigator.pop(context); // Dismiss loading indicator
+
+        if (updateResponse.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Submitted successfully')));
+
+          // Navigate to ViewAllPetsScreen directly
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ViewAllPetsScreen(
+                      adopterId: widget.adopterId,
+                    )),
+          );
+        } else {
+          final errorMessage =
+              jsonDecode(updateResponse.body)['error'] ?? 'Unknown error';
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Failed to update pet status: $errorMessage')));
+        }
       } else {
+        Navigator.pop(context); // Dismiss loading indicator
         final errorMessage =
             jsonDecode(responseBody)['error'] ?? 'Unknown error';
         ScaffoldMessenger.of(context)
@@ -460,7 +491,10 @@ class _AdoptionSubmissionFormState extends State<AdoptionSubmissionForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Adopt ${widget.petName}")),
+      appBar: AppBar(
+        title: Text("Adopt ${widget.petName}"),
+        automaticallyImplyLeading: false, // Removes the back arrow
+      ),
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),

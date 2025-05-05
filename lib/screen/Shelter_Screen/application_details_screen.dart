@@ -32,7 +32,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url =
-        'http://127.0.0.1:5566/api/shelter/${widget.applicationId}/application-details'; // Change IP if testing on real phone
+        'http://127.0.0.1:5566/api/shelter/${widget.applicationId}/application-details';
 
     try {
       final response = await http.get(Uri.parse(url), headers: {
@@ -100,14 +100,18 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
             'past_pets': info?['past_pets'] ?? 'No Available Data',
             'interview_setting':
                 info?['interview_setting'] ?? 'No Available Data',
-            'valid_id': _decodeBase64Image(info?['valid_id'] ?? ''),
-            'alt_valid_id': _decodeBase64Image(info?['alt_valid_id'] ?? ''),
+            'adopter_id_type': info?['adoptionphotos']?['adopter_id_type'] ??
+                'No Available Data',
+            'adopter_valid_id': _decodeBase64Image(
+                info?['adoptionphotos']?['adopter_valid_id'] ?? ''),
+            'alt_id_type':
+                info?['adoptionphotos']?['alt_id_type'] ?? 'No Available Data',
+            'alt_valid_id': _decodeBase64Image(
+                info?['adoptionphotos']?['alt_valid_id'] ?? ''),
           };
 
           isLoading = false;
         });
-
-        print('Application Data: $applicationData');
       } else {
         setState(() {
           isLoading = false;
@@ -176,7 +180,14 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
                     children: [
-                      // Pet Info Card
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Chosen Pet:",
+                          style:
+                              GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                        ),
+                      ),
                       Card(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -197,204 +208,254 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                         ),
                       ),
                       SizedBox(height: 20),
-
-                      // Adopter Info Card
                       Card(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
+                        child: DefaultTabController(
+                          length: 2,
                           child: Column(
                             children: [
-                              Center(
-                                child: Column(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 75,
-                                      backgroundImage: adopterData![
-                                                  'adopter_profile'] !=
-                                              null
-                                          ? MemoryImage(
-                                              adopterData!['adopter_profile']!)
-                                          : AssetImage('assets/images/logo.png')
-                                              as ImageProvider,
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      '${adopterData!['first_name']} ${adopterData!['last_name']}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 25,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                              TabBar(
+                                padding: const EdgeInsets.all(16.0),
+                                labelColor: Colors.black,
+                                indicatorColor: Colors.blue,
+                                tabs: [
+                                  Tab(text: 'Adopter Info'),
+                                  Tab(text: 'Application Info'),
+                                ],
                               ),
-                              const SizedBox(height: 20),
-                              Divider(thickness: 2),
-                              const SizedBox(height: 10),
-                              Text(
-                                'Adopter Details',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              _infoRow('Age', '${adopterData!['age']}'),
-                              _infoRow('Sex', adopterData!['sex']),
-                              _infoRow('Address', adopterData!['address']),
-                              _infoRow('Contact Number',
-                                  adopterData!['contact_number']),
-                              _infoRow('Email', adopterData!['email']),
-                              _infoRow(
-                                  'Occupation', adopterData!['occupation']),
-                              _infoRow(
-                                  'Civil Status', adopterData!['civil_status']),
-                              _infoRow(
-                                  'Social Media', adopterData!['social_media']),
-                              const SizedBox(height: 20),
-                              Text(
-                                'Adopter ID',
-                                style: GoogleFonts.poppins(fontSize: 12),
-                              ),
-                              const SizedBox(height: 8),
                               Container(
-                                width: 150, // adjust size as needed
-                                height: 100,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12),
-                                  image: DecorationImage(
-                                    fit: BoxFit.cover,
-                                    image: applicationData?['valid_id'] != null
-                                        ? MemoryImage(
-                                            applicationData!['valid_id']!)
-                                        : AssetImage('assets/images/logo.png')
-                                            as ImageProvider,
-                                  ),
+                                height: 800, // Adjust this height as needed
+                                padding: const EdgeInsets.all(16.0),
+                                child: TabBarView(
+                                  children: [
+                                    // First tab: Adopter Info
+                                    adopterData != null
+                                        ? SingleChildScrollView(
+                                            child: Column(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 75,
+                                                  backgroundImage: adopterData![
+                                                              'adopter_profile'] !=
+                                                          null
+                                                      ? MemoryImage(adopterData![
+                                                          'adopter_profile']!)
+                                                      : AssetImage(
+                                                              'assets/images/logo.png')
+                                                          as ImageProvider,
+                                                ),
+                                                const SizedBox(height: 10),
+                                                Text(
+                                                  '${adopterData!['first_name']} ${adopterData!['last_name']}',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 10),
+                                                _infoRow('Age',
+                                                    '${adopterData!['age']}'),
+                                                _infoRow(
+                                                    'Sex', adopterData!['sex']),
+                                                _infoRow('Address',
+                                                    adopterData!['address']),
+                                                _infoRow(
+                                                    'Contact Number',
+                                                    adopterData![
+                                                        'contact_number']),
+                                                _infoRow('Email',
+                                                    adopterData!['email']),
+                                                _infoRow('Occupation',
+                                                    adopterData!['occupation']),
+                                                _infoRow(
+                                                    'Civil Status',
+                                                    adopterData![
+                                                        'civil_status']),
+                                                _infoRow(
+                                                    'Social Media',
+                                                    adopterData![
+                                                        'social_media']),
+                                                const SizedBox(height: 20),
+                                                Divider(thickness: 2),
+                                                const SizedBox(height: 10),
+                                                Text('Adopter ID',
+                                                    style: GoogleFonts.poppins(
+                                                        fontSize: 12)),
+                                                const SizedBox(height: 8),
+                                                _infoRow(
+                                                    'ID Type',
+                                                    applicationData![
+                                                        'adopter_id_type']),
+                                                Container(
+                                                  width: 150,
+                                                  height: 100,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    image: DecorationImage(
+                                                      fit: BoxFit.cover,
+                                                      image: applicationData![
+                                                                  'adopter_valid_id'] !=
+                                                              null
+                                                          ? MemoryImage(
+                                                              applicationData![
+                                                                  'adopter_valid_id']!)
+                                                          : AssetImage(
+                                                                  'assets/images/logo.png')
+                                                              as ImageProvider,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          )
+                                        : Center(
+                                            child:
+                                                Text('No adopter data found')),
+
+                                    // Second tab: Application Info
+                                    applicationData != null
+                                        ? SingleChildScrollView(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                _infoRow(
+                                                    'Pet Type Interested',
+                                                    applicationData?[
+                                                            'pet_type'] ??
+                                                        'No Data'),
+                                                _infoRow(
+                                                    'Shelter Animal',
+                                                    applicationData?[
+                                                            'shelter_animal'] ??
+                                                        'No Data'),
+                                                _infoRow(
+                                                    'Ideal Pet Description',
+                                                    applicationData?[
+                                                            'ideal_pet_description'] ??
+                                                        'No Data'),
+                                                _infoRow(
+                                                    'Housing Situation',
+                                                    applicationData?[
+                                                            'housing_situation'] ??
+                                                        'No Data'),
+                                                _infoRow(
+                                                    'Pets At Home',
+                                                    applicationData?[
+                                                            'pets_at_home'] ??
+                                                        'No Data'),
+                                                _infoRow(
+                                                    'Allergies',
+                                                    applicationData?[
+                                                            'allergies'] ??
+                                                        'No Data'),
+                                                _infoRow(
+                                                    'Family Support',
+                                                    applicationData?[
+                                                            'family_support'] ??
+                                                        'No Data'),
+                                                _infoRow(
+                                                    'Past Pets',
+                                                    applicationData?[
+                                                            'past_pets'] ??
+                                                        'No Data'),
+                                                _infoRow(
+                                                    'Interview Setting',
+                                                    applicationData?[
+                                                            'interview_setting'] ??
+                                                        'No Data'),
+                                                const SizedBox(height: 10),
+                                                Divider(),
+                                                const SizedBox(height: 10),
+                                                Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: Text(
+                                                    "Secondary Contact Infomation",
+                                                    style: GoogleFonts.poppins(
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 10),
+                                                _infoRow('Full Name',
+                                                    '${applicationData!['alt_f_name']} ${applicationData!['alt_l_name']}'),
+                                                _infoRow(
+                                                    'Relationship',
+                                                    applicationData?[
+                                                            'relationship'] ??
+                                                        'No Data'),
+                                                _infoRow(
+                                                    'Contact Number',
+                                                    applicationData?[
+                                                            'alt_contact_number'] ??
+                                                        'No Data'),
+                                                _infoRow(
+                                                    'Email',
+                                                    applicationData?[
+                                                            'alt_email'] ??
+                                                        'No Data'),
+                                                _infoRow(
+                                                    'ALT ID Type',
+                                                    applicationData?[
+                                                            'alt_id_type'] ??
+                                                        'No Data'),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
+                                                  children: [
+                                                    Column(
+                                                      children: [
+                                                        Text('Alt Contact ID',
+                                                            style: GoogleFonts
+                                                                .poppins(
+                                                                    fontSize:
+                                                                        12)),
+                                                        const SizedBox(
+                                                            height: 8),
+                                                        Container(
+                                                  width: 150,
+                                                  height: 100,
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    image: DecorationImage(
+                                                      fit: BoxFit.cover,
+                                                      image: applicationData![
+                                                                  'alt_valid_id'] !=
+                                                              null
+                                                          ? MemoryImage(
+                                                              applicationData![
+                                                                  'alt_valid_id']!)
+                                                          : AssetImage(
+                                                                  'assets/images/logo.png')
+                                                              as ImageProvider,
+                                                    ),
+                                                  ),
+                                                ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          )
+                                        : Center(
+                                            child: Text(
+                                                'No application data found')),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
-
-                      if (applicationData != null) ...[
-                        SizedBox(height: 20),
-
-                        // Application Info Card
-                        Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Center(
-                                  child: Text(
-                                    'Additional Application Info',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                _infoRow(
-                                    'Alternative First Name',
-                                    applicationData?['alt_f_name'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Alternative Last Name',
-                                    applicationData?['alt_l_name'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Relationship',
-                                    applicationData?['relationship'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Alt Contact Number',
-                                    applicationData?['alt_contact_number'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Alt Email',
-                                    applicationData?['alt_email'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Pet Type Interested',
-                                    applicationData?['pet_type'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Shelter Animal',
-                                    applicationData?['shelter_animal'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Ideal Pet Description',
-                                    applicationData?['ideal_pet_description'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Housing Situation',
-                                    applicationData?['housing_situation'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Pets At Home',
-                                    applicationData?['pets_at_home'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Allergies',
-                                    applicationData?['allergies'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Family Support',
-                                    applicationData?['family_support'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Past Pets',
-                                    applicationData?['past_pets'] ??
-                                        'No Available Data'),
-                                _infoRow(
-                                    'Interview Setting',
-                                    applicationData?['interview_setting'] ??
-                                        'No Available Data'),
-                                const SizedBox(height: 10),
-                                Divider(),
-                                Text('Valid IDs',
-                                    style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 10),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        Text('Alt Contact ID',
-                                            style: GoogleFonts.poppins(
-                                                fontSize: 12)),
-                                        const SizedBox(height: 8),
-                                        CircleAvatar(
-                                          radius: 40,
-                                          backgroundImage: applicationData?[
-                                                      'alt_valid_id'] !=
-                                                  null
-                                              ? MemoryImage(applicationData![
-                                                  'alt_valid_id']!)
-                                              : AssetImage(
-                                                      'assets/images/logo.png')
-                                                  as ImageProvider,
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ]
                     ],
                   ),
                 ),

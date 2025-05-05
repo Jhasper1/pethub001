@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -62,76 +63,73 @@ class _AddPetScreenState extends State<AddPetScreen>
     }
   }
 
-  Future<void> _submitForm() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    if (!_formKey.currentState!.validate()) return;
+ Future<void> _submitForm() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('auth_token');
 
-    var uri = Uri.parse(
-        "http://127.0.0.1:5566/api/shelter/${widget.shelterId}/add-pet-info");
-    var request = http.MultipartRequest("POST", uri);
+  if (!_formKey.currentState!.validate()) return;
 
-    // Add headers before sending
-    request.headers.addAll({
-      "Authorization": "Bearer $token",
-    });
+  var uri = Uri.parse("http://127.0.0.1:5566/api/shelter/${widget.shelterId}/add-pet");
+  var request = http.MultipartRequest("POST", uri);
 
-    request.fields['pet_type'] = _selectedPetType ?? "";
-    request.fields['pet_name'] = _nameController.text;
-    request.fields['pet_age'] = _ageController.text;
-    request.fields['age_type'] = _selectedAgeType ?? "";
-    request.fields['pet_sex'] = _selectedSex ?? "";
-    request.fields['pet_size'] = _sizeController.text;
-    request.fields['pet_descriptions'] = _descriptionController.text;
-    request.fields['priority_status'] = _priorityStatus ? '1' : '0';
+  // Add token header
+  request.headers['Authorization'] = "Bearer $token";
 
-    if (_imageBytes != null && _imageFile != null) {
-      final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'pet_image1',
-          _imageBytes!,
-          filename: 'pet_image.${fileExtension}',
-          contentType: MediaType('image', fileExtension),
-        ),
-      );
-    }
-    if (_imageBytes != null && _imageFile != null) {
-      final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
-      request.files.add(
-        http.MultipartFile.fromBytes(
-          'pet_image1',
-          _imageBytes!,
-          filename: 'pet_image.$fileExtension',
-          contentType: MediaType('image', fileExtension),
-        ),
-      );
-    }
+  // Set fields
+  request.fields['pet_type'] = _selectedPetType ?? "";
+  request.fields['pet_name'] = _nameController.text;
+  request.fields['pet_age'] = _ageController.text;
+  request.fields['age_type'] = _selectedAgeType ?? "";
+  request.fields['pet_sex'] = _selectedSex ?? "";
+  request.fields['pet_size'] = _sizeController.text;
+  request.fields['pet_descriptions'] = _descriptionController.text;
+  request.fields['priority_status'] = _priorityStatus ? '1' : '0';
 
-    try {
-      var response = await request.send();
-
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Pet added successfully!")),
-        );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  ViewPetsScreen(shelterId: widget.shelterId)),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to add pet")),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
-    }
+  // Attach image if available
+  if (_imageBytes != null && _imageFile != null) {
+    final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
+    request.files.add(
+      http.MultipartFile.fromBytes(
+        'pet_image1',
+        _imageBytes!,
+        filename: 'pet_image.$fileExtension',
+        contentType: MediaType('image', fileExtension),
+      ),
+    );
   }
+
+  try {
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Pet added successfully!")),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ViewPetsScreen(shelterId: widget.shelterId),
+        ),
+      );
+    } else {
+      // Parse message from backend
+      String message = "Failed to add pet";
+      try {
+        final body = jsonDecode(response.body);
+        if (body['message'] != null) message = body['message'];
+      } catch (_) {}
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: $e")),
+    );
+  }
+}
 
   InputDecoration _buildTextFieldDecoration(String hintText) {
     return InputDecoration(

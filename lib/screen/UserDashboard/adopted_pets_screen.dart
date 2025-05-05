@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:march24/screen/UserLogin/user_bottom_nav_bar.dart'; // Import the UserBottomNavbar correctly
+import 'package:march24/screen/UserDashboard/user_bottom_nav_bar.dart'; // Import the UserBottomNavbar correctly
 
 class AdoptedPet {
   final String petName;

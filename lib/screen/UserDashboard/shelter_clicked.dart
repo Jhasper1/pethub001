@@ -2,12 +2,14 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:march24/screen/UserDashboard/pet_clicked.dart';
+import 'pet_clicked.dart';
 
 class ShelterDetailsScreen extends StatefulWidget {
   final int shelterId;
+  final int adopterId; // Default value, can be changed later
 
-  const ShelterDetailsScreen({required this.shelterId, super.key});
+  const ShelterDetailsScreen(
+      {required this.shelterId, super.key, required this.adopterId});
 
   @override
   State<ShelterDetailsScreen> createState() => _ShelterDetailsScreenState();
@@ -27,33 +29,53 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
 
   Future<void> fetchShelterData() async {
     final url = Uri.parse('http://127.0.0.1:5566/user/${widget.shelterId}/pet');
-    final response = await http.get(url);
 
-    if (response.statusCode == 200) {
-      try {
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
-        final data = decoded['data'] as Map<String, dynamic>;
-        final shelterRaw = data['shelter'];
-        final petsRaw = data['pets'];
 
-        setState(() {
-          shelter = Map<String, dynamic>.from(shelterRaw);
-          pets = List<Map<String, dynamic>>.from(
-            (petsRaw as List).map((e) => Map<String, dynamic>.from(e)),
-          );
-          isLoading = false;
-        });
-      } catch (e) {
-        print("Error parsing JSON: $e");
+        // Check if the response contains a "data" field
+        if (decoded['data'] != null) {
+          final data = decoded['data'] as Map<String, dynamic>;
+          final shelterRaw = data['shelter'];
+          final petsRaw = data['pets'];
+
+          setState(() {
+            shelter = Map<String, dynamic>.from(shelterRaw);
+            pets = List<Map<String, dynamic>>.from(
+              (petsRaw as List).map((e) => Map<String, dynamic>.from(e)),
+            );
+            isLoading = false;
+          });
+        } else {
+          print("No data found in response: ${decoded['message']}");
+          setState(() {
+            isLoading = false;
+          });
+        }
+      } else {
+        print("Request failed: ${response.statusCode} - ${response.body}");
         setState(() {
           isLoading = false;
         });
       }
-    } else {
-      print("Request failed: ${response.statusCode} - ${response.body}");
+    } catch (e) {
+      print("Error during request: $e");
       setState(() {
         isLoading = false;
       });
+    }
+  }
+
+  Uint8List? decodeBase64(String? base64String) {
+    if (base64String == null || base64String.isEmpty) return null;
+    try {
+      return base64Decode(base64String);
+    } catch (e) {
+      print("Error decoding image: $e");
+      return null;
     }
   }
 
@@ -70,10 +92,10 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
               height: 180,
               width: double.infinity,
               decoration: BoxDecoration(
-                image: shelter!['shelter_cover'] != null
+                image: shelter!['sheltermedia']['shelter_cover'] != null
                     ? DecorationImage(
                         image: MemoryImage(
-                            base64Decode(shelter!['shelter_cover'])),
+                            base64Decode(shelter!['sheltermedia']['shelter_cover'])),
                         fit: BoxFit.cover,
                       )
                     : null,
@@ -95,10 +117,10 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
                       offset: const Offset(0, 3),
                     ),
                   ],
-                  image: shelter!['shelter_profile'] != null
+                  image: shelter!['sheltermedia']['shelter_profile'] != null
                       ? DecorationImage(
                           image: MemoryImage(
-                              base64Decode(shelter!['shelter_profile'])),
+                              base64Decode(shelter!['sheltermedia']['shelter_profile'])),
                           fit: BoxFit.cover,
                         )
                       : null,
@@ -166,7 +188,7 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
       ),
       itemBuilder: (context, index) {
         final pet = pets[index] as Map<String, dynamic>;
-        final base64Image = pet['pet_image1'];
+        final base64Image = pet['petmedia']['pet_image1'];
         final petName = pet['pet_name'] ?? 'Unnamed';
 
         return GestureDetector(
@@ -174,8 +196,9 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => PetDetailsScreen(
+                builder: (context) => UserPetDetailsScreen(
                   petId: pet['pet_id'],
+                  adopterId: widget.adopterId,
                 ),
               ),
             );
@@ -191,7 +214,7 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
                           fit: BoxFit.cover,
                         )
                       : const DecorationImage(
-                          image: AssetImage('assets/placeholder.jpg'),
+                          image: AssetImage('assets/images/logo.png'),
                           fit: BoxFit.cover,
                         ),
                 ),

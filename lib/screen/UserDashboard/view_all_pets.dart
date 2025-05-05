@@ -1,35 +1,88 @@
 import 'dart:convert';
+import 'dart:typed_data'; // To handle image bytes
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'pet_clicked.dart';
+import 'package:march24/screen/Shelter_Screen/pet_info_screen.dart';
+import 'package:march24/screen/UserDashboard/pet_clicked.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(PetApp());
-}
+class ViewAllPetsScreen extends StatefulWidget {
+  final int adopterId;
 
-class PetApp extends StatelessWidget {
-  const PetApp({super.key});
+  const ViewAllPetsScreen({super.key, required this.adopterId});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: PetsScreen(),
-    );
+  _ViewAllPetsScreenState createState() => _ViewAllPetsScreenState();
+}
+
+class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
+  bool isLoading = true; // Add this at the top of your state class
+
+  List<Map<String, dynamic>> pets = [];
+  TextEditingController searchController = TextEditingController();
+  String selectedSex = 'All';
+  String selectedPetType = 'All';
+
+  Future<void> fetchPets() async {
+    final searchQuery = searchController.text;
+    final sexFilter = selectedSex == 'All' ? '' : selectedSex;
+    final typeFilter = selectedPetType == 'All' ? '' : selectedPetType;
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url =
+        'http://127.0.0.1:5566/users/pets/search/all?pet_name=$searchQuery&sex=$sexFilter&type=$typeFilter';
+    try {
+      final response = await http.get(Uri.parse(url), headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final petInfoList = data['data']['pets'] as List;
+
+        final updatedPets = petInfoList.map((pet) {
+          return {
+            'pet_id': pet['pet_id'],
+            'pet_name': pet['pet_name'],
+            'priority_status': pet['priority_status'],
+            'pet_image1':
+                pet['pet_image1'] != null && pet['pet_image1'].isNotEmpty
+                    ? _decodeBase64Image(pet['pet_image1'][0])
+                    : null,
+          };
+        }).toList();
+
+        setState(() {
+          pets = updatedPets;
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load pet data');
+      }
+    } catch (e) {
+      print("Error fetching pet data: $e");
+      setState(() {
+        pets = []; // Make sure this is cleared on error
+        isLoading = false;
+      });
+    }
   }
-}
 
-class PetsScreen extends StatefulWidget {
-  const PetsScreen({super.key});
-
-  @override
-  _PetsScreenState createState() => _PetsScreenState();
-}
-
-class _PetsScreenState extends State<PetsScreen> {
-  String selectedCategory = 'All';
-  List<dynamic> pets = [];
-  bool isLoading = true;
+  Uint8List? _decodeBase64Image(String? base64String) {
+    if (base64String == null || base64String.isEmpty) {
+      return null;
+    }
+    try {
+      // Remove data:image/png;base64, or similar prefixes
+      final RegExp regex = RegExp(r'data:image/[^;]+;base64,');
+      base64String = base64String.replaceAll(regex, '');
+      return base64Decode(base64String);
+    } catch (e) {
+      print("Error decoding Base64 image: $e");
+      return null;
+    }
+  }
 
   @override
   void initState() {
@@ -37,198 +90,230 @@ class _PetsScreenState extends State<PetsScreen> {
     fetchPets();
   }
 
-  Future<void> fetchPets() async {
-    setState(() => isLoading = true);
-    final url = Uri.parse("http://127.0.0.1:5566/users/petinfo");
-
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final List<dynamic> allPets = json.decode(response.body);
-        setState(() {
-          pets = selectedCategory == "All"
-              ? allPets
-              : allPets.where((pet) {
-            final type = pet["pet_type"]?.toString().toLowerCase();
-            return type == selectedCategory.toLowerCase();
-          }).toList();
-          isLoading = false;
-        });
-      } else {
-        print("Failed to load pets. Status: ${response.statusCode}");
-        setState(() => isLoading = false);
-      }
-    } catch (e) {
-      print("Error fetching pets: $e");
-      setState(() => isLoading = false);
-    }
-  }
-
-  Widget buildCategoryButton(String label, String type, IconData icon) {
-    bool isSelected = selectedCategory == type;
-    return Expanded(
-      child: ElevatedButton.icon(
-        onPressed: () {
-          setState(() {
-            selectedCategory = type;
-          });
-          fetchPets();
-        },
-        icon: Icon(
-          icon,
-          color: isSelected ? Colors.white : Colors.black87,
-        ),
-        label: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black87,
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Image.asset(
+                          'assets/images/logo.png',
+                          height: 40,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          'Pet Library',
+                          style: GoogleFonts.poppins(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.lightBlue),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: 35, // smaller height for TextField
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: (value) {
+                      fetchPets(); // Re-fetch when typing
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search pet name...',
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10), // slightly reduced space
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 35,
+                        child: DropdownButtonFormField<String>(
+                          value: selectedSex,
+                          items: ['All', 'Male', 'Female']
+                              .map((sex) => DropdownMenuItem(
+                                    value: sex,
+                                    child: Text(sex,
+                                        style: TextStyle(fontSize: 12)),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedSex = value!;
+                            });
+                            fetchPets();
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Sex',
+                            labelStyle: GoogleFonts.poppins(fontSize: 12),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 8),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: SizedBox(
+                        height: 35,
+                        child: DropdownButtonFormField<String>(
+                          value: selectedPetType,
+                          items: ['All', 'Dog', 'Cat']
+                              .map((type) => DropdownMenuItem(
+                                    value: type,
+                                    child: Text(type,
+                                        style: TextStyle(fontSize: 12)),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedPetType = value!;
+                            });
+                            fetchPets();
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Pet Type',
+                            labelStyle: GoogleFonts.poppins(fontSize: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 8),
+                            border: const OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected ? Colors.blueAccent : Colors.white,
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: Colors.black12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : pets.isEmpty
+                      ? Center(
+                          child: Text(
+                          "No Pets Found",
+                          style: GoogleFonts.poppins(),
+                        ))
+                      : GridView.builder(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                            childAspectRatio: 0.8,
+                          ),
+                          itemCount: pets.length,
+                          itemBuilder: (context, index) {
+                            return _buildPetCard(pets[index]);
+                          },
+                        ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildBase64Image(String? base64String) {
-    if (base64String == null || base64String.isEmpty) {
-      return Container(
-        color: Colors.grey[300],
-        child: Center(
-          child: Icon(Icons.pets, size: 50, color: Colors.grey[600]),
-        ),
-      );
-    }
-
-    try {
-      final cleanBase64 = base64String.contains(',')
-          ? base64String.split(',').last
-          : base64String;
-
-      return Image.memory(
-        base64Decode(cleanBase64),
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            color: Colors.grey[300],
-            child: Center(
-              child: Icon(Icons.broken_image, color: Colors.grey[600]),
+  Widget _buildPetCard(Map<String, dynamic> pet) {
+    return GestureDetector(
+      onTap: () async {
+        // Navigate to the pet details screen and pass the pet_id
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => UserPetDetailsScreen(
+              petId: pet['pet_id'],
+              adopterId: widget.adopterId,
             ),
-          );
-        },
-      );
-    } catch (e) {
-      print('Error decoding base64 image: $e');
-      return Container(
-        color: Colors.grey[300],
-        child: Center(
-          child: Icon(Icons.error, color: Colors.red),
-        ),
-      );
-    }
-  }
+          ),
+        );
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFF7F1FF),
-      appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        title: Text("Pet Library", style: TextStyle(fontWeight: FontWeight.bold)),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          // Category Toggle Buttons
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
+        if (result == true) {
+          // Reload the list after pet is archived or updated
+          fetchPets(); // Replace this with your actual method to refresh the list
+        }
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                buildCategoryButton("All", "All", Icons.pets),
-                SizedBox(width: 10),
-                buildCategoryButton("Dogs", "Dog", Icons.pets),
-                SizedBox(width: 10),
-                buildCategoryButton("Cats", "Cat", Icons.pets),
+                Expanded(
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      pet['pet_image1'] != null
+                          ? Image.memory(
+                              pet['pet_image1'],
+                              fit: BoxFit.cover,
+                            )
+                          : Image.asset(
+                              'assets/images/logo.png',
+                              fit: BoxFit.cover,
+                            ),
+                      Container(
+                        color: Colors.black
+                            .withOpacity(0.4), // adjust opacity here
+                      ),
+                    ],
+                  ),
+                )
               ],
             ),
-          ),
-
-          // Pet Cards Grid
-          Expanded(
-            child: isLoading
-                ? Center(child: CircularProgressIndicator())
-                : pets.isEmpty
-                ? Center(child: Text("No pets found."))
-                : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: GridView.builder(
-                itemCount: pets.length,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.8,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
+            // Pet name at bottom-left
+            Positioned(
+              bottom: 8,
+              left: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.55),
+                  borderRadius: BorderRadius.circular(5),
                 ),
-                itemBuilder: (context, index) {
-                  final pet = pets[index];
-                  return GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => PetDetailsScreen(petId: pet['pet_id'],
-                        ),
-                      ),
-                    ),
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Stack(
-                          children: [
-                            // Pet Image from base64
-                            Positioned.fill(
-                              child: _buildBase64Image(pet["pet_image1"]),
-                            ),
-                            // Pet Name Overlay
-                            Positioned(
-                              left: 8,
-                              bottom: 8,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.6),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  pet["pet_name"] ?? "Unknown",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                child: Text(
+                  pet['pet_name'],
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Colors.black,
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
+            // Star icon at top-right
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Icon(
+                pet['priority_status'] == true ? Icons.star : Icons.star_border,
+                color: Colors.amber,
+                size: 24,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

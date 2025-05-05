@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'edit_pet_screen.dart';
-import 'bottom_nav_bar.dart'; // Import the updated BottomNavigationBar widget
 
 class ArchivedPetInfoScreen extends StatefulWidget {
   final int petId;

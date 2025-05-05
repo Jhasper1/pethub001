@@ -77,7 +77,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
 
     // Safely get the full name
-    String fullName = '${adopterInfo!['first_name'] ?? ''} ${adopterInfo!['last_name'] ?? ''}'.trim();
+    String fullName =
+        '${adopterInfo!['first_name'] ?? ''} ${adopterInfo!['last_name'] ?? ''}'
+            .trim();
     if (fullName.isEmpty) fullName = 'Unknown User';
 
     return Scaffold(
@@ -125,7 +127,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         backgroundImage: adopterInfo!['adopter_profile'] != null
                             ? MemoryImage(adopterInfo!['adopter_profile'])
                             : const AssetImage('assets/images/logo.png')
-                        as ImageProvider,
+                                as ImageProvider,
                       ),
                     ),
                     const SizedBox(height: 15),
@@ -173,50 +175,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             const SizedBox(height: 20),
 
             // Description Box
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.info_outline,
-                              color: Colors.blue.shade700),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'About Me',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        adopterInfo!['description'] ?? 'No description available',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                          height: 1.4,
-                        ),
-                        textAlign: TextAlign.justify,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
 
             // Edit Button
             Padding(
@@ -279,8 +237,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           ),
                           title: const Text('Confirm Logout',
                               style: TextStyle(color: Colors.blue)),
-                          content: const Text(
-                              'Are you sure you want to logout?'),
+                          content:
+                              const Text('Are you sure you want to logout?'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(),
@@ -293,11 +251,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 Navigator.pushAndRemoveUntil(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => const SplashScreen()),
-                                      (Route<dynamic> route) => false,
+                                      builder: (context) =>
+                                          const SplashScreen()),
+                                  (Route<dynamic> route) => false,
                                 );
                               },
-
                               child: const Text(
                                 'Logout',
                                 style: TextStyle(color: Colors.red),
