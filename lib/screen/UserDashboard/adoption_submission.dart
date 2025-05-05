@@ -269,7 +269,7 @@ class _AdoptionSubmissionFormState extends State<AdoptionSubmissionForm> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) => ViewPetsScreen(
+                builder: (context) => ViewAllPetsScreen(
                       adopterId: widget.adopterId,
                     )),
           );
