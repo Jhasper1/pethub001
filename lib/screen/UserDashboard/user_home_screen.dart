@@ -121,7 +121,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                         const SizedBox(height: 20),
                         _buildSectionTitle(
                             'Featured Pets',
-                            ViewPetsScreen(
+                            ViewAllPetsScreen(
                               adopterId: widget.adopterId,
                             )),
                         Flexible(
@@ -238,7 +238,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => PetDetailsScreen(
+                      builder: (_) => UserPetDetailsScreen(
                         petId: pet['pet_id'],
                         adopterId: widget.adopterId,
                       ),
