@@ -7,11 +7,9 @@ class UserBottomNavBar extends StatelessWidget {
   final int adopterId;
   final int currentIndex;
 
-  const UserBottomNavBar({
-    super.key,
-    required this.adopterId,
-    required this.currentIndex
-  });
+  const UserBottomNavBar(
+      {Key? key, required this.adopterId, required this.currentIndex})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +38,8 @@ class UserBottomNavBar extends StatelessWidget {
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation1, animation2) =>
-                    AdoptedPetsScreen(adopterId: adopterId), // Pass adopterId here
+                    AdoptedPetsScreen(
+                        adopterId: adopterId), // Pass adopterId here
                 transitionDuration: Duration.zero,
               ),
             );
