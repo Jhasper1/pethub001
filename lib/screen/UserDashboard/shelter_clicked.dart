@@ -176,7 +176,7 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => PetDetailsScreen(
+                builder: (context) => UserPetDetailsScreen(
                   petId: pet['pet_id'],
                   adopterId: widget.adopterId,
                 ),
@@ -309,3 +309,4 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
     );
   }
 }
+
