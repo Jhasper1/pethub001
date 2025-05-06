@@ -3,7 +3,6 @@ import 'dart:typed_data'; // To handle image bytes
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:march24/screen/Shelter_Screen/pet_info_screen.dart';
 import 'package:march24/screen/UserDashboard/pet_clicked.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

@@ -19,7 +19,7 @@ class ApplicantsScreen extends StatefulWidget {
 class _ApplicantsScreenState extends State<ApplicantsScreen> {
   String selectedTab = 'Pending';
   final List<String> tabs =
-      ['Pending', 'Confirmed', 'Completed', 'Rejected'].toList();
+      ['Pending', 'Approved', 'Completed', 'Rejected'].toList();
   List<Map<String, dynamic>> applicants = [];
   bool isLoading = false;
 

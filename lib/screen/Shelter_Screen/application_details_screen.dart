@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'pet_info_screen.dart';
 
 class ApplicationDetailsScreen extends StatefulWidget {
   final int applicationId;
@@ -48,6 +49,8 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
 
         setState(() {
           petData = {
+            'pet_id': info['pet']['pet_id'],
+            'shelter_id': info['pet']['shelter_id'],
             'pet_name': info['pet']['pet_name'] ?? 'No Available Data',
             'pet_type': info['pet']['pet_type'] ?? 'No Available Data',
             'pet_sex': info['pet']['pet_sex'] ?? 'No Available Data',
@@ -205,6 +208,24 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                   fontWeight: FontWeight.bold)),
                           subtitle: Text('Pet Type: ${petData!['pet_type']} ',
                               style: GoogleFonts.poppins(fontSize: 12)),
+                          trailing: TextButton(
+                            onPressed: () {
+                              // Navigate to the PetInfoScreen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PetDetailsScreen(
+                                      petId: petData!['pet_id'],
+                                      shelterId: petData!['shelter_id']),
+                                ),
+                              );
+                            },
+                            child: Text('View',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                )),
+                          ),
                         ),
                       ),
                       SizedBox(height: 20),
@@ -226,7 +247,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                 ],
                               ),
                               Container(
-                                height: 800, // Adjust this height as needed
+                                height: 750, // Adjust this height as needed
                                 padding: const EdgeInsets.all(16.0),
                                 child: TabBarView(
                                   children: [
@@ -419,26 +440,29 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                         const SizedBox(
                                                             height: 8),
                                                         Container(
-                                                  width: 150,
-                                                  height: 100,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    image: DecorationImage(
-                                                      fit: BoxFit.cover,
-                                                      image: applicationData![
-                                                                  'alt_valid_id'] !=
-                                                              null
-                                                          ? MemoryImage(
-                                                              applicationData![
-                                                                  'alt_valid_id']!)
-                                                          : AssetImage(
-                                                                  'assets/images/logo.png')
-                                                              as ImageProvider,
-                                                    ),
-                                                  ),
-                                                ),
+                                                          width: 150,
+                                                          height: 100,
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        12),
+                                                            image:
+                                                                DecorationImage(
+                                                              fit: BoxFit.cover,
+                                                              image: applicationData![
+                                                                          'alt_valid_id'] !=
+                                                                      null
+                                                                  ? MemoryImage(
+                                                                      applicationData![
+                                                                          'alt_valid_id']!)
+                                                                  : AssetImage(
+                                                                          'assets/images/logo.png')
+                                                                      as ImageProvider,
+                                                            ),
+                                                          ),
+                                                        ),
                                                       ],
                                                     ),
                                                   ],
@@ -455,6 +479,48 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                             ],
                           ),
                         ),
+                      ),
+                      SizedBox(height: 15),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.redAccent,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                minimumSize: const Size(double.infinity, 50),
+                              ),
+                              onPressed: () {
+                                // Reject logic here
+                                print("Application Rejected");
+                              },
+                              child: Text('Reject',
+                                  style:
+                                      GoogleFonts.poppins(color: Colors.white)),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                minimumSize: const Size(double.infinity, 50),
+                              ),
+                              onPressed: () {
+                                // Approve logic here
+                                print("Application Approved");
+                              },
+                              child: Text('Approve',
+                                  style:
+                                      GoogleFonts.poppins(color: Colors.white)),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

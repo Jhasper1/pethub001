@@ -39,11 +39,9 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
         if (data is Map<String, dynamic>) {
           if (data.containsKey('data')) {
             // Case 1: Data is nested under "data"
-            if (data['data'] is Map && data['data'].containsKey('info')) {
-              // Subcase: Data is in data->info
-              petData = Map<String, dynamic>.from(data['data']['info']);
+            if (data['data'] is Map && data['data'].containsKey('pet')) {
+              petData = Map<String, dynamic>.from(data['data']['pet']);
             } else {
-              // Subcase: Data is directly in data
               petData = Map<String, dynamic>.from(data['data']);
             }
           } else {
@@ -219,32 +217,46 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildSquareImage(_getPetField('image1') ??
-                                _getPetField('photo') ??
-                                _getPetField('picture')),
-                            SizedBox(height: 16),
-                            Text(
-                              _getPetField('name') ?? "Unknown",
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            _buildSquareImage(
+                                petData?['petmedia']?['pet_image1']),
+                            SizedBox(height: 15),
+                            Row(
+                              children: [
+                                Text(
+                                  _getPetField('pet_name') ?? "Unknown",
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(
+                                    width: 2), // spacing between name and icon
+
+                                if (_getPetField('pet_sex')?.toLowerCase() ==
+                                    'male') ...[
+                                  Icon(Icons.male,
+                                      color: Colors.blue, size: 30),
+                                ] else if (_getPetField('pet_sex')
+                                        ?.toLowerCase() ==
+                                    'female') ...[
+                                  Icon(Icons.female,
+                                      color: Colors.pink, size: 30),
+                                ],
+                              ],
                             ),
-                            SizedBox(height: 24),
+                            SizedBox(height: 15),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _squareInfoBox(
-                                    "Type",
-                                    _getPetField('type') ??
-                                        _getPetField('species'),
+                                _squareInfoBox("Type", _getPetField('pet_type'),
                                     Color(0xFFFFEFED)),
                                 _squareInfoBox(
-                                    "Gender",
-                                    _getPetField('sex') ??
-                                        _getPetField('gender'),
+                                    "Weight",
+                                    "${_getPetField('pet_size')} kg",
                                     Color(0xFFEDF2FF)),
-                                _squareInfoBox("Age", _getPetField('age'),
+                                _squareInfoBox(
+                                    "Age",
+                                    "${_getPetField('pet_age')} ${_getPetField('age_type')}",
                                     Color(0xFFEBF8F3)),
                               ],
                             ),
@@ -256,27 +268,12 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
                             ),
                             SizedBox(height: 4),
                             Text(
-                              _getPetField('description') ??
-                                  _getPetField('descriptions') ??
+                              _getPetField('pet_descriptions') ??
                                   "No description available.",
                               style: TextStyle(
                                   fontSize: 15, color: Colors.grey[700]),
                             ),
                             SizedBox(height: 24),
-                            if (_getPetField('breed') != null) ...[
-                              Text(
-                                "Breed",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w600),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                _getPetField('breed')!,
-                                style: TextStyle(
-                                    fontSize: 15, color: Colors.grey[700]),
-                              ),
-                              SizedBox(height: 24),
-                            ],
                           ],
                         ),
                       ),

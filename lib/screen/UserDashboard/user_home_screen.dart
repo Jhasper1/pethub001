@@ -48,7 +48,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         setState(() {
           pets = List<Map<String, dynamic>>.from(petData)
               .where((pet) => pet['priority_status'] == true)
-              .take(3)
+              .take(5)
               .toList();
           shelters =
               List<Map<String, dynamic>>.from(shelterData).take(3).toList();

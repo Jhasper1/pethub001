@@ -24,7 +24,7 @@ class _ShelterScreenState extends State<ShelterScreen> {
 
   Future<void> fetchShelters() async {
     final url = Uri.parse(
-        "http://127.0.0.1:5566/shelter/all"); // Updated for Android emulator
+        "http://127.0.0.1:5566/all/shelter"); // Updated for Android emulator
 
     try {
       final response = await http.get(url).timeout(const Duration(seconds: 10));
