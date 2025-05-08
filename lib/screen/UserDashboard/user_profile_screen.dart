@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'user_bottom_nav_bar.dart';
 import 'user_edit_profile_screen.dart';
 import '../splash_screen.dart';
@@ -24,9 +25,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> fetchAdopterInfo() async {
-    final url = 'http://127.0.0.1:5566/user/${widget.adopterId}';
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url = 'http://127.0.0.1:5566/api/adopter/profile/${widget.adopterId}';
+    
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(url), headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -308,4 +315,3 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 }
-

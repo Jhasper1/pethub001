@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'pet_clicked.dart';
 
 class ShelterDetailsScreen extends StatefulWidget {
@@ -28,10 +29,16 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
   }
 
   Future<void> fetchShelterData() async {
-    final url = Uri.parse('http://127.0.0.1:5566/user/${widget.shelterId}/pet');
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url =
+        Uri.parse('http://127.0.0.1:5566/api/user/${widget.shelterId}/pet');
 
     try {
-      final response = await http.get(url);
+      final response = await http.get(url, headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
@@ -94,8 +101,8 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
               decoration: BoxDecoration(
                 image: shelter!['sheltermedia']['shelter_cover'] != null
                     ? DecorationImage(
-                        image: MemoryImage(
-                            base64Decode(shelter!['sheltermedia']['shelter_cover'])),
+                        image: MemoryImage(base64Decode(
+                            shelter!['sheltermedia']['shelter_cover'])),
                         fit: BoxFit.cover,
                       )
                     : null,
@@ -119,8 +126,8 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
                   ],
                   image: shelter!['sheltermedia']['shelter_profile'] != null
                       ? DecorationImage(
-                          image: MemoryImage(
-                              base64Decode(shelter!['sheltermedia']['shelter_profile'])),
+                          image: MemoryImage(base64Decode(
+                              shelter!['sheltermedia']['shelter_profile'])),
                           fit: BoxFit.cover,
                         )
                       : null,
@@ -329,4 +336,3 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
     );
   }
 }
-

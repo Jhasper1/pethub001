@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:march24/screen/UserDashboard/shelter_clicked.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'user_bottom_nav_bar.dart';
 import 'package:march24/screen/UserDashboard/view_all_pets.dart';
 import 'package:march24/screen/UserDashboard/view_all_shelter.dart';
@@ -31,12 +32,22 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   }
 
   Future<void> fetchPetsAndShelters() async {
-    const String petApiUrl = 'http://127.0.0.1:5566/users/petinfo';
-    const String shelterApiUrl = 'http://127.0.0.1:5566/allshelter';
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    const String petApiUrl = 'http://127.0.0.1:5566/api/users/petinfo';
+    const String shelterApiUrl = 'http://127.0.0.1:5566/api/allshelter';
 
     try {
-      final petResponse = await http.get(Uri.parse(petApiUrl));
-      final shelterResponse = await http.get(Uri.parse(shelterApiUrl));
+      final petResponse = await http.get(Uri.parse(petApiUrl),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
+      final shelterResponse = await http.get(Uri.parse(shelterApiUrl),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
 
       print("Pet API Response: ${petResponse.body}");
       print("Shelter API Response: ${shelterResponse.body}");

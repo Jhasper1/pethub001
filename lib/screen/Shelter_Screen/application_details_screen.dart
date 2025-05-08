@@ -29,6 +29,17 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
     fetchApplicationDetails();
   }
 
+  final List<String> homeImageLabels = [
+    'Front House',
+    'Living Room',
+    'Kitchen',
+    'Bedroom',
+    'Bathroom',
+    'Backyard',
+    'Pet Area',
+    'Whole House'
+  ];
+
   Future<void> fetchApplicationDetails() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -46,6 +57,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
         print("API Response: $data");
 
         final info = data['data']['info'];
+        final photos = data['data']['applicationPhotos'];
 
         setState(() {
           petData = {
@@ -91,8 +103,8 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
             'alt_contact_number':
                 info?['alt_contact_number'] ?? 'No Available Data',
             'alt_email': info?['alt_email'] ?? 'No Available Data',
-            'pet_type': info?['pet_type'] ?? 'No Available Data',
-            'shelter_animal': info?['shelter_animal'] ?? 'No Available Data',
+            'reason_for_adoption':
+                info?['reason_for_adoption'] ?? 'No Available Data',
             'ideal_pet_description':
                 info?['ideal_pet_description'] ?? 'No Available Data',
             'housing_situation':
@@ -103,14 +115,20 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
             'past_pets': info?['past_pets'] ?? 'No Available Data',
             'interview_setting':
                 info?['interview_setting'] ?? 'No Available Data',
-            'adopter_id_type': info?['adoptionphotos']?['adopter_id_type'] ??
-                'No Available Data',
-            'adopter_valid_id': _decodeBase64Image(
-                info?['adoptionphotos']?['adopter_valid_id'] ?? ''),
-            'alt_id_type':
-                info?['adoptionphotos']?['alt_id_type'] ?? 'No Available Data',
-            'alt_valid_id': _decodeBase64Image(
-                info?['adoptionphotos']?['alt_valid_id'] ?? ''),
+            'adopter_id_type':
+                photos?['adopter_id_type'] ?? 'No Available Data',
+            'adopter_valid_id':
+                _decodeBase64Image(photos?['adopter_valid_id'] ?? ''),
+            'alt_id_type': photos?['alt_id_type'] ?? 'No Available Data',
+            'alt_valid_id': _decodeBase64Image(photos?['alt_valid_id'] ?? ''),
+            'home_image_1': _decodeBase64Image(photos?['home_image1'] ?? ''),
+            'home_image_2': _decodeBase64Image(photos?['home_image2'] ?? ''),
+            'home_image_3': _decodeBase64Image(photos?['home_image3'] ?? ''),
+            'home_image_4': _decodeBase64Image(photos?['home_image4'] ?? ''),
+            'home_image_5': _decodeBase64Image(photos?['home_image5'] ?? ''),
+            'home_image_6': _decodeBase64Image(photos?['home_image6'] ?? ''),
+            'home_image_7': _decodeBase64Image(photos?['home_image7'] ?? ''),
+            'home_image_8': _decodeBase64Image(photos?['home_image8'] ?? ''),
           };
 
           isLoading = false;
@@ -169,11 +187,48 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
     );
   }
 
+  void showFullScreenImage(BuildContext context, Uint8List imageBytes) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.7), // Dim background
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                child: Image.memory(imageBytes),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    shape: BoxShape.circle,
+                  ),
+                  padding: EdgeInsets.all(8),
+                  child: Icon(Icons.close, color: Colors.white, size: 28),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+            backgroundColor: const Color(0xFFE2F3FD),
       appBar: AppBar(
-          title: Text('Application Details ID: ${widget.applicationId}')),
+          title: Text('Application Details')),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : (petData == null && adopterData == null)
@@ -193,7 +248,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                       ),
                       Card(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: ListTile(
                           leading: CircleAvatar(
@@ -231,7 +286,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                       SizedBox(height: 20),
                       Card(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: DefaultTabController(
                           length: 2,
@@ -309,24 +364,36 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                     'ID Type',
                                                     applicationData![
                                                         'adopter_id_type']),
-                                                Container(
-                                                  width: 150,
-                                                  height: 100,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    image: DecorationImage(
-                                                      fit: BoxFit.cover,
-                                                      image: applicationData![
-                                                                  'adopter_valid_id'] !=
-                                                              null
-                                                          ? MemoryImage(
-                                                              applicationData![
-                                                                  'adopter_valid_id']!)
-                                                          : AssetImage(
-                                                                  'assets/images/logo.png')
-                                                              as ImageProvider,
+                                                GestureDetector(
+                                                  onTap: () {
+                                                    if (applicationData![
+                                                            'adopter_valid_id'] !=
+                                                        null) {
+                                                      showFullScreenImage(
+                                                          context,
+                                                          applicationData![
+                                                              'adopter_valid_id']!);
+                                                    }
+                                                  },
+                                                  child: Container(
+                                                    width: 150,
+                                                    height: 100,
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                      image: DecorationImage(
+                                                        fit: BoxFit.cover,
+                                                        image: applicationData![
+                                                                    'adopter_valid_id'] !=
+                                                                null
+                                                            ? MemoryImage(
+                                                                applicationData![
+                                                                    'adopter_valid_id']!)
+                                                            : AssetImage(
+                                                                    'assets/images/logo.png')
+                                                                as ImageProvider,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
@@ -345,14 +412,9 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 _infoRow(
-                                                    'Pet Type Interested',
+                                                    'Reason for Adoption',
                                                     applicationData?[
-                                                            'pet_type'] ??
-                                                        'No Data'),
-                                                _infoRow(
-                                                    'Shelter Animal',
-                                                    applicationData?[
-                                                            'shelter_animal'] ??
+                                                            'reason_for_adoption'] ??
                                                         'No Data'),
                                                 _infoRow(
                                                     'Ideal Pet Description',
@@ -439,27 +501,40 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                                         12)),
                                                         const SizedBox(
                                                             height: 8),
-                                                        Container(
-                                                          width: 150,
-                                                          height: 100,
-                                                          decoration:
-                                                              BoxDecoration(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        12),
-                                                            image:
-                                                                DecorationImage(
-                                                              fit: BoxFit.cover,
-                                                              image: applicationData![
-                                                                          'alt_valid_id'] !=
-                                                                      null
-                                                                  ? MemoryImage(
-                                                                      applicationData![
-                                                                          'alt_valid_id']!)
-                                                                  : AssetImage(
-                                                                          'assets/images/logo.png')
-                                                                      as ImageProvider,
+                                                        GestureDetector(
+                                                          onTap: () {
+                                                            if (applicationData![
+                                                                    'adopter_valid_id'] !=
+                                                                null) {
+                                                              showFullScreenImage(
+                                                                  context,
+                                                                  applicationData![
+                                                                      'adopter_valid_id']!);
+                                                            }
+                                                          },
+                                                          child: Container(
+                                                            width: 150,
+                                                            height: 100,
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          12),
+                                                              image:
+                                                                  DecorationImage(
+                                                                fit: BoxFit
+                                                                    .cover,
+                                                                image: applicationData![
+                                                                            'alt_valid_id'] !=
+                                                                        null
+                                                                    ? MemoryImage(
+                                                                        applicationData![
+                                                                            'alt_valid_id']!)
+                                                                    : AssetImage(
+                                                                            'assets/images/logo.png')
+                                                                        as ImageProvider,
+                                                              ),
                                                             ),
                                                           ),
                                                         ),
@@ -475,6 +550,82 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                 'No application data found')),
                                   ],
                                 ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 15),
+                      Card(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Home Images",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              GridView.builder(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: 8,
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 10,
+                                  mainAxisSpacing: 10,
+                                  childAspectRatio: 0.9,
+                                ),
+                                itemBuilder: (context, index) {
+                                  final imageKey = 'home_image_${index + 1}';
+                                  final imageBytes = applicationData?[imageKey];
+
+                                  return GestureDetector(
+                                    onTap: () {
+                                      if (imageBytes != null) {
+                                        showFullScreenImage(
+                                            context, imageBytes);
+                                      }
+                                    },
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: Container(
+                                            width: double.infinity,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              image: DecorationImage(
+                                                fit: BoxFit.cover,
+                                                image: imageBytes != null
+                                                    ? MemoryImage(imageBytes)
+                                                    : AssetImage(
+                                                            'assets/images/logo.png')
+                                                        as ImageProvider,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 5),
+                                        Text(
+                                          homeImageLabels[index],
+                                          style:
+                                              GoogleFonts.poppins(fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                               ),
                             ],
                           ),

@@ -1,14 +1,16 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:march24/screen/UserDashboard/shelter_clicked.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'dart:typed_data';
+import 'shelter_clicked.dart';
 
 class ShelterScreen extends StatefulWidget {
   final int adopterId;
   const ShelterScreen({super.key, required this.adopterId});
 
   @override
-  _ShelterScreenState createState() => _ShelterScreenState();
+  State<ShelterScreen> createState() => _ShelterScreenState();
 }
 
 class _ShelterScreenState extends State<ShelterScreen> {
@@ -23,151 +25,141 @@ class _ShelterScreenState extends State<ShelterScreen> {
   }
 
   Future<void> fetchShelters() async {
-    final url = Uri.parse(
-        "http://127.0.0.1:5566/all/shelter"); // Updated for Android emulator
-
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
     try {
-      final response = await http.get(url).timeout(const Duration(seconds: 10));
-      print("Response status: ${response.statusCode}");
-      print("Response body: ${response.body}");
+      final response = await http.get(
+          Uri.parse('http://127.0.0.1:5566/api/get/all/shelters'),
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          });
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-
         setState(() {
-          if (data is List) {
-            shelters = data;
-          } else if (data is Map && data['data'] is List) {
-            shelters = data['data'];
-          } else {
-            shelters = [];
-          }
+          shelters = data['data']['shelters'];
+          isLoading = false;
+        });
+      } else if (response.statusCode == 404) {
+        setState(() {
+          errorMessage = 'No shelters found';
+          isLoading = false;
+        });
+      } else if (response.statusCode == 500) {
+        setState(() {
+          errorMessage = 'Database error';
           isLoading = false;
         });
       } else {
         setState(() {
-          errorMessage =
-              "Failed to load shelters. Status code: ${response.statusCode}";
+          errorMessage = 'Failed to load shelters';
           isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        errorMessage = "Error fetching shelters: $e";
+        errorMessage = 'Error: ${e.toString()}';
         isLoading = false;
       });
     }
   }
 
-  Widget _buildShelterImage(dynamic shelter) {
-    try {
-      if (shelter["shelter_profile"] != null &&
-          shelter["shelter_profile"].isNotEmpty) {
-        final imageBytes = base64Decode(shelter["shelter_profile"]);
-        return CircleAvatar(
-          radius: 28,
-          backgroundImage: MemoryImage(imageBytes),
-        );
-      }
-    } catch (e) {
-      print("Error decoding shelter profile image: $e");
+  Widget _buildBase64Image(String? base64String) {
+    if (base64String == null || base64String.isEmpty) {
+      return const CircleAvatar(
+        radius: 40,
+        child: Icon(Icons.pets),
+      );
     }
-    return CircleAvatar(
-      radius: 28,
-      backgroundColor: Colors.blue.shade100,
-      child: Icon(Icons.home, color: Colors.blue.shade700, size: 28),
-    );
+
+    try {
+      Uint8List bytes = base64Decode(base64String);
+      return CircleAvatar(
+        radius: 40,
+        backgroundImage: MemoryImage(bytes),
+      );
+    } catch (e) {
+      return const CircleAvatar(
+        radius: 40,
+        child: Icon(Icons.image_not_supported),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue.shade50,
       appBar: AppBar(
-        title: const Text("Available Shelters"),
-        centerTitle: true,
-        backgroundColor: Colors.blue.shade600,
-        foregroundColor: Colors.white,
-        elevation: 4,
+        title: const Text('Shelters'),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.blue))
+          ? const Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
-              ? Center(
-                  child: Text(
-                    errorMessage,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                )
+              ? Center(child: Text(errorMessage))
               : shelters.isEmpty
-                  ? Center(
-                      child: Text(
-                        "No shelters available",
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    )
+                  ? const Center(child: Text('No shelters available'))
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
                       itemCount: shelters.length,
                       itemBuilder: (context, index) {
                         final shelter = shelters[index];
-                        return Card(
-                          color: Colors.white,
-                          elevation: 3,
-                          shadowColor: Colors.blue.shade100,
-                          margin: const EdgeInsets.only(bottom: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(16),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ShelterDetailsScreen(
-                                    shelterId: shelter["shelter_id"],
-                                    adopterId: widget.adopterId,
-                                  ),
+                        final shelterId = shelter['shelter_id'];
+                        final shelterInfo = shelter['ShelterInfo'];
+                        final shelterMedia = shelterInfo?['sheltermedia'] ?? {};
+                        final shelterName =
+                            shelterInfo?['shelter_name'] ?? 'No name provided';
+                        final shelterProfile =
+                            shelterMedia['shelter_profile'] ?? '';
+                        final shelterDescription =
+                            shelterInfo?['shelter_description'] ??
+                                'No description available';
+
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ShelterDetailsScreen(
+                                  shelterId: shelterId,
+                                  adopterId: widget.adopterId,
                                 ),
-                              );
-                            },
+                              ),
+                            );
+                          },
+                          child: Card(
+                            margin: const EdgeInsets.all(8),
                             child: Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.all(12),
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  _buildShelterImage(shelter),
+                                  // Profile Image (Circle)
+                                  _buildBase64Image(shelterProfile),
                                   const SizedBox(width: 16),
+                                  // Shelter Info
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          shelter["shelter_name"] ??
-                                              "Unknown Shelter",
-                                          style: TextStyle(
-                                            fontSize: 16,
+                                          shelterName,
+                                          style: const TextStyle(
+                                            fontSize: 18,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.blue.shade800,
                                           ),
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          shelter["shelter_address"] ??
-                                              "No address available",
+                                          shelterDescription,
                                           style: const TextStyle(
                                             fontSize: 14,
-                                            color: Colors.blueGrey,
+                                            color: Colors.grey,
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  Icon(Icons.chevron_right,
-                                      color: Colors.blue.shade300),
                                 ],
                               ),
                             ),
@@ -178,4 +170,3 @@ class _ShelterScreenState extends State<ShelterScreen> {
     );
   }
 }
-

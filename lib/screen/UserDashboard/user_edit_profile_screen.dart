@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UserEditProfileScreen extends StatefulWidget {
   final int adopterId;
@@ -29,7 +30,8 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
 
   Future<void> pickImage(String type) async {
     final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile =
+        await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
@@ -49,10 +51,15 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
   }
 
   Future<void> fetchAdopterInfo() async {
-    final String apiUrl = 'http://127.0.0.1:5566/user/${widget.adopterId}';
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final String apiUrl = 'http://127.0.0.1:5566/api/user/${widget.adopterId}';
 
     try {
-      final response = await http.get(Uri.parse(apiUrl));
+      final response = await http.get(Uri.parse(apiUrl), headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
 
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
@@ -69,7 +76,8 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
             firstNameController.text = adopterInfo!['first_name'] ?? '';
             lastNameController.text = adopterInfo!['last_name'] ?? '';
             addressController.text = adopterInfo!['address'] ?? '';
-            contactController.text = adopterInfo!['contact_number']?.toString() ?? '';
+            contactController.text =
+                adopterInfo!['contact_number']?.toString() ?? '';
             emailController.text = adopterInfo!['email'] ?? '';
 
             // Decode base64-encoded images
@@ -105,8 +113,12 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
   }
 
   Future<void> updateAdopterDetails() async {
-    final String apiUrl = 'http://127.0.0.1:5566/users/${widget.adopterId}/update-info';
-    final String mediaApiUrl = 'http://127.0.0.1:5566/users/${widget.adopterId}/upload-media';
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final String apiUrl =
+        'http://127.0.0.1:5566/api/users/${widget.adopterId}/update-info';
+    final String mediaApiUrl =
+        'http://127.0.0.1:5566/api/users/${widget.adopterId}/upload-media';
 
     try {
       // Update text fields
@@ -120,17 +132,23 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
 
       final response = await http.put(
         Uri.parse(apiUrl),
-        headers: {"Content-Type": "application/json"},
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
         body: jsonEncode(updateData),
       );
 
       if (response.statusCode == 200) {
         // Upload media files if they are changed
         if (profileImageFile != null) {
-          final mediaRequest = http.MultipartRequest('POST', Uri.parse(mediaApiUrl));
+          final mediaRequest =
+              http.MultipartRequest('POST', Uri.parse(mediaApiUrl));
           final profileBytes = await profileImageFile!.readAsBytes();
-          final profileExtension = profileImageFile!.path.split('.').last.toLowerCase();
-          final profileFileName = 'profile_${widget.adopterId}.$profileExtension';
+          final profileExtension =
+              profileImageFile!.path.split('.').last.toLowerCase();
+          final profileFileName =
+              'profile_${widget.adopterId}.$profileExtension';
 
           mediaRequest.files.add(http.MultipartFile.fromBytes(
             'adopter_profile',
@@ -151,7 +169,8 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
         );
         Navigator.pop(context, true);
       } else {
-        final errorMessage = jsonDecode(response.body)["message"] ?? "Failed to update profile";
+        final errorMessage =
+            jsonDecode(response.body)["message"] ?? "Failed to update profile";
         throw Exception(errorMessage);
       }
     } catch (e) {
@@ -195,14 +214,17 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
                     backgroundImage: profileImageBytes != null
                         ? MemoryImage(profileImageBytes!)
                         : (adopterInfo!['adopter_profile'] != null
-                        ? MemoryImage(base64Decode(adopterInfo!['adopter_profile']))
-                        : const AssetImage('assets/images/logo.png')) as ImageProvider,
+                            ? MemoryImage(
+                                base64Decode(adopterInfo!['adopter_profile']))
+                            : const AssetImage(
+                                'assets/images/logo.png')) as ImageProvider,
                     child: const Align(
                       alignment: Alignment.bottomRight,
                       child: CircleAvatar(
                         radius: 15,
                         backgroundColor: Colors.blueAccent,
-                        child: Icon(Icons.camera_alt, size: 15, color: Colors.white),
+                        child: Icon(Icons.camera_alt,
+                            size: 15, color: Colors.white),
                       ),
                     ),
                   ),
@@ -217,43 +239,43 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('First Name', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('First Name',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
                     controller: firstNameController,
                     decoration: _inputDecoration('Enter first name'),
                   ),
                   const SizedBox(height: 10),
-
-                  const Text('Last Name', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Last Name',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
                     controller: lastNameController,
                     decoration: _inputDecoration('Enter last name'),
                   ),
                   const SizedBox(height: 10),
-
-                  const Text('Address', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Address',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
                     controller: addressController,
                     decoration: _inputDecoration('Enter address'),
                   ),
                   const SizedBox(height: 10),
-
-                  const Text('Contact Number', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Contact Number',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
                     controller: contactController,
                     decoration: _inputDecoration('Enter contact number'),
                     keyboardType: TextInputType.phone,
                   ),
                   const SizedBox(height: 10),
-
-                  const Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text('Email',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   TextFormField(
                     controller: emailController,
                     decoration: _inputDecoration('Enter email'),
                     keyboardType: TextInputType.emailAddress,
                   ),
                   const SizedBox(height: 20),
-
                   ElevatedButton(
                     onPressed: updateAdopterDetails,
                     style: ElevatedButton.styleFrom(
@@ -263,7 +285,8 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text('Save Changes', style: TextStyle(color: Colors.white)),
+                    child: const Text('Save Changes',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),

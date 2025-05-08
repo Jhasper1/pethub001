@@ -30,7 +30,7 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url =
-        'http://127.0.0.1:5566/users/pets/search/all?pet_name=$searchQuery&sex=$sexFilter&type=$typeFilter';
+        'http://127.0.0.1:5566/api/users/pets/search/all?pet_name=$searchQuery&sex=$sexFilter&type=$typeFilter';
     try {
       final response = await http.get(Uri.parse(url), headers: {
         "Content-Type": "application/json",
