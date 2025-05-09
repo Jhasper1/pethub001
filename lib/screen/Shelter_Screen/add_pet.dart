@@ -32,6 +32,7 @@ class _AddPetScreenState extends State<AddPetScreen>
   String? _selectedSex;
   XFile? _imageFile;
   Uint8List? _imageBytes;
+  Uint8List? _petVaccineBytes;
   int _currentPage = 0;
   late AnimationController _progressBarController;
 
@@ -63,73 +64,87 @@ class _AddPetScreenState extends State<AddPetScreen>
     }
   }
 
- Future<void> _submitForm() async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('auth_token');
+  Future<void> _submitForm() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
 
-  if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  var uri = Uri.parse("http://127.0.0.1:5566/api/shelter/${widget.shelterId}/add-pet");
-  var request = http.MultipartRequest("POST", uri);
+    var uri = Uri.parse(
+        "http://127.0.0.1:5566/api/shelter/${widget.shelterId}/add-pet");
+    var request = http.MultipartRequest("POST", uri);
 
-  // Add token header
-  request.headers['Authorization'] = "Bearer $token";
+    // Add token header
+    request.headers['Authorization'] = "Bearer $token";
 
-  // Set fields
-  request.fields['pet_type'] = _selectedPetType ?? "";
-  request.fields['pet_name'] = _nameController.text;
-  request.fields['pet_age'] = _ageController.text;
-  request.fields['age_type'] = _selectedAgeType ?? "";
-  request.fields['pet_sex'] = _selectedSex ?? "";
-  request.fields['pet_size'] = _sizeController.text;
-  request.fields['pet_descriptions'] = _descriptionController.text;
-  request.fields['priority_status'] = _priorityStatus ? '1' : '0';
+    // Set fields
+    request.fields['pet_type'] = _selectedPetType ?? "";
+    request.fields['pet_name'] = _nameController.text;
+    request.fields['pet_age'] = _ageController.text;
+    request.fields['age_type'] = _selectedAgeType ?? "";
+    request.fields['pet_sex'] = _selectedSex ?? "";
+    request.fields['pet_size'] = _sizeController.text;
+    request.fields['pet_descriptions'] = _descriptionController.text;
+    request.fields['priority_status'] = _priorityStatus ? '1' : '0';
 
-  // Attach image if available
-  if (_imageBytes != null && _imageFile != null) {
-    final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
-    request.files.add(
-      http.MultipartFile.fromBytes(
-        'pet_image1',
-        _imageBytes!,
-        filename: 'pet_image.$fileExtension',
-        contentType: MediaType('image', fileExtension),
-      ),
-    );
-  }
-
-  try {
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Pet added successfully!")),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ViewPetsScreen(shelterId: widget.shelterId),
+    // Attach image if available
+    if (_imageBytes != null && _imageFile != null) {
+      final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'pet_image1',
+          _imageBytes!,
+          filename: 'pet_image.$fileExtension',
+          contentType: MediaType('image', fileExtension),
         ),
       );
-    } else {
-      // Parse message from backend
-      String message = "Failed to add pet";
-      try {
-        final body = jsonDecode(response.body);
-        if (body['message'] != null) message = body['message'];
-      } catch (_) {}
+    }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
+    // Attach image if available
+    if (_petVaccineBytes != null && _petVaccineBytes != null) {
+      final fileExtension = _imageFile!.path.split('.').last.toLowerCase();
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'pet_vaccine',
+          _imageBytes!,
+          filename: 'pet_vaccine.$fileExtension',
+          contentType: MediaType('image', fileExtension),
+        ),
       );
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Error: $e")),
-    );
+
+    try {
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Pet added successfully!")),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ViewPetsScreen(shelterId: widget.shelterId),
+          ),
+        );
+      } else {
+        // Parse message from backend
+        String message = "Failed to add pet";
+        try {
+          final body = jsonDecode(response.body);
+          if (body['message'] != null) message = body['message'];
+        } catch (_) {}
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
   }
-}
 
   InputDecoration _buildTextFieldDecoration(String hintText) {
     return InputDecoration(
@@ -251,6 +266,59 @@ class _AddPetScreenState extends State<AddPetScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _pickAdopterValidID() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile =
+        await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes(); // Convert to bytes
+      setState(() {
+        _petVaccineBytes = bytes; // Store the bytes for the image
+      });
+    }
+  }
+
+  Widget _buildpetVaccinePreview() {
+    return GestureDetector(
+      onTap: _pickAdopterValidID,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Pet Vaccine Image"),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            height: 150,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  spreadRadius: 2,
+                  blurRadius: 5,
+                  offset: Offset(0, 3),
+                ),
+              ],
+              image: DecorationImage(
+                image: _petVaccineBytes != null
+                    ? MemoryImage(_petVaccineBytes!) // Use MemoryImage
+                    : const AssetImage('assets/images/logo.png')
+                        as ImageProvider,
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: _petVaccineBytes == null
+                ? const Center(
+                    child: Icon(Icons.camera_alt, size: 40, color: Colors.grey),
+                  )
+                : null,
+          ),
+        ],
       ),
     );
   }
@@ -440,10 +508,12 @@ class _AddPetScreenState extends State<AddPetScreen>
             TextFormField(
               controller: _descriptionController,
               decoration: _buildTextFieldDecoration('Pet Description'),
-              maxLines: 6,
+              maxLines: 3,
               validator: (value) =>
                   value == null || value.isEmpty ? 'Enter a description' : null,
             ),
+            SizedBox(height: 20),
+            _buildpetVaccinePreview(),
             SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -489,6 +559,19 @@ class _AddPetScreenState extends State<AddPetScreen>
             _buildReviewItem('Sex', _selectedSex ?? 'Not specified'),
             _buildReviewItem('Description', _descriptionController.text,
                 isDescription: true),
+            if (_petVaccineBytes != null)
+              Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: MemoryImage(_petVaccineBytes!),
+                    fit: BoxFit.cover,
+                  ),
+                  borderRadius:
+                      BorderRadius.circular(8), // optional: for slight rounding
+                ),
+              ),
             _buildReviewItem('Priority Status', _priorityStatus ? 'Yes' : 'No'),
             SizedBox(height: 20),
             Text(

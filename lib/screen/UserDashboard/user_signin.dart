@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'user_home_screen.dart';
 import '../choose_user_screen.dart';
 import 'user_signup.dart';
@@ -39,8 +40,12 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
         final String token = response['token'];
         final int adopterId = response['data']['adopter']['adopter_id'];
 
-        await TokenStorage.saveToken(token);
-        debugPrint("JWT token saved: $token");
+        // await TokenStorage.saveToken(token);
+        // debugPrint("JWT token saved: $token");
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('auth_token', token);
+
+
 
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Login successful!"),

@@ -159,6 +159,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         // Upload media files if they are changed
         final mediaRequest =
             http.MultipartRequest('POST', Uri.parse(mediaApiUrl));
+        mediaRequest.headers.addAll(
+          {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          },
+        );
 
         if (profileImageFile != null) {
           final profileBytes = await profileImageFile!.readAsBytes();

@@ -12,7 +12,8 @@ class EditPetScreen extends StatefulWidget {
   final int petId;
   final int shelterId;
 
-  const EditPetScreen({super.key, required this.petId, required this.shelterId});
+  const EditPetScreen(
+      {super.key, required this.petId, required this.shelterId});
 
   @override
   _EditPetScreenState createState() => _EditPetScreenState();
@@ -29,6 +30,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
   String? _selectedAgeType;
   String? _selectedSex;
   Uint8List? _imageBytes;
+  Uint8List? _petVaccineBytes;
   bool isLoading = true;
   String errorMessage = '';
 
@@ -38,57 +40,90 @@ class _EditPetScreenState extends State<EditPetScreen> {
     fetchPetDetails();
   }
 
-  Future<void> fetchPetDetails() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    final url = 'http://127.0.0.1:5566/api/shelter/${widget.petId}/petinfo';
-    try {
-      final response = await http.get(Uri.parse(url), headers: {
+Future<void> fetchPetDetails() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('auth_token');
+  final url = 'http://127.0.0.1:5566/api/shelter/${widget.petId}/petinfo';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
-      });
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        print("API Response: $data");
+      },
+    );
 
-        final petDataResponse = data['data']['pet'];
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      print("API Response: $data");
 
-        setState(() {
-          _nameController.text = petDataResponse['pet_name'] ?? '';
-          _ageController.text = petDataResponse['pet_age'].toString();
-          _descriptionController.text =
-              petDataResponse['pet_descriptions'] ?? '';
-          _selectedAgeType = petDataResponse['age_type'];
-          _selectedSex = petDataResponse['pet_sex'];
-          _sizeController.text = petDataResponse['pet_size'].toString();
-          _selectedPetType = petDataResponse['pet_type'];
+      final petDataResponse = data['data']['pet'];
 
-          // Decode image if available
-          if (petDataResponse['pet_image1'] != null &&
-              petDataResponse['pet_image1'].isNotEmpty) {
-            _imageBytes = base64Decode(petDataResponse['pet_image1'][0]);
-          }
-
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to load pet data');
-      }
-    } catch (e) {
       setState(() {
-        errorMessage = "Error fetching pet data.";
+        _nameController.text = petDataResponse['pet_name'] ?? '';
+        _ageController.text = petDataResponse['pet_age']?.toString() ?? '';
+        _descriptionController.text = petDataResponse['pet_descriptions'] ?? '';
+        _selectedAgeType = petDataResponse['age_type'] ?? '';
+        _selectedSex = petDataResponse['pet_sex'] ?? '';
+        _sizeController.text = petDataResponse['pet_size']?.toString() ?? '';
+        _selectedPetType = petDataResponse['pet_type'] ?? '';
+
+        // Fetch image from petmedia field
+        final petImage = petDataResponse['petmedia'];
+        if (petImage != null) {
+          final petImageBase64 = petImage['pet_image1'];
+          if (petImageBase64 != null && petImageBase64.isNotEmpty) {
+            _imageBytes = base64Decode(petImageBase64);
+          }
+        }
+
+        final petVaccine = petDataResponse['petmedia'];
+        if (petVaccine != null) {
+          final petVaccine64 = petVaccine['pet_vaccine'];
+          if (petVaccine64 != null && petVaccine64.isNotEmpty) {
+            _petVaccineBytes = base64Decode(petVaccine64);
+          }
+        }
+
+        // final vaccineImageBase64 = petDataResponse['pet_vaccine'];
+        // if (vaccineImageBase64 != null && vaccineImageBase64.isNotEmpty) {
+        //   _petVaccineBytes = base64Decode(vaccineImageBase64);
+        // }
+
         isLoading = false;
       });
+    } else {
+      throw Exception('Failed to load pet data. Status code: ${response.statusCode}');
     }
+  } catch (e) {
+    print("Error: $e");
+    setState(() {
+      errorMessage = "Error fetching pet data.";
+      isLoading = false;
+    });
   }
+}
 
-  Future<void> _pickImage() async {
+
+  Future<void> _pickPetImage() async {
     final picker = ImagePicker();
     final file = await picker.pickImage(source: ImageSource.gallery);
     if (file != null) {
       final bytes = await file.readAsBytes();
       setState(() {
         _imageBytes = bytes;
+      });
+    }
+  }
+
+  Future<void> _pickVaccineImage() async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(source: ImageSource.gallery);
+    if (file != null) {
+      final bytes = await file.readAsBytes();
+      setState(() {
+        _petVaccineBytes = bytes;
       });
     }
   }
@@ -102,7 +137,6 @@ class _EditPetScreenState extends State<EditPetScreen> {
     var request = http.MultipartRequest('PUT', url);
 
     request.headers.addAll({
-      "Content-Type": "application/json",
       "Authorization": "Bearer $token",
     });
 
@@ -115,14 +149,26 @@ class _EditPetScreenState extends State<EditPetScreen> {
     request.fields['pet_type'] = _selectedPetType!;
     request.fields['pet_descriptions'] = _descriptionController.text;
 
-    // Add image file (if selected)
+    // Upload pet image
     if (_imageBytes != null && _imageBytes!.isNotEmpty) {
       request.files.add(
         http.MultipartFile.fromBytes(
-          'pet_image1', // Must match backend field
+          'pet_image1',
           _imageBytes!,
           filename: 'pet_image.jpg',
-          contentType: MediaType('image', 'jpeg' 'png' 'jpg' 'webp'),
+          contentType: MediaType('image', 'jpeg'),
+        ),
+      );
+    }
+
+// Upload vaccine image
+    if (_petVaccineBytes != null && _petVaccineBytes!.isNotEmpty) {
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'pet_vaccine',
+          _petVaccineBytes!,
+          filename: 'pet_vaccine.jpg',
+          contentType: MediaType('image', 'jpeg'),
         ),
       );
     }
@@ -191,7 +237,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
               Align(
                 alignment: Alignment.center,
                 child: GestureDetector(
-                  onTap: _pickImage,
+                  onTap: _pickPetImage,
                   child: CircleAvatar(
                     radius: 75,
                     backgroundImage: _imageBytes != null
@@ -307,6 +353,35 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 validator: (val) =>
                     val == null || val.isEmpty ? 'Enter description' : null,
               ),
+               SizedBox(height: 15),
+              Text('Pet Vaccine'),
+                Align(
+                alignment: Alignment.center,
+                child: GestureDetector(
+                  onTap: _pickVaccineImage,
+                  child: Container(
+                  width: 300,
+                  height: 200,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(8),
+                    image: _petVaccineBytes != null
+                      ? DecorationImage(
+                        image: MemoryImage(_petVaccineBytes!),
+                        fit: BoxFit.cover,
+                      )
+                      : null,
+                  ),
+                  child: _petVaccineBytes == null
+                    ? const Icon(
+                      Icons.camera_alt,
+                      size: 50,
+                      color: Colors.grey,
+                      )
+                    : null,
+                  ),
+                ),
+                ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {

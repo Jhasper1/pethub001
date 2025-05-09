@@ -22,6 +22,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   bool isLoading = true;
   String errorMessage = '';
   Uint8List? petImage;
+  Uint8List? petVaccine;
 
   @override
   void initState() {
@@ -35,11 +36,10 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     final url =
         'http://127.0.0.1:5566/api/shelter/${widget.petId}/petinfo'; // Adjusted URL to use petId
     try {
-      final response = await http.get(Uri.parse(url),
-      headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    });
+      final response = await http.get(Uri.parse(url), headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print("API Response: $data"); // Debugging
@@ -59,13 +59,16 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
             'pet_size': petDataResponse['pet_size'],
             'age_type': petDataResponse['age_type'],
             'priority_status': petDataResponse['priority_status'],
-            'pet_image1': petDataResponse['pet_image1'] != null &&
-                    petDataResponse['pet_image1'].isNotEmpty
-                ? base64Decode(petDataResponse['pet_image1']
-                    [0]) // Decode the first image (or handle multiple images)
-                : null, // Handle case where no images are available
+            'pet_image1': petDataResponse['petmedia'] != null &&
+                    petDataResponse['petmedia']['pet_image1'] != null
+                ? base64Decode(petDataResponse['petmedia']['pet_image1'])
+                : null,
+            'pet_vaccine': petDataResponse['petmedia'] != null &&
+                    petDataResponse['petmedia']['pet_vaccine'] != null
+                ? base64Decode(petDataResponse['petmedia']['pet_vaccine'])
+                : null,
           };
-          isLoading = false; // Set loading to false once data is fetched
+          isLoading = false;
         });
       } else {
         throw Exception('Failed to load pet data');
@@ -85,11 +88,10 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     final url =
         'http://127.0.0.1:5566/api/shelter/${widget.petId}/archive-pet'; // Adjusted URL to use petId
     try {
-      final response = await http.put(Uri.parse(url),
-      headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    });
+      final response = await http.put(Uri.parse(url), headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print("API Response: $data"); // Debugging
@@ -128,11 +130,10 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     final url =
         'http://127.0.0.1:5566/api/shelter/${widget.petId}/pet/update-priority-status';
     try {
-      final response = await http.put(Uri.parse(url),
-      headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    });
+      final response = await http.put(Uri.parse(url), headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         print("API Response: $data");
@@ -165,6 +166,42 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
         const SnackBar(content: Text('Error occurred while updating.')),
       );
     }
+  }
+
+  void showFullScreenImage(BuildContext context, Uint8List imageBytes) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.7), // Dim background
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                child: Image.memory(imageBytes),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    shape: BoxShape.circle,
+                  ),
+                  padding: EdgeInsets.all(8),
+                  child: Icon(Icons.close, color: Colors.white, size: 28),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -319,6 +356,51 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           ],
                         ),
                         const SizedBox(height: 10),
+                        Card(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Vaccination Image',
+                                  style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 10),
+                                GestureDetector(
+                                  onTap: () {
+                                    if (petData?['pet_vaccine'] != null) {
+                                      showFullScreenImage(
+                                          context, petData!['pet_vaccine']);
+                                    }
+                                  },
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(
+                                        8), // Rounded corners
+                                    child: petData?['pet_vaccine'] != null
+                                        ? Image.memory(
+                                            petData!['pet_vaccine'],
+                                            height: 150,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                          )
+                                        : Image.asset(
+                                            'assets/images/logo.png',
+                                            height: 150,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                          ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 10),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 5.0),
                           child: ElevatedButton(

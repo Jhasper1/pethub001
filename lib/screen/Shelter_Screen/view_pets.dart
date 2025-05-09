@@ -22,17 +22,19 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
 
   List<Map<String, dynamic>> pets = [];
   TextEditingController searchController = TextEditingController();
+  String selectedStatus = 'Available';
   String selectedSex = 'All';
   String selectedPetType = 'All';
 
   Future<void> fetchPets() async {
     final searchQuery = searchController.text;
+    final statusFilter = selectedStatus == 'All' ? '' : selectedStatus.toLowerCase();
     final sexFilter = selectedSex == 'All' ? '' : selectedSex;
     final typeFilter = selectedPetType == 'All' ? '' : selectedPetType;
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url =
-        'http://127.0.0.1:5566/api/filter/${widget.shelterId}/pets/search?pet_name=$searchQuery&sex=$sexFilter&type=$typeFilter';
+        'http://127.0.0.1:5566/api/filter/${widget.shelterId}/pets/search?pet_name=$searchQuery&status=$statusFilter&sex=$sexFilter&type=$typeFilter';
     try {
       final response = await http.get(Uri.parse(url), headers: {
         "Content-Type": "application/json",
@@ -159,6 +161,35 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                 const SizedBox(height: 10), // slightly reduced space
                 Row(
                   children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 35,
+                        child: DropdownButtonFormField<String>(
+                          value: selectedStatus,
+                          items: ['Available', 'Pending', 'Archived', 'Adopted']
+                              .map((status) => DropdownMenuItem(
+                                    value: status,
+                                    child: Text(status,
+                                        style: TextStyle(fontSize: 12)),
+                                  ))
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedStatus = value!;
+                            });
+                            fetchPets();
+                          },
+                          decoration: InputDecoration(
+                            labelText: 'Pet Status',
+                            labelStyle: GoogleFonts.poppins(fontSize: 12),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 8),
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
                     Expanded(
                       child: SizedBox(
                         height: 35,
