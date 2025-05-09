@@ -21,55 +21,59 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _isPasswordVisible = false;
   String? _errorMessage;
 
-Future<void> _login() async {
-  setState(() {
-    _isLoading = true;
-    _errorMessage = null;
-  });
+  Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
 
-  final url = Uri.parse('http://127.0.0.1:5566/shelter/login');
+    final url = Uri.parse('http://127.0.0.1:5566/shelter/login');
 
-  try {
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "username": _usernameController.text.trim(),
-        "password": _passwordController.text.trim(),
-      }),
-    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "username": _usernameController.text.trim(),
+          "password": _passwordController.text.trim(),
+        }),
+      );
 
-    final responseData = jsonDecode(response.body);
+      final responseData = jsonDecode(response.body);
 
-    if (response.statusCode == 200) {
-      final data = responseData['data'];
+      if (response.statusCode == 200) {
+        if (responseData['success'] == false || responseData['data'] == null) {
+          setState(() => _errorMessage =
+              responseData['message'] ?? "Invalid username or password.");
+          return;
+        }
 
-      if (data != null && data['shelter_id'] != null && data['token'] != null) {
-        final int shelterId = data['shelter_id'];
-        final String token = data['token'];
+        final data = responseData['data'];
 
-        // Save token using shared_preferences
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', token);
+        if (data['shelter_id'] != null && data['token'] != null) {
+          final int shelterId = data['shelter_id'];
+          final String token = data['token'];
 
-        // Navigate to home screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => HomeScreen(shelterId: shelterId)),
-        );
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('auth_token', token);
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => HomeScreen(shelterId: shelterId)),
+          );
+        } else {
+          setState(() => _errorMessage = "Login failed. Please try again.");
+        }
       } else {
-        setState(() => _errorMessage = "Login failed. Please try again.");
+        setState(() => _errorMessage =
+            responseData['message'] ?? "Login failed. Please try again.");
       }
-    } else {
-      setState(() => _errorMessage = responseData['message'] ?? "Login failed. Please try again.");
+    } catch (e) {
+      setState(() => _errorMessage = "Server error. Please try again later.");
+    } finally {
+      setState(() => _isLoading = false);
     }
-  } catch (e) {
-    setState(() => _errorMessage = "Server error. Please try again later.");
-  } finally {
-    setState(() => _isLoading = false);
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -205,7 +209,6 @@ Future<void> _login() async {
                               ],
                             ),
                             const SizedBox(height: 5),
-                            
                             if (_errorMessage != null)
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 10),

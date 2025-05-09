@@ -381,7 +381,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                     decoration: BoxDecoration(
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                              12),
+                                                              7),
                                                       image: DecorationImage(
                                                         fit: BoxFit.cover,
                                                         image: applicationData![
@@ -504,12 +504,12 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                         GestureDetector(
                                                           onTap: () {
                                                             if (applicationData![
-                                                                    'adopter_valid_id'] !=
+                                                                    'alt_valid_id'] !=
                                                                 null) {
                                                               showFullScreenImage(
                                                                   context,
                                                                   applicationData![
-                                                                      'adopter_valid_id']!);
+                                                                      'alt_valid_id']!);
                                                             }
                                                           },
                                                           child: Container(
@@ -520,7 +520,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                               borderRadius:
                                                                   BorderRadius
                                                                       .circular(
-                                                                          12),
+                                                                          7),
                                                               image:
                                                                   DecorationImage(
                                                                 fit: BoxFit

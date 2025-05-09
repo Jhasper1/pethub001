@@ -28,7 +28,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url = 'http://127.0.0.1:5566/api/adopter/profile/${widget.adopterId}';
-    
     try {
       final response = await http.get(Uri.parse(url), headers: {
         "Content-Type": "application/json",

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'adoption_submission.dart';
+import 'adoption_submission2.dart';
 
 class UserPetDetailsScreen extends StatefulWidget {
   final int petId;
@@ -26,16 +26,16 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
   }
 
   Future<void> fetchPetDetails() async {
-        final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-    final url = Uri.parse("http://127.0.0.1:5566/api/users/pets/${widget.petId}");
+    final url =
+        Uri.parse("http://127.0.0.1:5566/api/users/pets/${widget.petId}");
 
     try {
-      final response = await http.get(url,
-      headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer $token",
-          });
+      final response = await http.get(url, headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
       print('Response status: ${response.statusCode}');
       print('Response body: ${response.body}');
 
@@ -84,10 +84,10 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => AdoptionSubmissionForm(
+          builder: (context) => AdoptionForm(
             petId: widget.petId,
-            petName: _getPetField('name') ?? "Unknown",
             adopterId: widget.adopterId,
+            shelterId: widget.adopterId,
           ),
         ),
       );

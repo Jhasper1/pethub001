@@ -49,6 +49,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         "Authorization": "Bearer $token",
       });
 
+
       print("Pet API Response: ${petResponse.body}");
       print("Shelter API Response: ${shelterResponse.body}");
 
