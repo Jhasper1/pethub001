@@ -63,14 +63,10 @@ class _AdoptionFormState extends State<AdoptionForm> {
   final TextEditingController _pastPetsController = TextEditingController();
   final TextEditingController _interviewSettingController =
       TextEditingController();
-  final TextEditingController _adopterIDType = TextEditingController();
-  final TextEditingController _altIDType = TextEditingController();
 
 // Variables to store the bytes of the valid ID images
   Uint8List? _adopterValidIDBytes;
   Uint8List? _altValidIDBytes;
-  XFile? _adopterValidID;
-  XFile? _altValidID;
 
   // Image controllers for base64 encoding (will be implemented later)
   final List<String> images = List.generate(8, (index) => "");
