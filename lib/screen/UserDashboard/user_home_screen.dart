@@ -254,6 +254,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                       builder: (_) => UserPetDetailsScreen(
                         petId: pet['pet_id'],
                         adopterId: widget.adopterId,
+                        shelterId: pet['shelter_id'],
                       ),
                     ),
                   ),

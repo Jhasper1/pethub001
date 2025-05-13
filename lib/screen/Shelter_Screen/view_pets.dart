@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'bottom_nav_bar.dart'; // Adjust the import according to your project
 import 'pet_info_screen.dart'; // Adjust the import according to your project
-import 'archived_pets_screen.dart'; // Adjust the import according to your project
 
 class ViewPetsScreen extends StatefulWidget {
   final int shelterId;
@@ -123,18 +122,6 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                     ),
                     Row(
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.archive, color: Colors.black),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ArchivedPetsScreen(
-                                    shelterId: widget.shelterId),
-                              ),
-                            );
-                          },
-                        ),
                         IconButton(
                             icon: const Icon(Icons.notifications),
                             onPressed: () {}),

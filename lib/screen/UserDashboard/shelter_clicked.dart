@@ -10,7 +10,7 @@ class ShelterDetailsScreen extends StatefulWidget {
   final int adopterId; // Default value, can be changed later
 
   const ShelterDetailsScreen(
-      {required this.shelterId, super.key, required this.adopterId});
+      {super.key, required this.shelterId, required this.adopterId});
 
   @override
   State<ShelterDetailsScreen> createState() => _ShelterDetailsScreenState();
@@ -206,6 +206,7 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
                 builder: (context) => UserPetDetailsScreen(
                   petId: pet['pet_id'],
                   adopterId: widget.adopterId,
+                  shelterId: widget.shelterId,
                 ),
               ),
             );

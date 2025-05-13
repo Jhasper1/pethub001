@@ -1,14 +1,18 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:march24/screen/UserDashboard/shelter_clicked.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'adoption_submission2.dart';
 
 class UserPetDetailsScreen extends StatefulWidget {
   final int petId;
   final int adopterId;
+  final int shelterId; // Assuming a default shelter ID for now
 
-  UserPetDetailsScreen({required this.petId, required this.adopterId});
+  UserPetDetailsScreen(
+      {required this.petId, required this.adopterId, required this.shelterId});
 
   @override
   _UserPetDetailsScreenState createState() => _UserPetDetailsScreenState();
@@ -16,6 +20,7 @@ class UserPetDetailsScreen extends StatefulWidget {
 
 class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
   Map<String, dynamic>? petData;
+  Map<String, dynamic>? ShelterInfo;
   bool isLoading = true;
   bool hasError = false;
 
@@ -23,6 +28,7 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
   void initState() {
     super.initState();
     fetchPetDetails();
+    fetchShelterInfo();
   }
 
   Future<void> fetchPetDetails() async {
@@ -79,6 +85,50 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
     }
   }
 
+  Future<void> fetchShelterInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url = 'http://127.0.0.1:5566/api/shelter/${widget.shelterId}/refined';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body);
+        print("Full response body: $body"); // Debugging
+
+        if (body is Map<String, dynamic> && body['data'] != null) {
+          final data = body['data'];
+          
+          // Decode base64 image if exists
+          if (data['sheltermedia'] != null &&
+              data['sheltermedia']['shelter_profile'] != null &&
+              data['sheltermedia']['shelter_profile'] is String) {
+            data['sheltermedia']['shelter_profile'] =
+                base64Decode(data['sheltermedia']['shelter_profile']);
+          }
+
+          setState(() {
+            ShelterInfo = data;
+          });
+        } else {
+          print("Invalid response format or 'Data' is null.");
+        }
+      } else {
+        print(
+            "Failed to load shelter info. Status code: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Error fetching shelter info: $e");
+    }
+  }
+
   void _onAdoptPressed() {
     if (petData != null) {
       Navigator.push(
@@ -87,7 +137,7 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
           builder: (context) => AdoptionForm(
             petId: widget.petId,
             adopterId: widget.adopterId,
-            shelterId: widget.adopterId,
+            shelterId: widget.shelterId,
           ),
         ),
       );
@@ -281,6 +331,58 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
                                   fontSize: 15, color: Colors.grey[700]),
                             ),
                             SizedBox(height: 24),
+                            Card(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  radius: 24,
+                                  backgroundImage: ShelterInfo != null &&
+                                          ShelterInfo!['sheltermedia'] !=
+                                              null &&
+                                          ShelterInfo!['sheltermedia']
+                                                  ['shelter_profile'] !=
+                                              null
+                                      ? MemoryImage(ShelterInfo!['sheltermedia']
+                                          ['shelter_profile'])
+                                      : AssetImage('assets/images/logo.png')
+                                          as ImageProvider,
+                                ),
+                                title: Text(
+                                  ShelterInfo?['shelter_name'] ??
+                                      'Unknown Shelter',
+                                  style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Text(
+                                  ShelterInfo?['shelter_address'] ??
+                                      'No address provided',
+                                  style: GoogleFonts.poppins(fontSize: 12),
+                                ),
+                                trailing: TextButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            ShelterDetailsScreen(
+                                          shelterId: widget.shelterId,
+                                          adopterId: widget.adopterId,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    'View',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
                           ],
                         ),
                       ),

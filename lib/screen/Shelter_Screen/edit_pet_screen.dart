@@ -58,7 +58,7 @@ Future<void> fetchPetDetails() async {
       final data = json.decode(response.body);
       print("API Response: $data");
 
-      final petDataResponse = data['data']['pet'];
+      final petDataResponse = data['data'];
 
       setState(() {
         _nameController.text = petDataResponse['pet_name'] ?? '';
@@ -85,11 +85,6 @@ Future<void> fetchPetDetails() async {
             _petVaccineBytes = base64Decode(petVaccine64);
           }
         }
-
-        // final vaccineImageBase64 = petDataResponse['pet_vaccine'];
-        // if (vaccineImageBase64 != null && vaccineImageBase64.isNotEmpty) {
-        //   _petVaccineBytes = base64Decode(vaccineImageBase64);
-        // }
 
         isLoading = false;
       });
