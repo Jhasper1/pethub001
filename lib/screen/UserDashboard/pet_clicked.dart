@@ -7,8 +7,10 @@ import 'adoption_submission2.dart';
 class UserPetDetailsScreen extends StatefulWidget {
   final int petId;
   final int adopterId;
+  final int shelterId; // Assuming a default shelter ID for now
 
-  UserPetDetailsScreen({required this.petId, required this.adopterId});
+  UserPetDetailsScreen(
+      {required this.petId, required this.adopterId, required this.shelterId});
 
   @override
   _UserPetDetailsScreenState createState() => _UserPetDetailsScreenState();
@@ -87,7 +89,7 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
           builder: (context) => AdoptionForm(
             petId: widget.petId,
             adopterId: widget.adopterId,
-            shelterId: widget.adopterId,
+            shelterId: widget.shelterId,
           ),
         ),
       );
