@@ -52,6 +52,7 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
           final updatedPets = petInfoList.map((pet) {
             return {
               'pet_id': pet['pet_id'],
+              'shelter_id': pet['shelter_id'],
               'pet_name': pet['pet_name'],
               'priority_status': pet['priority_status'],
               'pet_image1':

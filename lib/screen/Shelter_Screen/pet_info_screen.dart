@@ -18,6 +18,8 @@ class PetDetailsScreen extends StatefulWidget {
 }
 
 class _PetDetailsScreenState extends State<PetDetailsScreen> {
+  int applicantCount = 0;
+  List<Map<String, dynamic>> applicantsList = [];
   Map<String, dynamic>? petData;
   bool isLoading = true;
   String errorMessage = '';
@@ -28,13 +30,13 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   void initState() {
     super.initState();
     fetchPetDetails();
+    fetchAndLoadApplicantCount();
   }
 
   Future<void> fetchPetDetails() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-    final url =
-        'http://127.0.0.1:5566/api/shelter/${widget.petId}/petinfo'; // Adjusted URL to use petId
+    final url = 'http://127.0.0.1:5566/api/shelter/${widget.petId}/petinfo';
     try {
       final response = await http.get(
         Uri.parse(url),
@@ -211,6 +213,49 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     }
   }
 
+  Future<void> fetchAndLoadApplicantCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url = Uri.parse(
+        'http://127.0.0.1:5566/api/shelter/count/${widget.petId}/applied'); // for Android emulator
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data['retCode'] == '200') {
+          setState(() {
+            applicantCount =
+                data['data']; // This should be 2 in your example response
+          });
+        } else {
+          print('API Error: ${data['Message']}');
+          setState(() {
+            applicantCount = 0;
+          });
+        }
+      } else {
+        print('Server Error: ${response.statusCode}');
+        setState(() {
+          applicantCount = 0;
+        });
+      }
+    } catch (e) {
+      print('Network Error: $e');
+      setState(() {
+        applicantCount = 0;
+      });
+    }
+  }
+
   void showFullScreenImage(BuildContext context, Uint8List imageBytes) {
     showDialog(
       context: context,
@@ -288,10 +333,44 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
+
+                         Card(
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: ListTile(
+                            leading: const Icon(Icons.pets, size: 32),
+                            title: Text(
+                              'Number of Applicants',
+                              style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text(
+                              '$applicantCount people want to adopt this pet',
+                              style: GoogleFonts.poppins(fontSize: 15),
+                            ),
+                            trailing: ElevatedButton(
+                              onPressed: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  shape: const RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20)),
+                                  ),
+                                  builder: (_) => ApplicantListModal(
+                                      applicants: applicantsList,
+                                      applicationId: widget.petId,
+                                      petId: widget.petId),
+                                );
+                              },
+                              child: const Text("View"),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
                         Stack(
                           children: [
                             Card(
-                              color: const Color(0xFFE2F3FD),
+                              // color: const Color(0xFFE2F3FD),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -422,7 +501,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         ),
                         const SizedBox(height: 10),
                         Card(
-                          color: const Color(0xFFE2F3FD),
+                          // color: const Color(0xFFE2F3FD),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -626,6 +705,63 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
           style: GoogleFonts.poppins(),
         ),
       ],
+    );
+  }
+}
+
+class ApplicantListModal extends StatelessWidget {
+  final int applicationId;
+  final int petId;
+  final List<Map<String, dynamic>> applicants;
+
+  const ApplicantListModal({super.key, required this.applicants, required this.applicationId, required this.petId});
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.8,
+      builder: (_, controller) => Container(
+        padding: const EdgeInsets.all(16),
+        child: ListView.builder(
+          controller: controller,
+          itemCount: applicants.length,
+          itemBuilder: (context, index) {
+            final applicant = applicants[index];
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: ListTile(
+                leading: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${index + 1}.',
+                        style:
+                            GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                    const SizedBox(width: 8),
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundImage: applicant['adopter_profile_decoded'] !=
+                              null
+                          ? MemoryImage(applicant['adopter_profile_decoded'])
+                          : const AssetImage('assets/default_avatar.png')
+                              as ImageProvider,
+                    ),
+                  ],
+                ),
+                title: Text(
+                  '${applicant['first_name']} ${applicant['last_name']}',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  'Chosen Pet: ${applicant['pet_name']}',
+                  style: GoogleFonts.poppins(fontSize: 12),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }

@@ -153,7 +153,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                         height: 35,
                         child: DropdownButtonFormField<String>(
                           value: selectedStatus,
-                          items: ['Available', 'Pending', 'Archived', 'Adopted']
+                          items: ['Available', 'Unavailable', 'Archived', 'Adopted']
                               .map((status) => DropdownMenuItem(
                                     value: status,
                                     child: Text(status,

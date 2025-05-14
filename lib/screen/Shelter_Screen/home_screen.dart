@@ -15,17 +15,17 @@ class HomeScreen extends StatefulWidget {
 
 class PetStatusCount {
   final int available;
-  final int pending;
+  final int unavailable;
   final int adopted;
 
   PetStatusCount(
-      {required this.available, required this.pending, required this.adopted});
+      {required this.available, required this.unavailable, required this.adopted});
 
   factory PetStatusCount.fromJson(Map<String, dynamic> json) {
     final data = json['data'];
     return PetStatusCount(
       available: data['available'],
-      pending: data['pending'],
+      unavailable: data['unavailable'],
       adopted: data['adopted'],
     );
   }
@@ -109,14 +109,6 @@ Future<PetStatusCount?> fetchPetCounts(int shelterId) async {
                 ),
               ],
             ),
-            // const SizedBox(height: 20),
-            // Text(
-            //   'Welcome, Shelter ID: ${widget.shelterId}',
-            //   style: GoogleFonts.poppins(
-            //     fontSize: 16,
-            //     fontWeight: FontWeight.bold,
-            //   ),
-            // ),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),
@@ -171,7 +163,7 @@ Future<PetStatusCount?> fetchPetCounts(int shelterId) async {
                       _buildStatusBox(
                           "Available", _petCounts!.available, Colors.green),
                       _buildStatusBox(
-                          "Pending", _petCounts!.pending, Colors.orange),
+                          "Unavailable", _petCounts!.unavailable, Colors.orange),
                       _buildStatusBox(
                           "Adopted", _petCounts!.adopted, Colors.blue),
                     ],

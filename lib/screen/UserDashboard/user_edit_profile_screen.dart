@@ -39,7 +39,7 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
       setState(() {
-        if (type == 'profile') {
+        if (type == 'adopter_profile') {
           profileImageFile = pickedFile;
           profileImageBytes = bytes;
         }
@@ -200,7 +200,7 @@ Future<void> updateAdopterInfo() async {
               child: Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: GestureDetector(
-                  onTap: () => pickImage('profile'),
+                  onTap: () => pickImage('adopter_profile'),
                   child: CircleAvatar(
                     radius: 50,
                     backgroundImage: profileImageBytes != null

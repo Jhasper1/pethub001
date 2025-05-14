@@ -226,9 +226,8 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-            backgroundColor: const Color(0xFFE2F3FD),
-      appBar: AppBar(
-          title: Text('Application Details')),
+      backgroundColor: const Color(0xFFE2F3FD),
+      appBar: AppBar(title: Text('Application Details')),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : (petData == null && adopterData == null)
@@ -631,51 +630,49 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: 15),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.redAccent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                minimumSize: const Size(double.infinity, 50),
-                              ),
-                              onPressed: () {
-                                // Reject logic here
-                                print("Application Rejected");
-                              },
-                              child: Text('Reject',
-                                  style:
-                                      GoogleFonts.poppins(color: Colors.white)),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                minimumSize: const Size(double.infinity, 50),
-                              ),
-                              onPressed: () {
-                                // Approve logic here
-                                print("Application Approved");
-                              },
-                              child: Text('Approve',
-                                  style:
-                                      GoogleFonts.poppins(color: Colors.white)),
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                onPressed: () {
+                  print("Application Rejected");
+                },
+                child: Text('Reject',
+                    style: GoogleFonts.poppins(color: Colors.white)),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                onPressed: () {
+                  print("Application Approved");
+                },
+                child: Text('Approve',
+                    style: GoogleFonts.poppins(color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
