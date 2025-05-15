@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:march24/screen/Shelter_Screen/shelter_forgot_password.dart';
 import 'package:march24/screen/choose_user_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_screen.dart';
@@ -199,7 +200,15 @@ class _SignInScreenState extends State<SignInScreen> {
                                 //   ],
                                 // ),
                                 TextButton(
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            ShelterForgotPasswordScreen(),
+                                      ),
+                                    );
+                                  },
                                   child: Text(
                                     'Forgot password?',
                                     style: GoogleFonts.poppins(
