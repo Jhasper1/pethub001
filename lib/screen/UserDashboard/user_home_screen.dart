@@ -119,6 +119,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       bottomNavigationBar: UserBottomNavBar(
         adopterId: widget.adopterId,
         currentIndex: 0,
+        applicationId: 0,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

@@ -72,6 +72,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         bottomNavigationBar: UserBottomNavBar(
           adopterId: widget.adopterId,
           currentIndex: 2,
+          applicationId: 0,
         ),
       );
     }
@@ -298,6 +299,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       bottomNavigationBar: UserBottomNavBar(
         adopterId: widget.adopterId,
         currentIndex: 2,
+        applicationId: 0,
       ),
     );
   }
