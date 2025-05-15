@@ -14,12 +14,14 @@ class AdoptionForm extends StatefulWidget {
   final int petId;
   final int adopterId;
   final int shelterId;
+  final int applicationId;
 
   AdoptionForm(
       {super.key,
       required this.petId,
       required this.adopterId,
-      required this.shelterId});
+      required this.shelterId,
+      required this.applicationId});
 
   @override
   _AdoptionFormState createState() => _AdoptionFormState();
@@ -63,10 +65,14 @@ class _AdoptionFormState extends State<AdoptionForm> {
   final TextEditingController _pastPetsController = TextEditingController();
   final TextEditingController _interviewSettingController =
       TextEditingController();
+  final TextEditingController _adopterIDType = TextEditingController();
+  final TextEditingController _altIDType = TextEditingController();
 
 // Variables to store the bytes of the valid ID images
   Uint8List? _adopterValidIDBytes;
   Uint8List? _altValidIDBytes;
+  XFile? _adopterValidID;
+  XFile? _altValidID;
 
   // Image controllers for base64 encoding (will be implemented later)
   final List<String> images = List.generate(8, (index) => "");
@@ -159,6 +165,7 @@ class _AdoptionFormState extends State<AdoptionForm> {
     print('- Shelter ID: ${widget.shelterId}');
     print('- Pet ID: ${widget.petId}');
     print('- Adopter ID: ${widget.adopterId}');
+    print('= Application ID: &{widget.applicationId}');
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
@@ -260,9 +267,14 @@ class _AdoptionFormState extends State<AdoptionForm> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => AdoptedPetsScreen(
-              adopterId: widget.adopterId,
-            ),
+            builder: (_) {
+              print(
+                  'Navigating to ApplicationDetailsScreen with applicationId: ${widget.applicationId}');
+              return ApplicationDetailsScreen(
+                applicationId: widget.applicationId,
+                adopterId: widget.adopterId,
+              );
+            },
           ),
         );
       } else {
@@ -790,3 +802,4 @@ class _AdoptionFormState extends State<AdoptionForm> {
     );
   }
 }
+
