@@ -212,6 +212,7 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
             petId: widget.petId,
             adopterId: widget.adopterId,
             shelterId: widget.shelterId,
+            applicationId: petData!['application_id'],
           ),
         ),
       );
@@ -463,7 +464,7 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
                             SizedBox(height: 24),
 
                             Text(
-                            "More Pets from ${ShelterInfo?['shelter_name']} :",
+                              "More Pets from ${ShelterInfo?['shelter_name']} :",
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.w600),
                             ),
