@@ -30,22 +30,7 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
 
   final TextEditingController qrImageController = TextEditingController();
 
-  Future<void> pickImage(String type) async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile =
-        await picker.pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
-      final bytes = await pickedFile.readAsBytes();
-      setState(() {
-        if (type == 'qr') {
-          qrImageFile = pickedFile;
-          _qrImageBytes = bytes;
-          qrImageController.text = pickedFile.path;
-        }
-      });
-    }
-  }
 
   @override
   void initState() {
@@ -106,16 +91,7 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
     }
   }
 
-  // InputDecoration _inputDecoration(String hintText) {
-  //   return InputDecoration(
-  //     hintText: hintText,
-  //     hintStyle: TextStyle(color: Colors.grey), // Sets hint text color to gray
-  //     border: InputBorder.none, // Removes the outline
-  //     filled: true,
-  //     fillColor: Colors.grey[200],
-  //     contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-  //   );
-  // }
+
 
   InputDecoration _buildTextFieldDecoration(String hint) {
     return InputDecoration(

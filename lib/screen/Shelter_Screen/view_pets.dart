@@ -27,7 +27,8 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
 
   Future<void> fetchPets() async {
     final searchQuery = searchController.text;
-    final statusFilter = selectedStatus == 'All' ? '' : selectedStatus.toLowerCase();
+    final statusFilter =
+        selectedStatus == 'All' ? '' : selectedStatus.toLowerCase();
     final sexFilter = selectedSex == 'All' ? '' : selectedSex;
     final typeFilter = selectedPetType == 'All' ? '' : selectedPetType;
     final prefs = await SharedPreferences.getInstance();
@@ -130,34 +131,101 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                SizedBox(
-                  height: 35, // smaller height for TextField
-                  child: TextField(
-                    controller: searchController,
-                    onChanged: (value) {
-                      fetchPets(); // Re-fetch when typing
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search pet name...',
-                      prefixIcon: const Icon(Icons.search, size: 20),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10), // slightly reduced space
                 Row(
                   children: [
                     Expanded(
+                      flex: 3, // 66%
+                      child: SizedBox(
+                        height: 35,
+                        child: TextField(
+                          controller: searchController,
+                          onChanged: (value) {
+                            fetchPets(); // Re-fetch when typing
+                          },
+                          style:
+                              TextStyle(color: Colors.lightBlue, fontSize: 12),
+                          decoration: InputDecoration(
+                            hintText: 'Search pet name...',
+                            hintStyle: TextStyle( fontSize: 12),
+                            prefixIcon: Icon(Icons.search,
+                                size: 20, color: Colors.lightBlue),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 5),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide(color: Colors.lightBlue),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide(color: Colors.lightBlue),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide:
+                                  BorderSide(color: Colors.lightBlue, width: 2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      flex: 1,
+                      child: SizedBox(
+                        height: 35,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              searchController.clear();
+                              selectedStatus = 'Available';
+                              selectedSex = 'All';
+                              selectedPetType = 'All';
+                            });
+                            fetchPets();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            foregroundColor:
+                                Colors.red, // text/icon color
+                            backgroundColor: Colors
+                                .white, // optional: background color if you want contrast
+                            elevation: 1,
+                            side: BorderSide(
+                                color: Colors
+                                    .red), // optional: light blue outline
+                          ),
+                          child: Text(
+                            'Reset',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 1, // 33%
                       child: SizedBox(
                         height: 35,
                         child: DropdownButtonFormField<String>(
                           value: selectedStatus,
-                          items: ['Available', 'Unavailable', 'Archived', 'Adopted']
+                          items: [
+                            'Available',
+                            'Unavailable',
+                            'Archived',
+                            'Adopted'
+                          ]
                               .map((status) => DropdownMenuItem(
                                     value: status,
                                     child: Text(status,
-                                        style: TextStyle(fontSize: 12)),
+                                        style: TextStyle(fontSize: 10)),
                                   ))
                               .toList(),
                           onChanged: (value) {
@@ -168,16 +236,35 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                           },
                           decoration: InputDecoration(
                             labelText: 'Pet Status',
-                            labelStyle: GoogleFonts.poppins(fontSize: 12),
+                            labelStyle: GoogleFonts.poppins(
+                                fontSize: 10, color: Colors.lightBlue),
                             contentPadding: EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 8),
-                            border: OutlineInputBorder(),
+                                horizontal: 8, vertical: 5),
+                            filled: true,
+                            fillColor: Colors.white, // background color
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide(
+                                  color: Colors.lightBlue), // border color
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide(color: Colors.lightBlue),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide:
+                                  BorderSide(color: Colors.lightBlue, width: 2),
+                            ),
                           ),
+                          dropdownColor: Colors.white,
+                          style: GoogleFonts.poppins(fontSize: 12),
                         ),
                       ),
                     ),
                     const SizedBox(width: 5),
                     Expanded(
+                      flex: 1,
                       child: SizedBox(
                         height: 35,
                         child: DropdownButtonFormField<String>(
@@ -197,16 +284,35 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                           },
                           decoration: InputDecoration(
                             labelText: 'Sex',
-                            labelStyle: GoogleFonts.poppins(fontSize: 12),
+                            labelStyle: GoogleFonts.poppins(
+                                fontSize: 10, color: Colors.lightBlue),
                             contentPadding: EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 8),
-                            border: OutlineInputBorder(),
+                                horizontal: 8, vertical: 5),
+                            filled: true,
+                            fillColor: Colors.white, // background color
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide(
+                                  color: Colors.lightBlue), // border color
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide(color: Colors.lightBlue),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide:
+                                  BorderSide(color: Colors.lightBlue, width: 2),
+                            ),
                           ),
+                          dropdownColor: Colors.white,
+                          style: GoogleFonts.poppins(fontSize: 12),
                         ),
                       ),
                     ),
                     const SizedBox(width: 5),
                     Expanded(
+                      flex: 1,
                       child: SizedBox(
                         height: 35,
                         child: DropdownButtonFormField<String>(
@@ -226,11 +332,29 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                           },
                           decoration: InputDecoration(
                             labelText: 'Pet Type',
-                            labelStyle: GoogleFonts.poppins(fontSize: 12),
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 8),
-                            border: const OutlineInputBorder(),
+                            labelStyle: GoogleFonts.poppins(
+                                fontSize: 10, color: Colors.lightBlue),
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 5),
+                            filled: true,
+                            fillColor: Colors.white, // background color
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide(
+                                  color: Colors.lightBlue), // border color
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide: BorderSide(color: Colors.lightBlue),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(5),
+                              borderSide:
+                                  BorderSide(color: Colors.lightBlue, width: 2),
+                            ),
                           ),
+                          dropdownColor: Colors.white,
+                          style: GoogleFonts.poppins(fontSize: 12),
                         ),
                       ),
                     ),

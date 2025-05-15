@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'bottom_nav_bar.dart';
 import 'application_details_screen.dart'; // Import the details screen
@@ -17,16 +18,38 @@ class ApplicantsScreen2 extends StatefulWidget {
 }
 
 class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
+  List<String> sortOptions = [
+    'Count (High → Low)',
+    'Count (Low → High)',
+    'A-Z',
+    'Z-A'
+  ];
+  String selectedSort = 'Count (High → Low)'; // Default sort
   List<Map<String, dynamic>> applicants = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    fetchApplicants();
+    fetchApplicants(sortOption: getSortKey(selectedSort));
   }
 
-  Future<void> fetchApplicants() async {
+  String getSortKey(String sortLabel) {
+    switch (sortLabel) {
+      case 'Count (High → Low)':
+        return 'count_desc';
+      case 'Count (Low → High)':
+        return 'count_asc';
+      case 'A-Z':
+        return 'az';
+      case 'Z-A':
+        return 'za';
+      default:
+        return 'count_desc';
+    }
+  }
+
+  Future<void> fetchApplicants({String sortOption = 'count'}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     setState(() => isLoading = true);
@@ -62,7 +85,6 @@ class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
           totalCount = json.decode(countResponse.body)['data'];
         }
 
-        // Decode base64 image if present
         Uint8List? image;
         if (pet['petmedia'] != null && pet['petmedia']['pet_image1'] != null) {
           image = base64Decode(pet['petmedia']['pet_image1']);
@@ -73,8 +95,27 @@ class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
           'pet_name': pet['pet_name'],
           'count': totalCount,
           'petmedia': {'pet_image1': image},
-          'application_id': pet['application_id'].toString(), // Optional
+          'application_id': pet['application_id'].toString(),
         });
+      }
+
+      // Sort based on selected option
+      if (sortOption == 'count_desc') {
+        loadedApplicants
+            .sort((a, b) => b['count'].compareTo(a['count'])); // High to Low
+      } else if (sortOption == 'count_asc') {
+        loadedApplicants
+            .sort((a, b) => a['count'].compareTo(b['count'])); // Low to High
+      } else if (sortOption == 'az') {
+        loadedApplicants.sort((a, b) => a['pet_name']
+            .toString()
+            .toLowerCase()
+            .compareTo(b['pet_name'].toString().toLowerCase()));
+      } else if (sortOption == 'za') {
+        loadedApplicants.sort((a, b) => b['pet_name']
+            .toString()
+            .toLowerCase()
+            .compareTo(a['pet_name'].toString().toLowerCase()));
       }
 
       setState(() {
@@ -127,10 +168,52 @@ class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
               ],
             ),
             SizedBox(height: 15),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total: ${applicants.length}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Row(
+                  children: [
+                    const SizedBox(width: 10),
+                    DropdownButton<String>(
+                      value: selectedSort,
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            selectedSort = value;
+                          });
+                          fetchApplicants(sortOption: getSortKey(value));
+                        }
+                      },
+                      items: sortOptions.map((option) {
+                        return DropdownMenuItem(
+                          value: option,
+                          child: Text(option, style: GoogleFonts.poppins()),
+                        );
+                        
+                      }).toList(),
+                      dropdownColor: Colors.white,
+                      style: GoogleFonts.poppins(
+                          color: Colors.black, fontSize: 14),
+                      icon: const Icon(Icons.sort),
+                      underline: Container(height: 2, color: Colors.lightBlue),
+                      
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                "Here is the list of applications:",
+                "Here is the list of chosen pets:",
                 style: GoogleFonts.poppins(
                     fontSize: 13, fontWeight: FontWeight.bold),
               ),
@@ -161,6 +244,7 @@ class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
                                   );
                                 },
                                 child: Card(
+                                      color: Colors.lightBlue[50],
                                   margin:
                                       const EdgeInsets.symmetric(vertical: 8),
                                   child: ListTile(
@@ -227,114 +311,192 @@ class _PetApplicantsModalState extends State<PetApplicantsModal> {
     super.initState();
     fetchPetApplicants();
   }
-Future<void> fetchPetApplicants() async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('auth_token');
-  final url = 'http://127.0.0.1:5566/api/shelter/${widget.petId}/get/applications'; // Replace with your actual URL
 
-  final response = await http.get(
-    Uri.parse(url),
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",  // Use the token for authentication
-    },
-  );
-
-  if (response.statusCode == 200) {
-    final data = json.decode(response.body);
-    
-    // Assuming the data is a list of applicants
-    setState(() {
-      petApplicants = (data as List).map((app) => _mapApplicant(app)).toList();
-      isLoading = false;
-    });
-  } else {
-    setState(() => isLoading = false);
-    print("Failed to load pet applicants: ${response.statusCode}");
+  String formatDateTime(String rawDateTime) {
+    final dateTime = DateTime.parse(rawDateTime).toLocal();
+    final formatter = DateFormat('MMM d, y | h:mm a');
+    return formatter.format(dateTime);
   }
-}
 
-Map<String, dynamic> _mapApplicant(dynamic app) {
-  return {
-    'application_id': app['application_id'],
-    'first_name': app['first_name'],
-    'last_name': app['last_name'],
-    'adopter_profile': app['adopter_profile'], // Raw base64 string
-    'adopter_profile_decoded': _decodeBase64Image(app['adopter_profile']), // Decoded image
-    'status': app['status'],
-    'created_at': app['created_at'],
-  };
-}
+  Future<void> fetchPetApplicants() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url =
+        'http://127.0.0.1:5566/api/shelter/${widget.petId}/get/applications'; // Replace with your actual URL
 
-Uint8List? _decodeBase64Image(String? base64String) {
-  if (base64String == null || base64String.isEmpty) {
-    return null; // If the string is null or empty, return null
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token", // Use the token for authentication
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      // Assuming the data is a list of applicants
+      setState(() {
+        petApplicants =
+            (data as List).map((app) => _mapApplicant(app)).toList();
+        isLoading = false;
+      });
+    } else {
+      setState(() => isLoading = false);
+      print("Failed to load pet applicants: ${response.statusCode}");
+    }
   }
-  try {
-    final RegExp regex = RegExp(r'data:image/[^;]+;base64,');
-    base64String = base64String.replaceAll(regex, ''); // Remove any potential prefix
-    return base64Decode(base64String);
-  } catch (e) {
-    print("Error decoding Base64 image: $e");
-    return null;
+
+  Map<String, dynamic> _mapApplicant(dynamic app) {
+    return {
+      'pet_name': app['pet_name'],
+      'application_id': app['application_id'],
+      'first_name': app['first_name'],
+      'last_name': app['last_name'],
+      'address': app['address'],
+      'adopter_profile': app['adopter_profile'],
+      'adopter_profile_decoded': _decodeBase64Image(app['adopter_profile']),
+      'status': app['status'],
+      'created_at': formatDateTime(app['created_at']), // Formatted date
+    };
   }
-}
-@override
-Widget build(BuildContext context) {
-  return Container(
-    padding: EdgeInsets.all(16),
-    height: MediaQuery.of(context).size.height * 0.75,
-    child: isLoading
-        ? Center(child: CircularProgressIndicator())
-        : petApplicants.isEmpty
-            ? Center(child: Text("No applicants yet"))
-            : ListView.builder(
-                itemCount: petApplicants.length,
-                itemBuilder: (context, index) {
-                  final applicant = petApplicants[index];
 
-                  // Check for decoded adopter profile image
-                  final adopterProfile = applicant['adopter_profile_decoded'] != null
-                      ? MemoryImage(applicant['adopter_profile_decoded'])
-                      : AssetImage('assets/images/logo.png') as ImageProvider;
+  Uint8List? _decodeBase64Image(String? base64String) {
+    if (base64String == null || base64String.isEmpty) {
+      return null; // If the string is null or empty, return null
+    }
+    try {
+      final RegExp regex = RegExp(r'data:image/[^;]+;base64,');
+      base64String =
+          base64String.replaceAll(regex, ''); // Remove any potential prefix
+      return base64Decode(base64String);
+    } catch (e) {
+      print("Error decoding Base64 image: $e");
+      return null;
+    }
+  }
 
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ApplicationDetailsScreen(
-                            applicationId: applicant['application_id'],
-                          ),
-                        ),
-                      );
-                    },
-                    child: Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8),
-                      child: ListTile(
-                        leading: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('${index + 1}.',
-                                style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w500)),
-                            const SizedBox(width: 8),
-                            // Circle Avatar displaying profile picture
-                            CircleAvatar(
-                              radius: 24,
-                              backgroundImage: adopterProfile,
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      height: MediaQuery.of(context).size.height * 0.75,
+      child: Column(
+        children: [
+          // 🔹 Fixed gray drag handle bar
+          Container(
+            height: 7,
+            width: 120,
+            margin: const EdgeInsets.only(top: 8),
+            decoration: BoxDecoration(
+              color: Colors.grey[400],
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              children: [
+                Text(
+                  petApplicants.isNotEmpty
+                      ? '${petApplicants.first['pet_name']}'
+                          .toString()
+                          .toUpperCase()
+                      : '',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 25,
+                    color: Colors.lightBlue, // 🔹 Pet name in light blue
+                  ),
+                ),
+                Text(
+                  '${petApplicants.length} applicants',
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Divider(thickness: 1),
+          SizedBox(height: 8),
+          // 🔹 Scrollable applicant list
+          Expanded(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : petApplicants.isEmpty
+                    ? const Center(child: Text("No applicants yet"))
+                    : ListView.builder(
+                        itemCount: petApplicants.length,
+                        itemBuilder: (context, index) {
+                          final applicant = petApplicants[index];
+
+                          final adopterProfile =
+                              applicant['adopter_profile_decoded'] != null
+                                  ? MemoryImage(
+                                      applicant['adopter_profile_decoded'])
+                                  : const AssetImage('assets/images/logo.png')
+                                      as ImageProvider;
+
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ApplicationDetailsScreen(
+                                    applicationId: applicant['application_id'],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Card(
+                              color: Colors.lightBlue[50],
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              child: ListTile(
+                                leading: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text('${index + 1}.',
+                                        style: GoogleFonts.poppins(
+                                            fontWeight: FontWeight.w500)),
+                                    const SizedBox(width: 8),
+                                    CircleAvatar(
+                                      radius: 24,
+                                      backgroundImage: adopterProfile,
+                                    ),
+                                  ],
+                                ),
+                                title: Text(
+                                  '${applicant['first_name']} ${applicant['last_name']}',
+                                  style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${applicant['address']}',
+                                      style: GoogleFonts.poppins(fontSize: 12),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${applicant['created_at']}',
+                                      style: GoogleFonts.poppins(fontSize: 12),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ],
-                        ),
-                        title: Text(
-                            '${applicant['first_name']} ${applicant['last_name']}',
-                            style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-                        trailing: Icon(Icons.arrow_forward_ios),
+                          );
+                        },
                       ),
-                    ),
-                  );
-                },
-              ),
-  );
-}
+          ),
+        ],
+      ),
+    );
+  }
 }

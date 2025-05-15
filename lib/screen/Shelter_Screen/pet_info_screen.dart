@@ -334,43 +334,44 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                         Card(
-                          margin: const EdgeInsets.symmetric(vertical: 8),
-                          child: ListTile(
-                            leading: const Icon(Icons.pets, size: 32),
-                            title: Text(
-                              'Number of Applicants',
-                              style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text(
-                              '$applicantCount people want to adopt this pet',
-                              style: GoogleFonts.poppins(fontSize: 15),
-                            ),
-                            trailing: ElevatedButton(
-                              onPressed: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.vertical(
-                                        top: Radius.circular(20)),
-                                  ),
-                                  builder: (_) => ApplicantListModal(
-                                      applicants: applicantsList,
-                                      applicationId: widget.petId,
-                                      petId: widget.petId),
-                                );
-                              },
-                              child: const Text("View"),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
+                        //  Card(
+                        //   color: const Color.fromARGB(255, 255, 255, 255),
+                        //   margin: const EdgeInsets.symmetric(vertical: 8),
+                        //   child: ListTile(
+                        //     leading: const Icon(Icons.pets, size: 32),
+                        //     title: Text(
+                        //       'Number of Applicants',
+                        //       style: GoogleFonts.poppins(
+                        //           fontWeight: FontWeight.bold),
+                        //     ),
+                        //     subtitle: Text(
+                        //       '$applicantCount people want to adopt this pet',
+                        //       style: GoogleFonts.poppins(fontSize: 15),
+                        //     ),
+                        //     trailing: ElevatedButton(
+                        //       onPressed: () {
+                        //         showModalBottomSheet(
+                        //           context: context,
+                        //           isScrollControlled: true,
+                        //           shape: const RoundedRectangleBorder(
+                        //             borderRadius: BorderRadius.vertical(
+                        //                 top: Radius.circular(20)),
+                        //           ),
+                        //           builder: (_) => ApplicantListModal(
+                        //               applicants: applicantsList,
+                        //               applicationId: widget.petId,
+                        //               petId: widget.petId),
+                        //         );
+                        //       },
+                        //       child: const Text("View"),
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(height: 10),
                         Stack(
                           children: [
                             Card(
-                              // color: const Color(0xFFE2F3FD),
+                              color: const Color.fromARGB(255, 255, 255, 255),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -501,7 +502,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         ),
                         const SizedBox(height: 10),
                         Card(
-                          // color: const Color(0xFFE2F3FD),
+                          color: const Color.fromARGB(255, 255, 255, 255),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
