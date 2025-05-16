@@ -53,7 +53,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url =
-        'http://127.0.0.1:5566/api/applications/adopter/${widget.adopterId}';
+        'http://127.0.0.1:5566/api/applications/adopter/${widget.applicationId}';
 
     try {
       final response = await http.get(Uri.parse(url), headers: {
@@ -199,13 +199,18 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
   Widget buildStatusBar() {
     final status = applicationStatus?.toLowerCase() ?? "";
 
+    // Define the steps with their completion status
     final steps = [
       {'label': 'Application', 'completed': false},
       {'label': 'Interview', 'completed': false},
-      {'label': 'Approve', 'completed': false},
+      {
+        'label': 'Approval',
+        'completed': false
+      }, // Changed from 'Approve' to 'Approval'
       {'label': 'Completed', 'completed': false},
     ];
 
+    // Update completion status based on application state
     if (status == 'pending') {
       steps[0]['completed'] = true;
     } else if (status == 'interview') {
@@ -221,42 +226,69 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
       }
     }
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: List.generate(steps.length, (index) {
-        final step = steps[index];
-        final isLast = index == steps.length - 1;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Adjust sizes based on available width
+        final double avatarSize = constraints.maxWidth < 400 ? 10 : 12;
+        final double iconSize = constraints.maxWidth < 400 ? 12 : 14;
+        final double lineLength = constraints.maxWidth < 400 ? 20 : 30;
+        final double fontSize = constraints.maxWidth < 00 ? 10 : 11;
 
-        return Row(
-          children: [
-            Column(
-              children: [
-                CircleAvatar(
-                  radius: 12,
-                  backgroundColor:
-                      (step['completed'] as bool) ? Colors.green : Colors.grey,
-                  child: Icon(Icons.check, size: 14, color: Colors.white),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  step['label'] as String,
-                  style: GoogleFonts.poppins(fontSize: 12),
-                ),
-              ],
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: List.generate(steps.length, (index) {
+                final step = steps[index];
+                final isLast = index == steps.length - 1;
+
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircleAvatar(
+                          radius: avatarSize,
+                          backgroundColor: (step['completed'] as bool)
+                              ? Colors.green
+                              : Colors.grey,
+                          child: Icon(Icons.check,
+                              size: iconSize, color: Colors.white),
+                        ),
+                        const SizedBox(height: 4),
+                        SizedBox(
+                          width: 70, // Fixed width for text to prevent overflow
+                          child: Text(
+                            step['label'] as String,
+                            style: GoogleFonts.poppins(
+                              fontSize: fontSize,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (!isLast)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: DottedLine(
+                          direction: Axis.horizontal,
+                          lineLength: lineLength,
+                          lineThickness: 1.5,
+                          dashColor: Colors.black26,
+                        ),
+                      ),
+                  ],
+                );
+              }),
             ),
-            if (!isLast)
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.0),
-                child: DottedLine(
-                  direction: Axis.horizontal,
-                  lineLength: 30,
-                  lineThickness: 2.0,
-                  dashColor: Colors.black26,
-                ),
-              ),
-          ],
+          ),
         );
-      }),
+      },
     );
   }
 
@@ -459,8 +491,8 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                           }
                                         },
                                         child: Container(
-                                          width: 150,
-                                          height: 100,
+                                          width: 300,
+                                          height: 200,
                                           decoration: BoxDecoration(
                                             borderRadius:
                                                 BorderRadius.circular(7),
@@ -533,8 +565,46 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                               'alt_contact_number']),
                                       infoRow('Email',
                                           applicationData!['alt_email']),
-                                      infoRow('ALT ID Type',
+                                      Text(
+                                        'Alt ID',
+                                        style:
+                                            GoogleFonts.poppins(fontSize: 12),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      infoRow('ID Type',
                                           applicationData!['alt_id_type']),
+                                      GestureDetector(
+                                        onTap: () {
+                                          if (applicationData![
+                                                  'alt_valid_id'] !=
+                                              null) {
+                                            showFullScreenImage(
+                                                context,
+                                                applicationData![
+                                                    'alt_valid_id']!);
+                                          }
+                                        },
+                                        child: Container(
+                                          width: 300,
+                                          height: 200,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(7),
+                                            image: DecorationImage(
+                                              fit: BoxFit.cover,
+                                              image: applicationData![
+                                                          'alt_valid_id'] !=
+                                                      null
+                                                  ? MemoryImage(
+                                                      applicationData![
+                                                          'alt_valid_id']!)
+                                                  : const AssetImage(
+                                                          'assets/images/logo.png')
+                                                      as ImageProvider,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -621,11 +691,6 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                 ],
               ),
             ),
-      bottomNavigationBar: UserBottomNavBar(
-        adopterId: widget.adopterId,
-        currentIndex: 1,
-        applicationId: widget.applicationId,
-      ),
     );
   }
 }
