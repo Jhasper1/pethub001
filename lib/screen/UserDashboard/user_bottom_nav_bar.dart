@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'adopted_pet_list_screen.dart';
 import 'user_profile_screen.dart';
 import 'user_home_screen.dart';
 import 'adopted_pets_screen.dart';
@@ -42,7 +43,7 @@ class UserBottomNavBar extends StatelessWidget {
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation1, animation2) =>
-                    ApplicationDetailsScreen(
+                    AdoptedPetListScreen(
                   adopterId: adopterId,
                   applicationId:
                       applicationId, 
