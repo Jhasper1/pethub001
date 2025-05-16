@@ -42,10 +42,9 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
 
         // await TokenStorage.saveToken(token);
         // debugPrint("JWT token saved: $token");
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('auth_token', token);
-
-
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', token);
+        await prefs.setInt('adopter_id', adopterId);
 
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text("Login successful!"),
