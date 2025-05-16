@@ -94,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE2F3FD),
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,7 +122,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                 ),
-            
                 Padding(
                   padding: const EdgeInsets.all(5), // adjust padding as needed
                   child: Row(

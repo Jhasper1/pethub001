@@ -30,7 +30,6 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   void initState() {
     super.initState();
     fetchPetDetails();
-    fetchAndLoadApplicantCount();
   }
 
   Future<void> fetchPetDetails() async {
@@ -213,48 +212,6 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     }
   }
 
-  Future<void> fetchAndLoadApplicantCount() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    final url = Uri.parse(
-        'http://127.0.0.1:5566/api/shelter/count/${widget.petId}/applied'); // for Android emulator
-
-    try {
-      final response = await http.get(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        if (data['retCode'] == '200') {
-          setState(() {
-            applicantCount =
-                data['data']; // This should be 2 in your example response
-          });
-        } else {
-          print('API Error: ${data['Message']}');
-          setState(() {
-            applicantCount = 0;
-          });
-        }
-      } else {
-        print('Server Error: ${response.statusCode}');
-        setState(() {
-          applicantCount = 0;
-        });
-      }
-    } catch (e) {
-      print('Network Error: $e');
-      setState(() {
-        applicantCount = 0;
-      });
-    }
-  }
 
   void showFullScreenImage(BuildContext context, Uint8List imageBytes) {
     showDialog(
@@ -295,6 +252,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+         backgroundColor: Colors.white,
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
@@ -333,45 +291,9 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
-
-                        //  Card(
-                        //   color: const Color.fromARGB(255, 255, 255, 255),
-                        //   margin: const EdgeInsets.symmetric(vertical: 8),
-                        //   child: ListTile(
-                        //     leading: const Icon(Icons.pets, size: 32),
-                        //     title: Text(
-                        //       'Number of Applicants',
-                        //       style: GoogleFonts.poppins(
-                        //           fontWeight: FontWeight.bold),
-                        //     ),
-                        //     subtitle: Text(
-                        //       '$applicantCount people want to adopt this pet',
-                        //       style: GoogleFonts.poppins(fontSize: 15),
-                        //     ),
-                        //     trailing: ElevatedButton(
-                        //       onPressed: () {
-                        //         showModalBottomSheet(
-                        //           context: context,
-                        //           isScrollControlled: true,
-                        //           shape: const RoundedRectangleBorder(
-                        //             borderRadius: BorderRadius.vertical(
-                        //                 top: Radius.circular(20)),
-                        //           ),
-                        //           builder: (_) => ApplicantListModal(
-                        //               applicants: applicantsList,
-                        //               applicationId: widget.petId,
-                        //               petId: widget.petId),
-                        //         );
-                        //       },
-                        //       child: const Text("View"),
-                        //     ),
-                        //   ),
-                        // ),
-                        // const SizedBox(height: 10),
                         Stack(
                           children: [
                             Card(
-                              color: const Color.fromARGB(255, 255, 255, 255),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -502,7 +424,6 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         ),
                         const SizedBox(height: 10),
                         Card(
-                          color: const Color.fromARGB(255, 255, 255, 255),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -593,7 +514,6 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                     const EdgeInsets.symmetric(horizontal: 5.0),
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),

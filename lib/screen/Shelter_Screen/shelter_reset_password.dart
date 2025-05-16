@@ -3,7 +3,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:march24/screen/Shelter_Screen/signin_screen.dart';
-import 'signin_screen.dart'; // Import your sign-in screen
 
 class ShelterResetPasswordScreen extends StatefulWidget {
   final String email;
@@ -20,8 +19,7 @@ class _ShelterResetPasswordScreenState
     extends State<ShelterResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   String _message = '';
   bool _isLoading = false;
   bool _obscureNewPassword = true;

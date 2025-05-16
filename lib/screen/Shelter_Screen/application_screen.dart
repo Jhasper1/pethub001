@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'bottom_nav_bar.dart';
 import 'application_details_screen.dart'; // Import the details screen
 
 class ApplicantsScreen extends StatefulWidget {
@@ -20,11 +20,24 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
   String selectedSort = 'Newest';
   final List<String> sortOptions = ['Newest', 'Oldest', 'A to Z', 'Z to A'];
 
-  String selectedTab = 'Pending';
+  String selectedTab = 'Interview';
   final List<String> tabs =
-      ['Pending', 'Approved', 'Completed', 'Rejected'].toList();
+      ['Interview', 'Passed', 'Adopted', 'Rejected'].toList();
   List<Map<String, dynamic>> applicants = [];
   bool isLoading = false;
+
+  String formatDate(String? rawDate) {
+    if (rawDate == null || rawDate.isEmpty) return 'No date';
+    final dateTime = DateTime.parse(rawDate).toLocal();
+    final formatter = DateFormat('MMM d, y');
+    return formatter.format(dateTime);
+  }
+
+  String formatTime(String? rawTime) {
+    if (rawTime == null || rawTime.isEmpty) return 'No time';
+    final time = DateFormat.Hms().parse(rawTime);
+    return DateFormat.jm().format(time);
+  }
 
   @override
   void initState() {
@@ -52,20 +65,30 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
         },
       );
 
+      print('Status Code: ${response.statusCode}');
       print('Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final decoded = json.decode(response.body);
 
-        if (data is List) {
+        if (decoded != null &&
+            decoded is Map &&
+            decoded.containsKey('data') &&
+            decoded['data'] is Map &&
+            decoded['data'].containsKey('submissions') &&
+            decoded['data']['submissions'] is List) {
+          final List applicationList = decoded['data']['submissions'];
+          print('Fetched ${applicationList.length} applicants');
+
           final updatedApplicants =
-              data.map((app) => _mapApplicant(app)).toList();
+              applicationList.map((app) => _mapApplicant(app)).toList();
 
-// Apply sorting by first name
+          // Sort the applicants list after mapping
           updatedApplicants.sort((a, b) {
-            // Parse the dates using DateTime.parse(), which handles the timezone.
-            DateTime dateA = DateTime.parse(a['created_at']);
-            DateTime dateB = DateTime.parse(b['created_at']);
+            DateTime dateA =
+                DateTime.tryParse(a['created_at']) ?? DateTime(2000);
+            DateTime dateB =
+                DateTime.tryParse(b['created_at']) ?? DateTime(2000);
 
             if (selectedSort == 'A to Z') {
               return a['first_name']
@@ -78,10 +101,8 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                   .toLowerCase()
                   .compareTo(a['first_name'].toString().toLowerCase());
             } else if (selectedSort == 'Newest') {
-              // Sorting by newest (most recent first)
               return dateB.compareTo(dateA);
             } else if (selectedSort == 'Oldest') {
-              // Sorting by oldest (least recent first)
               return dateA.compareTo(dateB);
             } else {
               return 0;
@@ -92,33 +113,23 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
             applicants = updatedApplicants;
             isLoading = false;
           });
-        } else if (data is Map) {
-          if (data.containsKey('data') && data['data'] is List) {
-            final applicationList = data['data'] as List;
-            final updatedApplicants =
-                applicationList.map((app) => _mapApplicant(app)).toList();
-            setState(() {
-              applicants = updatedApplicants;
-              isLoading = false;
-            });
-          } else {
-            setState(() {
-              applicants = [];
-              isLoading = false;
-            });
-          }
         } else {
           setState(() {
             applicants = [];
             isLoading = false;
           });
         }
+      } else if (response.statusCode == 404) {
+        setState(() {
+          applicants = [];
+          isLoading = false;
+        });
       } else {
         setState(() {
           isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load applicants')),
+          const SnackBar(content: Text('Failed to load applicants')),
         );
       }
     } catch (e) {
@@ -131,18 +142,37 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     }
   }
 
-  Map<String, dynamic> _mapApplicant(dynamic app) {
-    return {
-      'application_id': app['application_id'],
-      'first_name': app['first_name'],
-      'last_name': app['last_name'],
-      'adopter_profile': app['adopter_profile'],
-      'pet_name': app['pet_name'],
-      'status': app['status'],
-      'created_at': app['created_at'],
-      'adopter_profile_decoded': _decodeBase64Image(app['adopter_profile']),
-    };
-  }
+Map<String, dynamic> _mapApplicant(dynamic app) {
+  final adopter = app['adopter'] ?? {};
+  final adopterMedia = adopter['adoptermedia'] ?? {};
+  final pet = app['pet'] ?? {};
+  final scheduleInterview = app['scheduleinterview'];
+
+  bool hasInterview = scheduleInterview != null &&
+      scheduleInterview['application_id'] != null;
+
+  return {
+    'application_id': app['application_id']?.toString() ?? '',
+    'first_name': adopter['first_name']?.toString() ?? '',
+    'last_name': adopter['last_name']?.toString() ?? '',
+    'adopter_profile': adopterMedia['adopter_profile']?.toString() ?? '',
+    'pet_name': pet['pet_name']?.toString() ?? '',
+    'status': app['status']?.toString() ?? '',
+    'created_at': app['created_at']?.toString() ?? '',
+    'has_interview': hasInterview,
+    'interview_date': hasInterview
+        ? scheduleInterview['interview_date']?.toString()
+        : null,
+    'interview_time': hasInterview
+        ? scheduleInterview['interview_time']?.toString()
+        : null,
+    'interview_notes': hasInterview
+        ? scheduleInterview['interview_notes']?.toString() ?? ''
+        : '',
+    'adopter_profile_decoded':
+        _decodeBase64Image(adopterMedia['adopter_profile']?.toString()),
+  };
+}
 
   Uint8List? _decodeBase64Image(String? base64String) {
     if (base64String == null || base64String.isEmpty) {
@@ -170,43 +200,23 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      bottomNavigationBar: BottomNavBar(
-        shelterId: widget.shelterId,
-        currentIndex: 3,
+      appBar: AppBar(
+        title: Text('Adoption Applications',
+            style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: fetchApplicants,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Image.asset(
-                      'assets/images/logo.png',
-                      height: 40,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Applications',
-                      style: GoogleFonts.poppins(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.lightBlue),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                        icon: const Icon(Icons.notifications),
-                        onPressed: () {}),
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -223,7 +233,10 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                       value: selectedTab,
                       onChanged: (value) {
                         if (value != null) {
-                          onTabSelected(value);
+                          setState(() {
+                            selectedTab = value;
+                          });
+                          fetchApplicants();
                         }
                       },
                       items: tabs.map((tab) {
@@ -245,8 +258,8 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                         if (value != null) {
                           setState(() {
                             selectedSort = value;
-                            fetchApplicants(); // Re-fetch to apply sorting
                           });
+                          fetchApplicants();
                         }
                       },
                       items: sortOptions.map((option) {
@@ -274,69 +287,90 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                     fontSize: 13, fontWeight: FontWeight.bold),
               ),
             ),
-            isLoading
-                ? Center(child: CircularProgressIndicator())
-                : Expanded(
-                    child: applicants.isEmpty
-                        ? Center(
-                            child: Text('No applications found.',
-                                style: GoogleFonts.poppins()))
-                        : ListView.builder(
-                            itemCount: applicants.length,
-                            itemBuilder: (context, index) {
-                              final applicant = applicants[index];
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ApplicationDetailsScreen(
-                                        applicationId:
-                                            applicant['application_id'],
-                                      ),
+            Expanded(
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : applicants.isEmpty
+                      ? Center(
+                          child: Text('No applications found.',
+                              style: GoogleFonts.poppins()))
+                      : ListView.builder(
+                          itemCount: applicants.length,
+                          itemBuilder: (context, index) {
+                            final applicant = applicants[index];
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ApplicationDetailsScreen(
+                                      applicationId:
+                                          applicant['application_id'],
                                     ),
-                                  );
-                                },
-                                child: Card(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  child: ListTile(
-                                    leading: Row(
-                                      mainAxisSize: MainAxisSize.min,
+                                  ),
+                                );
+                              },
+                              child: Card(
+                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    radius: 24,
+                                    backgroundImage:
+                                        applicant['adopter_profile_decoded'] !=
+                                                null
+                                            ? MemoryImage(applicant[
+                                                'adopter_profile_decoded'])
+                                            : const AssetImage(
+                                                    'assets/images/logo.png')
+                                                as ImageProvider,
+                                  ),
+                                  title: Text(
+                                    '${applicant['first_name']} ${applicant['last_name']}',
+                                    style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  subtitle: Text.rich(
+                                    TextSpan(
+                                      style: GoogleFonts.poppins(fontSize: 12),
                                       children: [
-                                        Text('${index + 1}.',
-                                            style: GoogleFonts.poppins(
-                                                fontWeight: FontWeight.w500)),
-                                        const SizedBox(width: 8),
-                                        CircleAvatar(
-                                          radius: 24,
-                                          backgroundImage: applicant[
-                                                      'adopter_profile_decoded'] !=
-                                                  null
-                                              ? MemoryImage(applicant[
-                                                  'adopter_profile_decoded'])
-                                              : AssetImage(
-                                                      'assets/default_avatar.png')
-                                                  as ImageProvider,
-                                        ),
+                                        TextSpan(
+                                            text:
+                                                'Chosen Pet: ${applicant['pet_name']}\n'),
+                                        if (applicant['has_interview'] &&
+                                            applicant['interview_time'] !=
+                                                null &&
+                                            applicant['interview_date'] !=
+                                                null) ...[
+                                          const TextSpan(
+                                            text: 'Interview: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                            text:
+                                                '\n${formatTime(applicant['interview_time'])} | ${formatDate(applicant['interview_date'])}\n',
+                                          ),
+                                          const TextSpan(
+                                            text: 'Notes: ',
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          TextSpan(
+                                              text:
+                                                  '\n${applicant['interview_notes'] ?? ''}'),
+                                        ] else ...[
+                                          const TextSpan(text: 'No Interview'),
+                                        ],
                                       ],
                                     ),
-                                    title: Text(
-                                        '${applicant['first_name']} ${applicant['last_name']}',
-                                        style: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.bold)),
-                                    subtitle: Text(
-                                        'Chosen Pet: ${applicant['pet_name']}',
-                                        style:
-                                            GoogleFonts.poppins(fontSize: 12)),
-                                    trailing: Icon(Icons.arrow_forward_ios),
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                  ),
+                              ),
+                            );
+                          },
+                        ),
+            ),
           ],
         ),
       ),

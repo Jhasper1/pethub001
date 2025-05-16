@@ -4,27 +4,24 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'application_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'bottom_nav_bar.dart';
 import 'application_details_screen.dart'; // Import the details screen
 
-class ApplicantsScreen2 extends StatefulWidget {
+class PendingApplicantsScreen extends StatefulWidget {
   final int shelterId;
 
-  const ApplicantsScreen2({super.key, required this.shelterId});
+  const PendingApplicantsScreen({super.key, required this.shelterId});
 
   @override
-  State<ApplicantsScreen2> createState() => _ApplicantsScreen2State();
+  State<PendingApplicantsScreen> createState() =>
+      _PendingApplicantsScreenState();
 }
 
-class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
-  List<String> sortOptions = [
-    'Count (High → Low)',
-    'Count (Low → High)',
-    'A-Z',
-    'Z-A'
-  ];
-  String selectedSort = 'Count (High → Low)'; // Default sort
+class _PendingApplicantsScreenState extends State<PendingApplicantsScreen> {
+  List<String> sortOptions = ['Count ↑', 'Count ↓', 'A-Z', 'Z-A'];
+  String selectedSort = 'Count ↑'; // Default sort
   List<Map<String, dynamic>> applicants = [];
   bool isLoading = true;
 
@@ -36,9 +33,9 @@ class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
 
   String getSortKey(String sortLabel) {
     switch (sortLabel) {
-      case 'Count (High → Low)':
+      case 'Count ↑':
         return 'count_desc';
-      case 'Count (Low → High)':
+      case 'Count ↓':
         return 'count_asc';
       case 'A-Z':
         return 'az';
@@ -93,6 +90,7 @@ class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
         loadedApplicants.add({
           'pet_id': petId,
           'pet_name': pet['pet_name'],
+          'status': pet['status'],
           'count': totalCount,
           'petmedia': {'pet_image1': image},
           'application_id': pet['application_id'].toString(),
@@ -131,10 +129,28 @@ class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+       backgroundColor: Colors.white,
       bottomNavigationBar: BottomNavBar(
         shelterId: widget.shelterId,
         currentIndex: 3,
       ),
+     floatingActionButton: FloatingActionButton.extended(
+  backgroundColor: Colors.lightBlue,
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            ApplicantsScreen(shelterId: widget.shelterId),
+      ),
+    );
+  },
+  icon: const Icon(Icons.assignment, color: Colors.white),
+  label: Text('View Applications',
+  style: GoogleFonts.poppins( color: Colors.white,)),
+),
+floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -150,7 +166,7 @@ class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'Applications',
+                      'Adoption Request',
                       style: GoogleFonts.poppins(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -196,14 +212,14 @@ class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
                           value: option,
                           child: Text(option, style: GoogleFonts.poppins()),
                         );
-                        
                       }).toList(),
                       dropdownColor: Colors.white,
                       style: GoogleFonts.poppins(
-                          color: Colors.black, fontSize: 14),
+                          color: Colors.black,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold),
                       icon: const Icon(Icons.sort),
                       underline: Container(height: 2, color: Colors.lightBlue),
-                      
                     ),
                   ],
                 ),
@@ -244,9 +260,8 @@ class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
                                   );
                                 },
                                 child: Card(
-                                      color: Colors.lightBlue[50],
                                   margin:
-                                      const EdgeInsets.symmetric(vertical: 8),
+                                      const EdgeInsets.symmetric(vertical: 5),
                                   child: ListTile(
                                     leading: Row(
                                       mainAxisSize: MainAxisSize.min,
@@ -254,7 +269,7 @@ class _ApplicantsScreen2State extends State<ApplicantsScreen2> {
                                         Text('${index + 1}.',
                                             style: GoogleFonts.poppins(
                                                 fontWeight: FontWeight.w500)),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: 10),
                                         CircleAvatar(
                                           radius: 24,
                                           backgroundImage: applicant['petmedia']
@@ -353,6 +368,8 @@ class _PetApplicantsModalState extends State<PetApplicantsModal> {
       'application_id': app['application_id'],
       'first_name': app['first_name'],
       'last_name': app['last_name'],
+      'email': app['email'],
+      'contact_number': app['contact_number'],
       'address': app['address'],
       'adopter_profile': app['adopter_profile'],
       'adopter_profile_decoded': _decodeBase64Image(app['adopter_profile']),
@@ -422,7 +439,7 @@ class _PetApplicantsModalState extends State<PetApplicantsModal> {
           ),
 
           Divider(thickness: 1),
-          SizedBox(height: 8),
+          SizedBox(height: 5),
           // 🔹 Scrollable applicant list
           Expanded(
             child: isLoading
@@ -454,7 +471,7 @@ class _PetApplicantsModalState extends State<PetApplicantsModal> {
                               );
                             },
                             child: Card(
-                              color: Colors.lightBlue[50],
+                              color: Colors.white,
                               margin: const EdgeInsets.symmetric(vertical: 8),
                               child: ListTile(
                                 leading: Row(
@@ -478,6 +495,16 @@ class _PetApplicantsModalState extends State<PetApplicantsModal> {
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Text(
+                                      '${applicant['contact_number']}',
+                                      style: GoogleFonts.poppins(fontSize: 12),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      '${applicant['email']}',
+                                      style: GoogleFonts.poppins(fontSize: 12),
+                                    ),
+                                    const SizedBox(height: 4),
                                     Text(
                                       '${applicant['address']}',
                                       style: GoogleFonts.poppins(fontSize: 12),

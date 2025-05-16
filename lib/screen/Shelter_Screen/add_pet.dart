@@ -671,6 +671,7 @@ class _AddPetScreenState extends State<AddPetScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       bottomNavigationBar: BottomNavBar(
         shelterId: widget.shelterId,
         currentIndex: 2,

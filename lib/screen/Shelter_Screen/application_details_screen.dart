@@ -638,7 +638,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                   image: imageBytes != null
                                                       ? MemoryImage(imageBytes)
                                                       : const AssetImage(
-                                                              'assets/images/logo.png')
+                                                              'assets/images/noimage2.webp')
                                                           as ImageProvider,
                                                 ),
                                               ),

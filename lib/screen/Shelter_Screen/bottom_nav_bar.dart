@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
-import 'application_screen2.dart';
+import 'pending_adoption_screen.dart';
 import 'profile_screen.dart';
 import 'view_pets.dart';
 import 'add_pet.dart';
@@ -14,6 +14,7 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       type: BottomNavigationBarType.fixed, // Disable slide animation
       selectedItemColor: Colors.lightBlue,
       unselectedItemColor: Colors.grey,
@@ -53,7 +54,7 @@ class BottomNavBar extends StatelessWidget {
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation1, animation2) => ApplicantsScreen2(shelterId: shelterId),
+          pageBuilder: (context, animation1, animation2) => PendingApplicantsScreen(shelterId: shelterId),
           transitionDuration: Duration.zero,
         ),
       );
@@ -91,7 +92,7 @@ class BottomNavBar extends StatelessWidget {
         ),
         const BottomNavigationBarItem(
           icon: Icon(Icons.description, size: 30), // Increase icon size
-          label: 'Applications',
+          label: 'Adoptions',
         ),
         const BottomNavigationBarItem(
           icon: Icon(Icons.account_circle, size: 30), // Increase icon size

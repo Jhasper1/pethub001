@@ -45,7 +45,7 @@ class UserBottomNavBar extends StatelessWidget {
                     ApplicationDetailsScreen(
                   adopterId: adopterId,
                   applicationId:
-                      applicationId, // Provide a default value if null
+                      applicationId, 
                 ),
                 transitionDuration: Duration.zero,
               ),
