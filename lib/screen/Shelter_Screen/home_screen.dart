@@ -15,17 +15,19 @@ class HomeScreen extends StatefulWidget {
 
 class PetStatusCount {
   final int available;
-  final int pending;
+  final int unavailable;
   final int adopted;
 
   PetStatusCount(
-      {required this.available, required this.pending, required this.adopted});
+      {required this.available,
+      required this.unavailable,
+      required this.adopted});
 
   factory PetStatusCount.fromJson(Map<String, dynamic> json) {
     final data = json['data'];
     return PetStatusCount(
       available: data['available'],
-      pending: data['pending'],
+      unavailable: data['unavailable'],
       adopted: data['adopted'],
     );
   }
@@ -45,29 +47,29 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     });
   }
-Future<PetStatusCount?> fetchPetCounts(int shelterId) async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('auth_token');
-  final url = 'http://127.0.0.1:5566/api/shelter/$shelterId/petcount';
 
-  try {
-    final response = await http.get(Uri.parse(url), 
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    });
+  Future<PetStatusCount?> fetchPetCounts(int shelterId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url = 'http://127.0.0.1:5566/api/shelter/$shelterId/petcount';
 
-    if (response.statusCode == 200) {
-      return PetStatusCount.fromJson(jsonDecode(response.body));
-    } else {
-      print('Failed to load pet counts: ${response.statusCode}');
+    try {
+      final response = await http.get(Uri.parse(url), headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
+
+      if (response.statusCode == 200) {
+        return PetStatusCount.fromJson(jsonDecode(response.body));
+      } else {
+        print('Failed to load pet counts: ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print("Error fetching pet counts: $e");
       return null;
     }
-  } catch (e) {
-    print("Error fetching pet counts: $e");
-    return null;
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -109,14 +111,6 @@ Future<PetStatusCount?> fetchPetCounts(int shelterId) async {
                 ),
               ],
             ),
-            // const SizedBox(height: 20),
-            // Text(
-            //   'Welcome, Shelter ID: ${widget.shelterId}',
-            //   style: GoogleFonts.poppins(
-            //     fontSize: 16,
-            //     fontWeight: FontWeight.bold,
-            //   ),
-            // ),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(16),
@@ -171,7 +165,7 @@ Future<PetStatusCount?> fetchPetCounts(int shelterId) async {
                       _buildStatusBox(
                           "Available", _petCounts!.available, Colors.green),
                       _buildStatusBox(
-                          "Pending", _petCounts!.pending, Colors.orange),
+                          "Full", _petCounts!.unavailable, Colors.orange),
                       _buildStatusBox(
                           "Adopted", _petCounts!.adopted, Colors.blue),
                     ],
@@ -186,17 +180,17 @@ Future<PetStatusCount?> fetchPetCounts(int shelterId) async {
     return Expanded(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 5),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: color,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
           children: [
             Text(
               '$count',
               style: const TextStyle(
-                  fontSize: 20,
+                  fontSize: 15,
                   color: Colors.white,
                   fontWeight: FontWeight.bold),
             ),

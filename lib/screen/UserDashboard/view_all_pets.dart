@@ -16,46 +16,63 @@ class ViewAllPetsScreen extends StatefulWidget {
 }
 
 class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
-  bool isLoading = true; // Add this at the top of your state class
-
+  bool isLoading = true;
   List<Map<String, dynamic>> pets = [];
   TextEditingController searchController = TextEditingController();
   String selectedSex = 'All';
   String selectedPetType = 'All';
+  bool priorityStatus = true; // Default to true
 
   Future<void> fetchPets() async {
     final searchQuery = searchController.text;
+    final priorityFilter = priorityStatus
+        .toString(); // Ensure it sends as 'true' or 'false' string
     final sexFilter = selectedSex == 'All' ? '' : selectedSex;
     final typeFilter = selectedPetType == 'All' ? '' : selectedPetType;
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url =
-        'http://127.0.0.1:5566/api/users/pets/search/all?pet_name=$searchQuery&sex=$sexFilter&type=$typeFilter';
+        'http://127.0.0.1:5566/api/users/pets/search/all?pet_name=$searchQuery&priority_status=$priorityFilter&sex=$sexFilter&type=$typeFilter';
+
     try {
       final response = await http.get(Uri.parse(url), headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final petInfoList = data['data']['pets'] as List;
 
-        final updatedPets = petInfoList.map((pet) {
-          return {
-            'pet_id': pet['pet_id'],
-            'pet_name': pet['pet_name'],
-            'priority_status': pet['priority_status'],
-            'pet_image1':
-                pet['pet_image1'] != null && pet['pet_image1'].isNotEmpty
-                    ? _decodeBase64Image(pet['pet_image1'][0])
-                    : null,
-          };
-        }).toList();
+        // Check if 'data' and 'data['pets']' are not null or empty
+        if (data != null &&
+            data['data'] != null &&
+            data['data']['pets'] != null) {
+          final petInfoList = data['data']['pets'] as List;
 
-        setState(() {
-          pets = updatedPets;
-          isLoading = false;
-        });
+          final updatedPets = petInfoList.map((pet) {
+            return {
+              'pet_id': pet['pet_id'],
+              'shelter_id': pet['shelter_id'],
+              'pet_name': pet['pet_name'],
+              'priority_status': pet['priority_status'],
+              'pet_image1':
+                  pet['pet_image1'] != null && pet['pet_image1'].isNotEmpty
+                      ? _decodeBase64Image(pet['pet_image1'][0])
+                      : null,
+            };
+          }).toList();
+
+          setState(() {
+            pets = updatedPets;
+            isLoading = false;
+          });
+        } else {
+          // If the pets data is empty or null
+          setState(() {
+            pets = [];
+            isLoading = false;
+          });
+        }
       } else {
         throw Exception('Failed to load pet data');
       }
@@ -69,11 +86,8 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
   }
 
   Uint8List? _decodeBase64Image(String? base64String) {
-    if (base64String == null || base64String.isEmpty) {
-      return null;
-    }
+    if (base64String == null || base64String.isEmpty) return null;
     try {
-      // Remove data:image/png;base64, or similar prefixes
       final RegExp regex = RegExp(r'data:image/[^;]+;base64,');
       base64String = base64String.replaceAll(regex, '');
       return base64Decode(base64String);
@@ -94,10 +108,12 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
     return Scaffold(
       body: Column(
         children: [
+          // --- TOP FILTERS ---
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
+                // Title
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -120,23 +136,24 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                const SizedBox(height: 20),
+                // Search Bar
                 SizedBox(
-                  height: 35, // smaller height for TextField
+                  height: 35,
                   child: TextField(
                     controller: searchController,
                     onChanged: (value) {
-                      fetchPets(); // Re-fetch when typing
+                      fetchPets();
                     },
                     decoration: InputDecoration(
                       hintText: 'Search pet name...',
                       prefixIcon: const Icon(Icons.search, size: 20),
                       contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
-                const SizedBox(height: 10), // slightly reduced space
+                const SizedBox(height: 10),
+                // Filters Row
                 Row(
                   children: [
                     Expanded(
@@ -148,7 +165,7 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
                               .map((sex) => DropdownMenuItem(
                                     value: sex,
                                     child: Text(sex,
-                                        style: TextStyle(fontSize: 12)),
+                                        style: const TextStyle(fontSize: 12)),
                                   ))
                               .toList(),
                           onChanged: (value) {
@@ -160,9 +177,9 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
                           decoration: InputDecoration(
                             labelText: 'Sex',
                             labelStyle: GoogleFonts.poppins(fontSize: 12),
-                            contentPadding: EdgeInsets.symmetric(
+                            contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 8),
-                            border: OutlineInputBorder(),
+                            border: const OutlineInputBorder(),
                           ),
                         ),
                       ),
@@ -177,7 +194,7 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
                               .map((type) => DropdownMenuItem(
                                     value: type,
                                     child: Text(type,
-                                        style: TextStyle(fontSize: 12)),
+                                        style: const TextStyle(fontSize: 12)),
                                   ))
                               .toList(),
                           onChanged: (value) {
@@ -196,11 +213,28 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 5),
+                    // Priority Toggle
+                    Row(
+                      children: [
+                        const Text("Priority"),
+                        Switch(
+                          value: priorityStatus,
+                          onChanged: (bool value) {
+                            setState(() {
+                              priorityStatus = value;
+                            });
+                            fetchPets();
+                          },
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ],
             ),
           ),
+          // --- PET GRID LIST ---
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -235,20 +269,18 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
   Widget _buildPetCard(Map<String, dynamic> pet) {
     return GestureDetector(
       onTap: () async {
-        // Navigate to the pet details screen and pass the pet_id
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => UserPetDetailsScreen(
               petId: pet['pet_id'],
               adopterId: widget.adopterId,
+              shelterId: pet['shelter_id'],
             ),
           ),
         );
-
         if (result == true) {
-          // Reload the list after pet is archived or updated
-          fetchPets(); // Replace this with your actual method to refresh the list
+          fetchPets();
         }
       },
       child: Card(
@@ -273,15 +305,14 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
                               fit: BoxFit.cover,
                             ),
                       Container(
-                        color: Colors.black
-                            .withOpacity(0.4), // adjust opacity here
+                        color: Colors.black.withOpacity(0.4),
                       ),
                     ],
                   ),
                 )
               ],
             ),
-            // Pet name at bottom-left
+            // Pet name
             Positioned(
               bottom: 8,
               left: 8,
@@ -301,7 +332,7 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
                 ),
               ),
             ),
-            // Star icon at top-right
+            // Star icon
             Positioned(
               top: 8,
               right: 8,
@@ -317,4 +348,3 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
     );
   }
 }
-

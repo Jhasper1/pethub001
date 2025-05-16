@@ -18,6 +18,8 @@ class PetDetailsScreen extends StatefulWidget {
 }
 
 class _PetDetailsScreenState extends State<PetDetailsScreen> {
+  int applicantCount = 0;
+  List<Map<String, dynamic>> applicantsList = [];
   Map<String, dynamic>? petData;
   bool isLoading = true;
   String errorMessage = '';
@@ -28,57 +30,57 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   void initState() {
     super.initState();
     fetchPetDetails();
+    fetchAndLoadApplicantCount();
   }
 
   Future<void> fetchPetDetails() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-    final url =
-        'http://127.0.0.1:5566/api/shelter/${widget.petId}/petinfo'; // Adjusted URL to use petId
+    final url = 'http://127.0.0.1:5566/api/shelter/${widget.petId}/petinfo';
     try {
-      final response = await http.get(Uri.parse(url), headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      });
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        print("API Response: $data"); // Debugging
+        final body = json.decode(response.body);
+        print("Full response body: $body"); // Debugging
 
-        final petDataResponse =
-            data['data']['pet']; // Adjusted to fetch the 'pet' object
+        if (body is Map<String, dynamic> && body['data'] != null) {
+          final data = body['data'];
 
-        setState(() {
-          petData = {
-            'pet_id': petDataResponse['pet_id'],
-            'shelter_id': petDataResponse['shelter_id'],
-            'pet_name': petDataResponse['pet_name'],
-            'pet_type': petDataResponse['pet_type'],
-            'pet_descriptions': petDataResponse['pet_descriptions'],
-            'pet_sex': petDataResponse['pet_sex'],
-            'pet_age': petDataResponse['pet_age'],
-            'pet_size': petDataResponse['pet_size'],
-            'age_type': petDataResponse['age_type'],
-            'priority_status': petDataResponse['priority_status'],
-            'pet_image1': petDataResponse['petmedia'] != null &&
-                    petDataResponse['petmedia']['pet_image1'] != null
-                ? base64Decode(petDataResponse['petmedia']['pet_image1'])
-                : null,
-            'pet_vaccine': petDataResponse['petmedia'] != null &&
-                    petDataResponse['petmedia']['pet_vaccine'] != null
-                ? base64Decode(petDataResponse['petmedia']['pet_vaccine'])
-                : null,
-          };
-          isLoading = false;
-        });
+          // Decode base64 image if exists
+          if (data['petmedia'] != null &&
+              data['petmedia']['pet_image1'] != null &&
+              data['petmedia']['pet_image1'] is String) {
+            data['petmedia']['pet_image1'] =
+                base64Decode(data['petmedia']['pet_image1']);
+          }
+
+          if (data['petmedia'] != null &&
+              data['petmedia']['pet_vaccine'] != null &&
+              data['petmedia']['pet_vaccine'] is String) {
+            data['petmedia']['pet_vaccine'] =
+                base64Decode(data['petmedia']['pet_vaccine']);
+          }
+
+          setState(() {
+            isLoading = false;
+            petData = data;
+          });
+        } else {
+          print("Invalid response format or 'Data' is null.");
+        }
       } else {
-        throw Exception('Failed to load pet data');
+        print(
+            "Failed to load shelter info. Status code: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error fetching pet data: $e");
-      setState(() {
-        errorMessage = "Error fetching pet data.";
-        isLoading = false;
-      });
+      print("Error fetching shelter info: $e");
     }
   }
 
@@ -120,6 +122,49 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
       print("Error archiving pet: $e");
       setState(() {
         errorMessage = "Error archiving pet.";
+      });
+    }
+  }
+
+  Future<void> unarchivePets() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url =
+        'http://127.0.0.1:5566/api/shelter/${widget.petId}/unarchive-pet'; // Adjusted URL to use petId
+    try {
+      final response = await http.put(Uri.parse(url), headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print("API Response: $data"); // Debugging
+
+        if (data['retCode'] == '200') {
+          // Handle success
+          Navigator.pop(context, true);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Pet moved to unarchive successfully.')),
+          );
+          // Return true to indicate success
+        } else {
+          // Handle failure
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Failed to unarchive pet.')),
+          );
+
+          setState(() {
+            errorMessage = "Failed to unarchive pet.";
+          });
+        }
+      } else {
+        throw Exception('Failed to unarchive pet');
+      }
+    } catch (e) {
+      print("Error unarchiving pet: $e");
+      setState(() {
+        errorMessage = "Error unarchiving pet.";
       });
     }
   }
@@ -168,6 +213,49 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     }
   }
 
+  Future<void> fetchAndLoadApplicantCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url = Uri.parse(
+        'http://127.0.0.1:5566/api/shelter/count/${widget.petId}/applied'); // for Android emulator
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data['retCode'] == '200') {
+          setState(() {
+            applicantCount =
+                data['data']; // This should be 2 in your example response
+          });
+        } else {
+          print('API Error: ${data['Message']}');
+          setState(() {
+            applicantCount = 0;
+          });
+        }
+      } else {
+        print('Server Error: ${response.statusCode}');
+        setState(() {
+          applicantCount = 0;
+        });
+      }
+    } catch (e) {
+      print('Network Error: $e');
+      setState(() {
+        applicantCount = 0;
+      });
+    }
+  }
+
   void showFullScreenImage(BuildContext context, Uint8List imageBytes) {
     showDialog(
       context: context,
@@ -207,17 +295,6 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE2F3FD),
-      appBar: AppBar(
-        title: Text(
-          'Pet Profile',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.lightBlue,
-        elevation: 0,
-        centerTitle: false,
-        automaticallyImplyLeading: false,
-      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
@@ -227,9 +304,74 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Image.asset(
+                                  'assets/images/logo.png',
+                                  height: 40,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  'Pet Information',
+                                  style: GoogleFonts.poppins(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.lightBlue),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                IconButton(
+                                    icon: const Icon(Icons.notifications),
+                                    onPressed: () {}),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        //  Card(
+                        //   color: const Color.fromARGB(255, 255, 255, 255),
+                        //   margin: const EdgeInsets.symmetric(vertical: 8),
+                        //   child: ListTile(
+                        //     leading: const Icon(Icons.pets, size: 32),
+                        //     title: Text(
+                        //       'Number of Applicants',
+                        //       style: GoogleFonts.poppins(
+                        //           fontWeight: FontWeight.bold),
+                        //     ),
+                        //     subtitle: Text(
+                        //       '$applicantCount people want to adopt this pet',
+                        //       style: GoogleFonts.poppins(fontSize: 15),
+                        //     ),
+                        //     trailing: ElevatedButton(
+                        //       onPressed: () {
+                        //         showModalBottomSheet(
+                        //           context: context,
+                        //           isScrollControlled: true,
+                        //           shape: const RoundedRectangleBorder(
+                        //             borderRadius: BorderRadius.vertical(
+                        //                 top: Radius.circular(20)),
+                        //           ),
+                        //           builder: (_) => ApplicantListModal(
+                        //               applicants: applicantsList,
+                        //               applicationId: widget.petId,
+                        //               petId: widget.petId),
+                        //         );
+                        //       },
+                        //       child: const Text("View"),
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(height: 10),
                         Stack(
                           children: [
                             Card(
+                              color: const Color.fromARGB(255, 255, 255, 255),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -245,10 +387,14 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                           CircleAvatar(
                                             radius: 75,
                                             backgroundImage: petData?[
-                                                        'pet_image1'] !=
-                                                    null
+                                                            'petmedia'] !=
+                                                        null &&
+                                                    petData!['petmedia']
+                                                            ['pet_image1'] !=
+                                                        null
                                                 ? MemoryImage(
-                                                    petData!['pet_image1'])
+                                                    petData!['petmedia']
+                                                        ['pet_image1'])
                                                 : const AssetImage(
                                                         'assets/images/logo.png')
                                                     as ImageProvider,
@@ -291,7 +437,6 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                     Text(
                                       petData?['pet_descriptions'] ??
                                           'No description available.',
-                                      // textAlign: TextAlign.justify,
                                       style: GoogleFonts.poppins(
                                           height: 1.5, fontSize: 13),
                                     ),
@@ -357,6 +502,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         ),
                         const SizedBox(height: 10),
                         Card(
+                          color: const Color.fromARGB(255, 255, 255, 255),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -373,17 +519,21 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                 const SizedBox(height: 10),
                                 GestureDetector(
                                   onTap: () {
-                                    if (petData?['pet_vaccine'] != null) {
+                                    if (petData?['petmedia']?['pet_vaccine'] !=
+                                        null) {
                                       showFullScreenImage(
-                                          context, petData!['pet_vaccine']);
+                                        context,
+                                        petData!['petmedia']['pet_vaccine'],
+                                      );
                                     }
                                   },
                                   child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(
-                                        8), // Rounded corners
-                                    child: petData?['pet_vaccine'] != null
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: petData?['petmedia']
+                                                ?['pet_vaccine'] !=
+                                            null
                                         ? Image.memory(
-                                            petData!['pet_vaccine'],
+                                            petData!['petmedia']['pet_vaccine'],
                                             height: 150,
                                             width: double.infinity,
                                             fit: BoxFit.cover,
@@ -401,83 +551,144 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           ),
                         ),
                         SizedBox(height: 10),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orangeAccent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              minimumSize: const Size(double.infinity, 50),
-                            ),
-                            onPressed: () async {
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EditPetScreen(
-                                    petId: widget.petId,
-                                    shelterId: widget.shelterId,
+                        petData?['status'] == 'available'
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 5.0),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orangeAccent,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    minimumSize:
+                                        const Size(double.infinity, 50),
+                                  ),
+                                  onPressed: () async {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => EditPetScreen(
+                                          petId: widget.petId,
+                                          shelterId: widget.shelterId,
+                                        ),
+                                      ),
+                                    );
+                                    if (result == true) {
+                                      fetchPetDetails();
+                                    }
+                                  },
+                                  child: Text(
+                                    'Edit Pet Profile',
+                                    style: GoogleFonts.poppins(
+                                        color: Colors.white, fontSize: 16),
                                   ),
                                 ),
-                              );
-                              if (result == true) {
-                                fetchPetDetails();
-                              }
-                            },
-                            child: Text(
-                              'Edit Pet Profile',
-                              style: GoogleFonts.poppins(
-                                  color: Colors.white, fontSize: 16),
-                            ),
-                          ),
-                        ),
+                              )
+                            : const SizedBox(),
                         const SizedBox(height: 10),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 5.0),
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              minimumSize: const Size(double.infinity, 50),
-                            ),
-                            onPressed: () async {
-                              final confirm = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  content: const Text(
-                                      "Are you sure you want to move this pet to archive?"),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(false),
-                                      child: const Text("No"),
+                        petData?['status'] == 'available'
+                            ? Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 5.0),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.pop(context, true),
-                                      child: const Text(
-                                        "Yes",
-                                        style: TextStyle(color: Colors.red),
+                                    minimumSize:
+                                        const Size(double.infinity, 50),
+                                  ),
+                                  onPressed: () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        content: const Text(
+                                            "Are you sure you want to move this pet to archive?"),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context)
+                                                    .pop(false),
+                                            child: const Text("No"),
+                                          ),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
+                                            child: const Text(
+                                              "Yes",
+                                              style:
+                                                  TextStyle(color: Colors.red),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+
+                                    if (confirm == true) {
+                                      await archivePets(); // your function to archive
+                                    }
+                                  },
+                                  child: Text(
+                                    'Move to Archive',
+                                    style: GoogleFonts.poppins(
+                                        color: Colors.red, fontSize: 16),
+                                  ),
+                                ),
+                              )
+                            : petData?['status'] == 'archived'
+                                ? Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5.0),
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        minimumSize:
+                                            const Size(double.infinity, 50),
+                                      ),
+                                      onPressed: () async {
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            content: const Text(
+                                                "Are you sure you want to unarchive this pet?"),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.of(context)
+                                                        .pop(false),
+                                                child: const Text("No"),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(
+                                                    context, true),
+                                                child: const Text(
+                                                  "Yes",
+                                                  style: TextStyle(
+                                                      color: Colors.green),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (confirm == true) {
+                                          await unarchivePets(); // your function to unarchive
+                                        }
+                                      },
+                                      child: Text(
+                                        'Unarchive Pet',
+                                        style: GoogleFonts.poppins(
+                                            color: Colors.green, fontSize: 16),
                                       ),
                                     ),
-                                  ],
-                                ),
-                              );
-
-                              if (confirm == true) {
-                                await archivePets();
-                              }
-                            },
-                            child: Text(
-                              'Move to Archive',
-                              style: GoogleFonts.poppins(
-                                  color: Colors.red, fontSize: 16),
-                            ),
-                          ),
-                        ),
+                                  )
+                                : const SizedBox(), // No button if status is neither "available" nor "archived"
                       ],
                     ),
                   ),
@@ -495,6 +706,63 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
           style: GoogleFonts.poppins(),
         ),
       ],
+    );
+  }
+}
+
+class ApplicantListModal extends StatelessWidget {
+  final int applicationId;
+  final int petId;
+  final List<Map<String, dynamic>> applicants;
+
+  const ApplicantListModal({super.key, required this.applicants, required this.applicationId, required this.petId});
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.8,
+      builder: (_, controller) => Container(
+        padding: const EdgeInsets.all(16),
+        child: ListView.builder(
+          controller: controller,
+          itemCount: applicants.length,
+          itemBuilder: (context, index) {
+            final applicant = applicants[index];
+            return Card(
+              margin: const EdgeInsets.symmetric(vertical: 8),
+              child: ListTile(
+                leading: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${index + 1}.',
+                        style:
+                            GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                    const SizedBox(width: 8),
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundImage: applicant['adopter_profile_decoded'] !=
+                              null
+                          ? MemoryImage(applicant['adopter_profile_decoded'])
+                          : const AssetImage('assets/default_avatar.png')
+                              as ImageProvider,
+                    ),
+                  ],
+                ),
+                title: Text(
+                  '${applicant['first_name']} ${applicant['last_name']}',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  'Chosen Pet: ${applicant['pet_name']}',
+                  style: GoogleFonts.poppins(fontSize: 12),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }

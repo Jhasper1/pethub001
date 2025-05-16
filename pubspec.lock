@@ -89,6 +89,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.8"
+  dotted_line:
+    dependency: "direct main"
+    description:
+      name: dotted_line
+      sha256: "41e3d655939559815daa1370fc1e07673a205fa628cf40ce3af45d90029a77b6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.3"
   fake_async:
     dependency: transitive
     description:
@@ -117,10 +125,10 @@ packages:
     dependency: "direct main"
     description:
       name: file_picker
-      sha256: dd51fd20fdc45e073529c102376d54deba3e120603fe711c848ce44575b838e6
+      sha256: "77f8e81d22d2a07d0dee2c62e1dda71dc1da73bf43bb2d45af09727406167964"
       url: "https://pub.dev"
     source: hosted
-    version: "10.1.8"
+    version: "10.1.9"
   file_selector_linux:
     dependency: transitive
     description:

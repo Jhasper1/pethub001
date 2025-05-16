@@ -8,17 +8,20 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'shelter_clicked.dart';
+import 'adopted_pets_screen.dart';
 
 class AdoptionForm extends StatefulWidget {
   final int petId;
   final int adopterId;
   final int shelterId;
+  final int applicationId;
 
   AdoptionForm(
       {super.key,
       required this.petId,
       required this.adopterId,
-      required this.shelterId});
+      required this.shelterId,
+      required this.applicationId});
 
   @override
   _AdoptionFormState createState() => _AdoptionFormState();
@@ -73,6 +76,20 @@ class _AdoptionFormState extends State<AdoptionForm> {
 
   // Image controllers for base64 encoding (will be implemented later)
   final List<String> images = List.generate(8, (index) => "");
+
+  // Define a list of ID types
+  final List<String> idTypes = [
+    'Driver\'s License',
+    'Passport',
+    'National ID',
+    'Voter\'s ID',
+    'SSS ID',
+    'Other',
+  ];
+
+  // Variable to store selected ID type
+  String? selectedAdopterIDType;
+  String? selectedAltIDType;
 
   @override
   void initState() {
@@ -143,13 +160,23 @@ class _AdoptionFormState extends State<AdoptionForm> {
   }
 
   Future<void> _submitAdoptionForm() async {
+    // Debug print to verify IDs
+    print('Submitting adoption with:');
+    print('- Shelter ID: ${widget.shelterId}');
+    print('- Pet ID: ${widget.petId}');
+    print('- Adopter ID: ${widget.adopterId}');
+    print('= Application ID: &{widget.applicationId}');
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
-    // Check if the form is valid
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all required fields")),
+      );
+      return;
+    }
 
-    // Ensure that the token is not null
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Authorization token is missing")),
@@ -157,7 +184,6 @@ class _AdoptionFormState extends State<AdoptionForm> {
       return;
     }
 
-    // Ensure that the images are not null before proceeding
     if (_adopterValidIDBytes == null || _altValidIDBytes == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please upload both valid IDs")),
@@ -165,103 +191,107 @@ class _AdoptionFormState extends State<AdoptionForm> {
       return;
     }
 
-    var uri = Uri.parse(
-      'http://127.0.0.1:5566/api/adopter/${widget.shelterId}/${widget.petId}/${widget.adopterId}/adoption',
-    );
-    var request = http.MultipartRequest('POST', uri);
-
-    request.headers['Authorization'] = 'Bearer $token';
-
-    // Form fields
-    request.fields.addAll({
-      'alt_f_name': _altFNameController.text,
-      'alt_l_name': _altLNameController.text,
-      'relationship': _relationshipController.text,
-      'alt_contact_number': _altContactNumberController.text,
-      'alt_email': _altEmailController.text,
-      'reason_for_adoption': _reasonController.text,
-      'ideal_pet_description': _idealPetDescController.text,
-      'housing_situation': _housingSituationController.text,
-      'pets_at_home': _petsAtHomeController.text,
-      'allergies': _allergiesController.text,
-      'family_support': _familySupportController.text,
-      'past_pets': _pastPetsController.text,
-      'interview_setting': _interviewSettingController.text,
-      'adopter_id_type': _adopterIDType.text,
-      'alt_id_type': _altIDType.text,
-    });
-
-    request.files.add(http.MultipartFile.fromBytes(
-      'adopter_valid_id',
-      _adopterValidIDBytes!,
-      filename: 'adopter_id.jpg',
-    ));
-
-    request.files.add(http.MultipartFile.fromBytes(
-      'alt_valid_id',
-      _altValidIDBytes!,
-      filename: 'alt_id.jpg',
-    ));
-
-    print('Picked Adopter ID Bytes: ${_adopterValidIDBytes?.length}');
-    print('Picked Alt ID Bytes: ${_altValidIDBytes?.length}');
-
-    // Add home images (with null checks for each image)
+    // Verify all home images are uploaded
     for (int i = 0; i < _homeImages.length; i++) {
-      final file = _homeImages[i];
-      if (file != null) {
-        request.files.add(http.MultipartFile.fromBytes(
-          'home_image${i + 1}',
-          await file.readAsBytes(),
-          filename: 'home_image${i + 1}.jpg',
-        ));
-      } else {
+      if (_homeImages[i] == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Home image ${i + 1} is missing")),
+          SnackBar(content: Text("Please upload image for ${labels[i]}")),
         );
         return;
       }
     }
 
     try {
+      var uri = Uri.parse(
+        'http://127.0.0.1:5566/api/adopter/${widget.shelterId}/${widget.petId}/${widget.adopterId}/adoption',
+      );
+
+      print('Final API URL: ${uri.toString()}');
+
+      var request = http.MultipartRequest('POST', uri);
+      request.headers['Authorization'] = 'Bearer $token';
+
+      // Add form fields
+      request.fields.addAll({
+        'alt_f_name': _altFNameController.text,
+        'alt_l_name': _altLNameController.text,
+        'relationship': _relationshipController.text,
+        'alt_contact_number': _altContactNumberController.text,
+        'alt_email': _altEmailController.text,
+        'reason_for_adoption': _reasonController.text,
+        'ideal_pet_description': _idealPetDescController.text,
+        'housing_situation': _housingSituationController.text,
+        'pets_at_home': _petsAtHomeController.text,
+        'allergies': _allergiesController.text,
+        'family_support': _familySupportController.text,
+        'past_pets': _pastPetsController.text,
+        'interview_setting': _interviewSettingController.text,
+        'adopter_id_type': selectedAdopterIDType ?? '',
+        'alt_id_type': selectedAltIDType ?? '',
+      });
+
+      // Add ID images
+      request.files.add(http.MultipartFile.fromBytes(
+        'adopter_valid_id',
+        _adopterValidIDBytes!,
+        filename: 'adopter_id.jpg',
+      ));
+
+      request.files.add(http.MultipartFile.fromBytes(
+        'alt_valid_id',
+        _altValidIDBytes!,
+        filename: 'alt_id.jpg',
+      ));
+
+      // Add home images
+      for (int i = 0; i < _homeImages.length; i++) {
+        final file = _homeImages[i]!;
+        request.files.add(http.MultipartFile.fromBytes(
+          'home_image${i + 1}',
+          await file.readAsBytes(),
+          filename: 'home_image${i + 1}.jpg',
+        ));
+      }
+
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        print('Success response: $responseData');
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Adoption submitted successfully")),
         );
-        _formKey.currentState!.reset();
-        setState(() => _currentStep = 0);
 
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => ShelterDetailsScreen(
-              shelterId: widget.shelterId,
-              adopterId: widget.adopterId,
-            ),
+            builder: (_) {
+              print(
+                  'Navigating to ApplicationDetailsScreen with applicationId: ${widget.applicationId}');
+              return ApplicationDetailsScreen(
+                applicationId: widget.applicationId,
+                adopterId: widget.adopterId,
+              );
+            },
           ),
         );
       } else {
+        print('Error response: ${response.body}');
         String message = "Failed to submit adoption";
         try {
           final body = jsonDecode(response.body);
-          if (body['message'] != null) message = body['message'];
+          message = body['message'] ?? message;
         } catch (_) {}
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(message)),
         );
       }
     } catch (e) {
-      String errorMessage = 'Something went wrong';
-      if (e is http.ClientException) {
-        errorMessage = 'Network error: Unable to connect';
-      } else if (e is TimeoutException) {
-        errorMessage = 'Request timed out';
-      }
+      print('Exception during submission: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage)),
+        SnackBar(content: Text('Submission error: ${e.toString()}')),
       );
     }
   }
@@ -484,12 +514,23 @@ class _AdoptionFormState extends State<AdoptionForm> {
               decoration: InputDecoration(labelText: 'Social Media'),
             ),
             SizedBox(height: 16),
-            TextFormField(
-              controller: _altIDType,
+            DropdownButtonFormField<String>(
+              value: selectedAdopterIDType,
               decoration: InputDecoration(labelText: 'Type of ID'),
+              items: idTypes.map((String idType) {
+                return DropdownMenuItem<String>(
+                  value: idType,
+                  child: Text(idType),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  selectedAdopterIDType = newValue;
+                });
+              },
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Please input ID type';
+                  return 'Please select an ID type';
                 }
                 return null;
               },
@@ -560,12 +601,23 @@ class _AdoptionFormState extends State<AdoptionForm> {
             },
           ),
           SizedBox(height: 16),
-          TextFormField(
-            controller: _adopterIDType,
+          DropdownButtonFormField<String>(
+            value: selectedAltIDType,
             decoration: InputDecoration(labelText: 'Type of ID'),
+            items: idTypes.map((String idType) {
+              return DropdownMenuItem<String>(
+                value: idType,
+                child: Text(idType),
+              );
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                selectedAltIDType = newValue;
+              });
+            },
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'Please input ID type';
+                return 'Please select an ID type';
               }
               return null;
             },
@@ -750,3 +802,4 @@ class _AdoptionFormState extends State<AdoptionForm> {
     );
   }
 }
+

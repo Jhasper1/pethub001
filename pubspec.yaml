@@ -50,6 +50,7 @@ dependencies:
   path: ^1.8.0
   cached_network_image: ^3.4.1
   google_fonts: ^6.2.1
+  dotted_line: ^3.2.3
 
 dev_dependencies:
   flutter_test:

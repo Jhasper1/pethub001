@@ -20,7 +20,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
   Map<String, dynamic>? petData;
   Map<String, dynamic>? adopterData;
   Map<String, dynamic>? applicationData;
-
+  bool isExpanded = false;
   bool isLoading = true;
 
   @override
@@ -226,9 +226,12 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-            backgroundColor: const Color(0xFFE2F3FD),
+      backgroundColor: const Color.fromARGB(255, 203, 237, 253),
       appBar: AppBar(
-          title: Text('Application Details')),
+        title: Text('Application Details',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        centerTitle: false,
+      ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : (petData == null && adopterData == null)
@@ -356,10 +359,6 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                 const SizedBox(height: 20),
                                                 Divider(thickness: 2),
                                                 const SizedBox(height: 10),
-                                                Text('Adopter ID',
-                                                    style: GoogleFonts.poppins(
-                                                        fontSize: 12)),
-                                                const SizedBox(height: 8),
                                                 _infoRow(
                                                     'ID Type',
                                                     applicationData![
@@ -376,8 +375,8 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                     }
                                                   },
                                                   child: Container(
-                                                    width: 150,
-                                                    height: 100,
+                                                    width: 250,
+                                                    height: 150,
                                                     decoration: BoxDecoration(
                                                       borderRadius:
                                                           BorderRadius.circular(
@@ -397,6 +396,9 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                     ),
                                                   ),
                                                 ),
+                                                Text('Adopter ID',
+                                                    style: GoogleFonts.poppins(
+                                                        fontSize: 12)),
                                               ],
                                             ),
                                           )
@@ -494,13 +496,6 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                   children: [
                                                     Column(
                                                       children: [
-                                                        Text('Alt Contact ID',
-                                                            style: GoogleFonts
-                                                                .poppins(
-                                                                    fontSize:
-                                                                        12)),
-                                                        const SizedBox(
-                                                            height: 8),
                                                         GestureDetector(
                                                           onTap: () {
                                                             if (applicationData![
@@ -513,8 +508,8 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                             }
                                                           },
                                                           child: Container(
-                                                            width: 150,
-                                                            height: 100,
+                                                            width: 250,
+                                                            height: 150,
                                                             decoration:
                                                                 BoxDecoration(
                                                               borderRadius:
@@ -538,6 +533,13 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                                             ),
                                                           ),
                                                         ),
+                                                        const SizedBox(
+                                                            height: 8),
+                                                        Text('Alt Contact ID',
+                                                            style: GoogleFonts
+                                                                .poppins(
+                                                                    fontSize:
+                                                                        12)),
                                                       ],
                                                     ),
                                                   ],
@@ -558,124 +560,262 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                       SizedBox(height: 15),
                       Card(
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                            borderRadius: BorderRadius.circular(10)),
                         child: Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(16),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                "Home Images",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    isExpanded = !isExpanded;
+                                  });
+                                },
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Home Images",
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Icon(
+                                      isExpanded
+                                          ? Icons.keyboard_arrow_up
+                                          : Icons.keyboard_arrow_down,
+                                    ),
+                                  ],
                                 ),
                               ),
-                              SizedBox(height: 10),
-                              GridView.builder(
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                itemCount: 8,
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  crossAxisSpacing: 10,
-                                  mainAxisSpacing: 10,
-                                  childAspectRatio: 0.9,
-                                ),
-                                itemBuilder: (context, index) {
-                                  final imageKey = 'home_image_${index + 1}';
-                                  final imageBytes = applicationData?[imageKey];
+                              const SizedBox(height: 10),
+                              AnimatedCrossFade(
+                                duration: const Duration(milliseconds: 300),
+                                firstChild: const SizedBox.shrink(),
+                                secondChild: GridView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: 8,
+                                  gridDelegate:
+                                      const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 2,
+                                    crossAxisSpacing: 10,
+                                    mainAxisSpacing: 10,
+                                    childAspectRatio: 0.9,
+                                  ),
+                                  itemBuilder: (context, index) {
+                                    final imageKey = 'home_image_${index + 1}';
+                                    final imageBytes =
+                                        applicationData?[imageKey];
 
-                                  return GestureDetector(
-                                    onTap: () {
-                                      if (imageBytes != null) {
-                                        showFullScreenImage(
-                                            context, imageBytes);
-                                      }
-                                    },
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Container(
-                                            width: double.infinity,
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              image: DecorationImage(
-                                                fit: BoxFit.cover,
-                                                image: imageBytes != null
-                                                    ? MemoryImage(imageBytes)
-                                                    : AssetImage(
-                                                            'assets/images/logo.png')
-                                                        as ImageProvider,
+                                    return GestureDetector(
+                                      onTap: () {
+                                        if (imageBytes != null) {
+                                          showFullScreenImage(
+                                              context, imageBytes);
+                                        }
+                                      },
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            homeImageLabels[index],
+                                            style: GoogleFonts.poppins(
+                                                fontSize: 12),
+                                          ),
+                                          const SizedBox(height: 5),
+                                          Expanded(
+                                            child: Container(
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                image: DecorationImage(
+                                                  fit: BoxFit.cover,
+                                                  image: imageBytes != null
+                                                      ? MemoryImage(imageBytes)
+                                                      : const AssetImage(
+                                                              'assets/images/logo.png')
+                                                          as ImageProvider,
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                        SizedBox(height: 5),
-                                        Text(
-                                          homeImageLabels[index],
-                                          style:
-                                              GoogleFonts.poppins(fontSize: 12),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
+                                          const SizedBox(height: 5),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                                crossFadeState: isExpanded
+                                    ? CrossFadeState.showSecond
+                                    : CrossFadeState.showFirst,
                               ),
                             ],
                           ),
                         ),
                       ),
-                      SizedBox(height: 15),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.redAccent,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                minimumSize: const Size(double.infinity, 50),
-                              ),
-                              onPressed: () {
-                                // Reject logic here
-                                print("Application Rejected");
-                              },
-                              child: Text('Reject',
-                                  style:
-                                      GoogleFonts.poppins(color: Colors.white)),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                minimumSize: const Size(double.infinity, 50),
-                              ),
-                              onPressed: () {
-                                // Approve logic here
-                                print("Application Approved");
-                              },
-                              child: Text('Approve',
-                                  style:
-                                      GoogleFonts.poppins(color: Colors.white)),
-                            ),
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  minimumSize: const Size(double.infinity, 50),
+                  alignment: Alignment.center, // Center the text
+                ),
+                onPressed: () {
+                  InterviewRejectHelper.showRejectModal(context);
+                },
+                child: Text('Reject',
+                    style: GoogleFonts.poppins(color: Colors.white)),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  minimumSize: const Size(double.infinity, 50),
+                  alignment: Alignment.center, // Center the text
+                ),
+                onPressed: () {
+                  InterviewRejectHelper.showInterviewDateModal(context);
+                },
+                child: Text('Set Interview Date',
+                    style: GoogleFonts.poppins(color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
+  }
+}
+
+class InterviewRejectHelper {
+  static Future<void> showInterviewDateModal(BuildContext context) async {
+    DateTime now = DateTime.now();
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: now,
+      lastDate: DateTime(now.year + 1),
+    );
+
+    if (pickedDate != null) {
+      TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.now(),
+      );
+
+      if (pickedTime != null) {
+        DateTime selectedDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+
+        bool confirm = await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Confirm Interview Date"),
+            content: Text(
+                "Set interview date and time to:\n${selectedDateTime.toString()}"),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text("Cancel"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text("Confirm"),
+              ),
+            ],
+          ),
+        );
+
+        if (confirm == true) {
+          print("Interview date set to $selectedDateTime");
+          // Your further logic here
+        }
+      }
+    }
+  }
+
+  static Future<void> showRejectModal(BuildContext context) async {
+    bool causeChecked = false;
+    TextEditingController rejectDescriptionController = TextEditingController();
+
+    bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: Text("Reject Application"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Checkbox(
+                      value: causeChecked,
+                      onChanged: (val) {
+                        setState(() {
+                          causeChecked = val ?? false;
+                        });
+                      },
+                    ),
+                    Expanded(child: Text("Cause of rejection")),
+                  ],
+                ),
+                TextField(
+                  controller: rejectDescriptionController,
+                  decoration: InputDecoration(
+                    labelText: "Description",
+                  ),
+                  maxLines: 3,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text("Cancel"),
+              ),
+              TextButton(
+                onPressed:
+                    causeChecked ? () => Navigator.pop(context, true) : null,
+                child: Text("Confirm"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      print(
+          "Application rejected. Cause: $causeChecked, Description: ${rejectDescriptionController.text}");
+      // Your rejection logic here
+    }
+
+    rejectDescriptionController.dispose();
   }
 }

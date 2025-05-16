@@ -86,6 +86,193 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
     }
   }
 
+  void _showReportModal(BuildContext context) {
+    String? selectedReason;
+    final TextEditingController descriptionController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible:
+          true, // Allows the user to dismiss the dialog by tapping outside
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                width: MediaQuery.of(context).size.width *
+                    0.9, // Set the width to 90% of the screen
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Report Shelter",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Reason for Report:",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Column(
+                      children: [
+                        RadioListTile<String>(
+                          title: const Text("Inappropriate Content"),
+                          value: "Inappropriate Content",
+                          groupValue: selectedReason,
+                          onChanged: (value) {
+                            setModalState(() {
+                              selectedReason = value;
+                            });
+                          },
+                        ),
+                        RadioListTile<String>(
+                          title: const Text("Fraudulent Activity"),
+                          value: "Fraudulent Activity",
+                          groupValue: selectedReason,
+                          onChanged: (value) {
+                            setModalState(() {
+                              selectedReason = value;
+                            });
+                          },
+                        ),
+                        RadioListTile<String>(
+                          title: const Text("Animal Abuse"),
+                          value: "Animal Abuse",
+                          groupValue: selectedReason,
+                          onChanged: (value) {
+                            setModalState(() {
+                              selectedReason = value;
+                            });
+                          },
+                        ),
+                        RadioListTile<String>(
+                          title: const Text("Other"),
+                          value: "Other",
+                          groupValue: selectedReason,
+                          onChanged: (value) {
+                            setModalState(() {
+                              selectedReason = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Description:",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: descriptionController,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: "Provide additional details...",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context); // Close the dialog
+                          },
+                          child: const Text("Cancel"),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            if (selectedReason != null &&
+                                descriptionController.text.isNotEmpty) {
+                              // Call the backend API to submit the report
+                              await _submitReport(
+                                context,
+                                selectedReason!,
+                                descriptionController.text,
+                              );
+                            } else {
+                              // Show an error if the form is incomplete
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      "Please select a reason and provide a description."),
+                                ),
+                              );
+                            }
+                          },
+                          child: const Text("Submit"),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _submitReport(
+      BuildContext context, String reason, String description) async {
+    final url =
+        'http://127.0.0.1:5566/api/reports/shelter/${widget.shelterId}/adopter/${widget.adopterId}';
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+        body: jsonEncode({
+          "reason": reason,
+          "description": description,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final responseData = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                responseData['message'] ?? "Report submitted successfully"),
+          ),
+        );
+        Navigator.pop(context); // Close the dialog
+      } else {
+        final responseData = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseData['message'] ?? "Failed to submit report"),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("An error occurred: $e"),
+        ),
+      );
+    }
+  }
+
+  @override
   Widget _buildShelterInfo() {
     if (shelter == null) return const Text("Shelter data not available");
 
@@ -131,6 +318,19 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
                           fit: BoxFit.cover,
                         )
                       : null,
+                ),
+              ),
+            ),
+            // Add the flag icon for reporting
+            Positioned(
+              top: 16,
+              right: 16,
+              child: GestureDetector(
+                onTap: () => _showReportModal(context),
+                child: const Icon(
+                  Icons.flag,
+                  color: Colors.red,
+                  size: 28,
                 ),
               ),
             ),
@@ -206,6 +406,7 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
                 builder: (context) => UserPetDetailsScreen(
                   petId: pet['pet_id'],
                   adopterId: widget.adopterId,
+                  shelterId: widget.shelterId,
                 ),
               ),
             );
@@ -336,3 +537,4 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
     );
   }
 }
+

@@ -27,6 +27,9 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
   final TextEditingController addressController = TextEditingController();
   final TextEditingController contactController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController occupationController = TextEditingController();
+  final TextEditingController civilStatusController = TextEditingController();
+  final TextEditingController socialMediaController = TextEditingController();
 
   Future<void> pickImage(String type) async {
     final ImagePicker picker = ImagePicker();
@@ -36,7 +39,7 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
     if (pickedFile != null) {
       final bytes = await pickedFile.readAsBytes();
       setState(() {
-        if (type == 'profile') {
+        if (type == 'adopter_profile') {
           profileImageFile = pickedFile;
           profileImageBytes = bytes;
         }
@@ -62,15 +65,14 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
       });
 
       if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
-        final data = responseBody['data'];
+        final body = json.decode(response.body);
+        print("Full response body: $body"); // Debugging
 
-        if (data != null && data is Map) {
+        if (body is Map<String, dynamic> && body['data'] != null) {
+          final data = body['data'];
+
           setState(() {
-            adopterInfo = {
-              ...?data['info'],
-              ...?data['media'],
-            };
+            adopterInfo = data;
 
             // Initialize controllers with current values
             firstNameController.text = adopterInfo!['first_name'] ?? '';
@@ -79,10 +81,16 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
             contactController.text =
                 adopterInfo!['contact_number']?.toString() ?? '';
             emailController.text = adopterInfo!['email'] ?? '';
+            occupationController.text = adopterInfo!['occupation'] ?? '';
+            civilStatusController.text = adopterInfo!['civil_status'] ?? '';
+            socialMediaController.text = adopterInfo!['social_media'] ?? '';
 
             // Decode base64-encoded images
-            if (adopterInfo!['adopter_profile'] != null) {
-              profileImageBytes = base64Decode(adopterInfo!['adopter_profile']);
+            if (data['adoptermedia'] != null &&
+                data['adoptermedia']['adopter_profile'] != null &&
+                data['adoptermedia']['adopter_profile'] is String) {
+              profileImageBytes =
+                  base64Decode(data['adoptermedia']['adopter_profile']);
             }
 
             isLoading = false;
@@ -112,73 +120,57 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
     );
   }
 
-  Future<void> updateAdopterDetails() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    final String apiUrl =
-        'http://127.0.0.1:5566/api/users/${widget.adopterId}/update-info';
-    final String mediaApiUrl =
-        'http://127.0.0.1:5566/api/users/${widget.adopterId}/upload-media';
+Future<void> updateAdopterInfo() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('auth_token');
 
-    try {
-      // Update text fields
-      final updateData = {
-        "first_name": firstNameController.text,
-        "last_name": lastNameController.text,
-        "address": addressController.text,
-        "contact_number": contactController.text,
-        "email": emailController.text,
-      };
+  final url = 'http://127.0.0.1:5566/api/adopter/${widget.adopterId}/edit';
+  final request = http.MultipartRequest('POST', Uri.parse(url));
+  request.headers['Authorization'] = 'Bearer $token';
 
-      final response = await http.put(
-        Uri.parse(apiUrl),
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer $token",
-        },
-        body: jsonEncode(updateData),
-      );
+  // Add text form fields
+  request.fields['first_name'] = firstNameController.text;
+  request.fields['last_name'] = lastNameController.text;
+  request.fields['address'] = addressController.text;
+  request.fields['contact_number'] = contactController.text;
+  request.fields['email'] = emailController.text;
+  request.fields['occupation'] = occupationController.text;
+  request.fields['civil_status'] = civilStatusController.text;
+  request.fields['social_media'] = socialMediaController.text;
 
-      if (response.statusCode == 200) {
-        // Upload media files if they are changed
-        if (profileImageFile != null) {
-          final mediaRequest =
-              http.MultipartRequest('POST', Uri.parse(mediaApiUrl));
-          final profileBytes = await profileImageFile!.readAsBytes();
-          final profileExtension =
-              profileImageFile!.path.split('.').last.toLowerCase();
-          final profileFileName =
-              'profile_${widget.adopterId}.$profileExtension';
+  // Add profile image if selected
+  if (profileImageFile != null) {
+    final bytes = await profileImageFile!.readAsBytes();
+    final extension = profileImageFile!.path.split('.').last;
+    final fileName = 'profile_${widget.adopterId}.$extension';
 
-          mediaRequest.files.add(http.MultipartFile.fromBytes(
-            'adopter_profile',
-            profileBytes,
-            filename: profileFileName,
-            contentType: MediaType('image', profileExtension),
-          ));
-
-          final mediaResponse = await mediaRequest.send();
-
-          if (mediaResponse.statusCode != 200) {
-            throw Exception('Failed to upload profile image');
-          }
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Profile updated successfully!")),
-        );
-        Navigator.pop(context, true);
-      } else {
-        final errorMessage =
-            jsonDecode(response.body)["message"] ?? "Failed to update profile";
-        throw Exception(errorMessage);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.toString()}")),
-      );
-    }
+    request.files.add(http.MultipartFile.fromBytes(
+      'adopter_profile',
+      bytes,
+      filename: fileName,
+      contentType: MediaType('image', extension),
+    ));
   }
+
+  try {
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profile updated successfully!")),
+      );
+      Navigator.pop(context, true);
+    } else {
+      final respStr = await response.stream.bytesToString();
+      final decoded = jsonDecode(respStr);
+      throw Exception(decoded['message'] ?? 'Update failed');
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Error: ${e.toString()}")),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -208,16 +200,13 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
               child: Padding(
                 padding: const EdgeInsets.only(top: 20),
                 child: GestureDetector(
-                  onTap: () => pickImage('profile'),
+                  onTap: () => pickImage('adopter_profile'),
                   child: CircleAvatar(
                     radius: 50,
                     backgroundImage: profileImageBytes != null
                         ? MemoryImage(profileImageBytes!)
-                        : (adopterInfo!['adopter_profile'] != null
-                            ? MemoryImage(
-                                base64Decode(adopterInfo!['adopter_profile']))
-                            : const AssetImage(
-                                'assets/images/logo.png')) as ImageProvider,
+                        : const AssetImage('assets/images/logo.png')
+                            as ImageProvider,
                     child: const Align(
                       alignment: Alignment.bottomRight,
                       child: CircleAvatar(
@@ -275,9 +264,33 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
                     decoration: _inputDecoration('Enter email'),
                     keyboardType: TextInputType.emailAddress,
                   ),
+                  const SizedBox(height: 10),
+                  const Text('Occupation',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  TextFormField(
+                    controller: occupationController,
+                    decoration: _inputDecoration('Enter occupation'),
+                    keyboardType: TextInputType.text,
+                  ),
+                  const SizedBox(height: 10),
+                   const Text('Civil Status',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  TextFormField(
+                    controller: civilStatusController,
+                    decoration: _inputDecoration('Enter your Civil Status'),
+                    keyboardType: TextInputType.text,
+                  ),
+                  const SizedBox(height: 10),
+                   const Text('Social Media Account',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  TextFormField(
+                    controller: socialMediaController,
+                    decoration: _inputDecoration('Enter your Social Media Account'),
+                    keyboardType: TextInputType.text,
+                  ),
                   const SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: updateAdopterDetails,
+                    onPressed: updateAdopterInfo,
                     style: ElevatedButton.styleFrom(
                       minimumSize: const Size(double.infinity, 50),
                       backgroundColor: Colors.blueAccent,

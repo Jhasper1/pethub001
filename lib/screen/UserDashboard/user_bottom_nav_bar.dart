@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'user_profile_screen.dart';
-import 'package:march24/screen/UserDashboard/user_home_screen.dart';
-import 'package:march24/screen/UserDashboard/adopted_pets_screen.dart';
+import 'user_home_screen.dart';
+import 'adopted_pets_screen.dart';
 
 class UserBottomNavBar extends StatelessWidget {
-  final int adopterId;
+  final int adopterId; // Default value for applicationId
   final int currentIndex;
+  final int applicationId; // Optional applicationId
 
-  const UserBottomNavBar(
-      {Key? key, required this.adopterId, required this.currentIndex})
-      : super(key: key);
+  const UserBottomNavBar({
+    super.key,
+    required this.adopterId,
+    required this.currentIndex,
+    required this.applicationId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -38,8 +42,11 @@ class UserBottomNavBar extends StatelessWidget {
               context,
               PageRouteBuilder(
                 pageBuilder: (context, animation1, animation2) =>
-                    AdoptedPetsScreen(
-                        adopterId: adopterId), // Pass adopterId here
+                    ApplicationDetailsScreen(
+                  adopterId: adopterId,
+                  applicationId:
+                      applicationId, // Provide a default value if null
+                ),
                 transitionDuration: Duration.zero,
               ),
             );

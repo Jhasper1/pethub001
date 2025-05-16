@@ -72,6 +72,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         bottomNavigationBar: UserBottomNavBar(
           adopterId: widget.adopterId,
           currentIndex: 2,
+          applicationId: 0,
         ),
       );
     }
@@ -173,6 +174,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       const Divider(height: 20, thickness: 0.5),
                       _infoRow(Icons.email,
                           adopterInfo!['email'] ?? 'No information'),
+                      const Divider(height: 20, thickness: 0.5),
+                      _infoRow(Icons.work,
+                          adopterInfo!['occupation'] ?? 'No information'),
+                      const Divider(height: 20, thickness: 0.5),
+                      _infoRow(Icons.favorite,
+                          adopterInfo!['civil_status'] ?? 'No information'),
+                      const Divider(height: 20, thickness: 0.5),
+                      _infoRow(Icons.public, adopterInfo!['social_media'] ?? 'No information'),
                     ],
                   ),
                 ),
@@ -290,6 +299,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       bottomNavigationBar: UserBottomNavBar(
         adopterId: widget.adopterId,
         currentIndex: 2,
+        applicationId: 0,
       ),
     );
   }

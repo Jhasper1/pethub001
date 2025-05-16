@@ -176,6 +176,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       bottomNavigationBar: UserBottomNavBar(
         adopterId: widget.adopterId,
         currentIndex: 0,
+        applicationId: 0,
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -311,6 +312,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                       builder: (_) => UserPetDetailsScreen(
                         petId: pet['pet_id'],
                         adopterId: widget.adopterId,
+                        shelterId: pet['shelter_id'],
                       ),
                     ),
                   ),

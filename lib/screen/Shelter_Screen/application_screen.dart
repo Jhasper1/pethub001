@@ -17,6 +17,9 @@ class ApplicantsScreen extends StatefulWidget {
 }
 
 class _ApplicantsScreenState extends State<ApplicantsScreen> {
+  String selectedSort = 'Newest';
+  final List<String> sortOptions = ['Newest', 'Oldest', 'A to Z', 'Z to A'];
+
   String selectedTab = 'Pending';
   final List<String> tabs =
       ['Pending', 'Approved', 'Completed', 'Rejected'].toList();
@@ -57,6 +60,34 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
         if (data is List) {
           final updatedApplicants =
               data.map((app) => _mapApplicant(app)).toList();
+
+// Apply sorting by first name
+          updatedApplicants.sort((a, b) {
+            // Parse the dates using DateTime.parse(), which handles the timezone.
+            DateTime dateA = DateTime.parse(a['created_at']);
+            DateTime dateB = DateTime.parse(b['created_at']);
+
+            if (selectedSort == 'A to Z') {
+              return a['first_name']
+                  .toString()
+                  .toLowerCase()
+                  .compareTo(b['first_name'].toString().toLowerCase());
+            } else if (selectedSort == 'Z to A') {
+              return b['first_name']
+                  .toString()
+                  .toLowerCase()
+                  .compareTo(a['first_name'].toString().toLowerCase());
+            } else if (selectedSort == 'Newest') {
+              // Sorting by newest (most recent first)
+              return dateB.compareTo(dateA);
+            } else if (selectedSort == 'Oldest') {
+              // Sorting by oldest (least recent first)
+              return dateA.compareTo(dateB);
+            } else {
+              return 0;
+            }
+          });
+
           setState(() {
             applicants = updatedApplicants;
             isLoading = false;
@@ -108,6 +139,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
       'adopter_profile': app['adopter_profile'],
       'pet_name': app['pet_name'],
       'status': app['status'],
+      'created_at': app['created_at'],
       'adopter_profile_decoded': _decodeBase64Image(app['adopter_profile']),
     };
   }
@@ -137,6 +169,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       bottomNavigationBar: BottomNavBar(
         shelterId: widget.shelterId,
         currentIndex: 3,
@@ -174,31 +207,63 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
               ],
             ),
             SizedBox(height: 15),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: BouncingScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 5),
-                child: Row(
-                  children: tabs.map((tab) {
-                    final isSelected = tab == selectedTab;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8.0),
-                      child: ElevatedButton(
-                        onPressed: () => onTabSelected(tab),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isSelected
-                              ? Colors.lightBlue
-                              : Colors.grey.shade200,
-                          foregroundColor:
-                              isSelected ? Colors.white : Colors.black,
-                        ),
-                        child: Text(tab),
-                      ),
-                    );
-                  }).toList(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total: ${applicants.length}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
+                Row(
+                  children: [
+                    DropdownButton<String>(
+                      value: selectedTab,
+                      onChanged: (value) {
+                        if (value != null) {
+                          onTabSelected(value);
+                        }
+                      },
+                      items: tabs.map((tab) {
+                        return DropdownMenuItem(
+                          value: tab,
+                          child: Text(tab, style: GoogleFonts.poppins()),
+                        );
+                      }).toList(),
+                      dropdownColor: Colors.white,
+                      style: GoogleFonts.poppins(
+                          color: Colors.black, fontSize: 14),
+                      icon: const Icon(Icons.arrow_drop_down),
+                      underline: Container(height: 2, color: Colors.lightBlue),
+                    ),
+                    const SizedBox(width: 10),
+                    DropdownButton<String>(
+                      value: selectedSort,
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            selectedSort = value;
+                            fetchApplicants(); // Re-fetch to apply sorting
+                          });
+                        }
+                      },
+                      items: sortOptions.map((option) {
+                        return DropdownMenuItem(
+                          value: option,
+                          child: Text(option, style: GoogleFonts.poppins()),
+                        );
+                      }).toList(),
+                      dropdownColor: Colors.white,
+                      style: GoogleFonts.poppins(
+                          color: Colors.black, fontSize: 14),
+                      icon: const Icon(Icons.sort),
+                      underline: Container(height: 2, color: Colors.lightBlue),
+                    ),
+                  ],
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             Align(
@@ -237,16 +302,25 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                   margin:
                                       const EdgeInsets.symmetric(vertical: 8),
                                   child: ListTile(
-                                    leading: CircleAvatar(
-                                      radius: 24,
-                                      backgroundImage: applicant[
-                                                  'adopter_profile_decoded'] !=
-                                              null
-                                          ? MemoryImage(applicant[
-                                              'adopter_profile_decoded'])
-                                          : AssetImage(
-                                                  'assets/default_avatar.png')
-                                              as ImageProvider,
+                                    leading: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text('${index + 1}.',
+                                            style: GoogleFonts.poppins(
+                                                fontWeight: FontWeight.w500)),
+                                        const SizedBox(width: 8),
+                                        CircleAvatar(
+                                          radius: 24,
+                                          backgroundImage: applicant[
+                                                      'adopter_profile_decoded'] !=
+                                                  null
+                                              ? MemoryImage(applicant[
+                                                  'adopter_profile_decoded'])
+                                              : AssetImage(
+                                                      'assets/default_avatar.png')
+                                                  as ImageProvider,
+                                        ),
+                                      ],
                                     ),
                                     title: Text(
                                         '${applicant['first_name']} ${applicant['last_name']}',

@@ -334,20 +334,20 @@ class _AddPetScreenState extends State<AddPetScreen>
             label,
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
-          SizedBox(height: 4),
+          SizedBox(height: 6),
           Container(
-            width: double.infinity,
+            width: double.infinity, // makes it stretch to parent width
             padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade300),
             ),
             child: Text(
               value,
               style: TextStyle(fontSize: isDescription ? 14 : 16),
             ),
           ),
-          SizedBox(height: 10),
         ],
       ),
     );
@@ -414,7 +414,7 @@ class _AddPetScreenState extends State<AddPetScreen>
                   color: Colors.grey[600],
                   fontStyle: FontStyle.italic),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -426,7 +426,7 @@ class _AddPetScreenState extends State<AddPetScreen>
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   ),
                 ),
-                SizedBox(width: 5),
+                SizedBox(width: 15),
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     decoration: _buildTextFieldDecoration('Age Type'),
@@ -450,7 +450,7 @@ class _AddPetScreenState extends State<AddPetScreen>
                   color: Colors.grey[600],
                   fontStyle: FontStyle.italic),
             ),
-            SizedBox(height: 5),
+            SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
@@ -468,7 +468,7 @@ class _AddPetScreenState extends State<AddPetScreen>
                     ],
                   ),
                 ),
-                SizedBox(width: 5),
+                SizedBox(width: 15),
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     decoration: _buildTextFieldDecoration('Pet Sex'),
@@ -537,50 +537,110 @@ class _AddPetScreenState extends State<AddPetScreen>
         );
 
       case 3:
-        return Column(
-          children: [
-            SizedBox(height: 20),
-            Text(
-              'Review Pet Information',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            if (_imageBytes != null)
-              CircleAvatar(
-                radius: 70,
-                backgroundImage: MemoryImage(_imageBytes!),
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                'Review Pet Information',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-            SizedBox(height: 20),
-            _buildReviewItem('Pet Type', _selectedPetType ?? 'Not specified'),
-            _buildReviewItem('Name', _nameController.text),
-            _buildReviewItem('Size', _sizeController.text),
-            _buildReviewItem(
-                'Age', '${_ageController.text} ${_selectedAgeType ?? ''}'),
-            _buildReviewItem('Sex', _selectedSex ?? 'Not specified'),
-            _buildReviewItem('Description', _descriptionController.text,
-                isDescription: true),
-            if (_petVaccineBytes != null)
-              Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: MemoryImage(_petVaccineBytes!),
-                    fit: BoxFit.cover,
+              SizedBox(height: 20),
+              if (_imageBytes != null)
+                CircleAvatar(
+                  radius: 70,
+                  backgroundImage: MemoryImage(_imageBytes!),
+                ),
+              SizedBox(height: 12),
+              Text(
+                _nameController.text,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: _buildReviewItem(
+                      'Pet Type',
+                      _selectedPetType ?? 'Not specified',
+                    ),
                   ),
-                  borderRadius:
-                      BorderRadius.circular(8), // optional: for slight rounding
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: _buildReviewItem(
+                      'Sex',
+                      _selectedSex ?? 'Not specified',
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: _buildReviewItem(
+                      'Age',
+                      '${_ageController.text} ${_selectedAgeType ?? ''}',
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: _buildReviewItem(
+                      'Size',
+                      '${_sizeController.text} KG',
+                    ),
+                  ),
+                ],
+              ),
+              _buildReviewItem(
+                'Description',
+                _descriptionController.text,
+                isDescription: true,
+              ),
+              if (_petVaccineBytes != null)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Vaccine Proof',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      height: 160,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        image: DecorationImage(
+                          image: MemoryImage(_petVaccineBytes!),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                  ],
+                ),
+              _buildReviewItem(
+                'Priority Status',
+                _priorityStatus ? 'Yes' : 'No',
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Please review all pet information before submitting.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
                 ),
               ),
-            _buildReviewItem('Priority Status', _priorityStatus ? 'Yes' : 'No'),
-            SizedBox(height: 20),
-            Text(
-              'Please review all pet information before submitting',
-              style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-            ),
-            SizedBox(height: 20),
-          ],
+              SizedBox(height: 10),
+            ],
+          ),
         );
+
       default:
         return Container();
     }
