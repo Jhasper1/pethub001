@@ -8,7 +8,7 @@ import 'user_bottom_nav_bar.dart';
 import 'package:march24/screen/UserDashboard/view_all_pets.dart';
 import 'package:march24/screen/UserDashboard/view_all_shelter.dart';
 import 'package:march24/screen/UserDashboard/pet_clicked.dart';
-import 'package:march24/screen/Shelter_Screen/shelter_notification.dart';
+import 'package:march24/screen/UserDashboard/adopter_notification.dart';
 
 class UserHomeScreen extends StatefulWidget {
   final int adopterId;
@@ -24,11 +24,42 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   List<Map<String, dynamic>> shelters = [];
   bool isLoading = true;
   String errorMessage = '';
+  bool _hasUnseenNotifications = false;
 
   @override
   void initState() {
     super.initState();
     fetchPetsAndShelters();
+    _checkForUnseenNotifications();
+  }
+
+  Future<void> _checkForUnseenNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final adopterId = widget.adopterId;
+
+    if (token == null || adopterId == null) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://127.0.0.1:5566/api/adopter/$adopterId/notifications'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json",
+        },
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['notifications'] is List && data['notifications'].isNotEmpty) {
+          setState(() {
+            _hasUnseenNotifications = true;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error checking notifications: $e');
+    }
   }
 
   Future<void> fetchPetsAndShelters() async {
@@ -38,17 +69,15 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     const String shelterApiUrl = 'http://127.0.0.1:5566/api/allshelter';
 
     try {
-      final petResponse = await http.get(Uri.parse(petApiUrl),
-      headers: {
+      final petResponse = await http.get(Uri.parse(petApiUrl), headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-      final shelterResponse = await http.get(Uri.parse(shelterApiUrl),
-      headers: {
+      final shelterResponse =
+          await http.get(Uri.parse(shelterApiUrl), headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
-
 
       print("Pet API Response: ${petResponse.body}");
       print("Shelter API Response: ${shelterResponse.body}");
@@ -105,15 +134,43 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             icon: const Icon(Icons.search, color: Colors.white),
             onPressed: () {},
           ),
-          IconButton(
-            icon: const Icon(Icons.notifications, color: Colors.white),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => ShelterNotificationScreen()),
-              );
-            },
-          )
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications, color: Colors.white),
+                onPressed: () {
+                  // Mark notifications as seen when clicked
+                  setState(() {
+                    _hasUnseenNotifications = false;
+                  });
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => AdopterNotificationScreen()),
+                  ).then((_) {
+                    // Check for new notifications when returning from notification screen
+                    _checkForUnseenNotifications();
+                  });
+                },
+              ),
+              if (_hasUnseenNotifications)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: Colors.orange,
+                      borderRadius: BorderRadius.circular(6),
+                      border:
+                          Border.all(color: Colors.blue.shade700, width: 1.5),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ],
       ),
       bottomNavigationBar: UserBottomNavBar(
