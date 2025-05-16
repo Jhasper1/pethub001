@@ -199,40 +199,45 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
   Widget buildStatusBar() {
     final status = applicationStatus?.toLowerCase() ?? "";
 
-    // Define the steps with their completion status
+    // Define the steps and their base states
     final steps = [
-      {'label': 'Application', 'completed': false},
-      {'label': 'Interview', 'completed': false},
-      {
-        'label': 'Approval',
-        'completed': false
-      }, // Changed from 'Approve' to 'Approval'
-      {'label': 'Completed', 'completed': false},
+      {'label': 'Application', 'status': 'application', 'state': 'default'},
+      {'label': 'Interview', 'status': 'interview', 'state': 'default'},
+      {'label': 'Approval', 'status': 'approved', 'state': 'default'},
+      {'label': 'Completed', 'status': 'completed', 'state': 'default'},
     ];
 
-    // Update completion status based on application state
-    if (status == 'pending') {
-      steps[0]['completed'] = true;
-    } else if (status == 'interview') {
-      steps[0]['completed'] = true;
-      steps[1]['completed'] = true;
-    } else if (status == 'approved') {
-      steps[0]['completed'] = true;
-      steps[1]['completed'] = true;
-      steps[2]['completed'] = true;
-    } else if (status == 'completed') {
-      for (var step in steps) {
-        step['completed'] = true;
+    // Assign visual state: 'completed', 'current', 'default', or 'rejected'
+    for (int i = 0; i < steps.length; i++) {
+      final stepStatus = steps[i]['status'] as String;
+
+      if (status == 'rejected') {
+        if (stepStatus == 'application') {
+          steps[i]['state'] = 'rejected';
+        }
+      } else if (status == 'pending' && stepStatus == 'application') {
+        steps[i]['state'] = 'completed';
+      } else if (status == 'interview') {
+        if (stepStatus == 'application') steps[i]['state'] = 'completed';
+        if (stepStatus == 'interview') steps[i]['state'] = 'current';
+      } else if (status == 'approved') {
+        if (stepStatus == 'application' ||
+            stepStatus == 'interview' ||
+            stepStatus == 'approved') {
+          steps[i]['state'] = 'completed';
+        }
+        if (stepStatus == 'completed') steps[i]['state'] = 'current';
+      } else if (status == 'completed') {
+        steps[i]['state'] = 'completed';
       }
     }
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Adjust sizes based on available width
         final double avatarSize = constraints.maxWidth < 400 ? 10 : 12;
         final double iconSize = constraints.maxWidth < 400 ? 12 : 14;
         final double lineLength = constraints.maxWidth < 400 ? 20 : 30;
-        final double fontSize = constraints.maxWidth < 00 ? 10 : 11;
+        final double fontSize = constraints.maxWidth < 400 ? 10 : 11;
 
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -243,6 +248,32 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
               children: List.generate(steps.length, (index) {
                 final step = steps[index];
                 final isLast = index == steps.length - 1;
+                final state = step['state'];
+
+                Color bgColor;
+                Widget icon;
+
+                switch (state) {
+                  case 'completed':
+                    bgColor = Colors.green;
+                    icon =
+                        Icon(Icons.check, size: iconSize, color: Colors.white);
+                    break;
+                  case 'current':
+                    bgColor = Colors.orange;
+                    icon =
+                        Icon(Icons.circle, size: iconSize, color: Colors.white);
+                    break;
+                  case 'rejected':
+                    bgColor = Colors.red;
+                    icon =
+                        Icon(Icons.close, size: iconSize, color: Colors.white);
+                    break;
+                  default:
+                    bgColor = Colors.grey;
+                    icon =
+                        Icon(Icons.circle, size: iconSize, color: Colors.white);
+                }
 
                 return Row(
                   mainAxisSize: MainAxisSize.min,
@@ -252,15 +283,12 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                       children: [
                         CircleAvatar(
                           radius: avatarSize,
-                          backgroundColor: (step['completed'] as bool)
-                              ? Colors.green
-                              : Colors.grey,
-                          child: Icon(Icons.check,
-                              size: iconSize, color: Colors.white),
+                          backgroundColor: bgColor,
+                          child: icon,
                         ),
                         const SizedBox(height: 4),
                         SizedBox(
-                          width: 70, // Fixed width for text to prevent overflow
+                          width: 70,
                           child: Text(
                             step['label'] as String,
                             style: GoogleFonts.poppins(
