@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pet_info_screen.dart';
+import 'pending_adoption_screen.dart';
 
 class ApplicationDetailsScreen extends StatefulWidget {
   final int applicationId;
@@ -97,6 +98,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
           };
 
           applicationData = {
+            'shelter_id': info['shelter_id'] ?? 'No Available Data',
             'alt_f_name': info?['alt_f_name'] ?? 'No Available Data',
             'alt_l_name': info?['alt_l_name'] ?? 'No Available Data',
             'relationship': info?['relationship'] ?? 'No Available Data',
@@ -117,6 +119,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                 info?['interview_setting'] ?? 'No Available Data',
             'adopter_id_type':
                 photos?['adopter_id_type'] ?? 'No Available Data',
+            'status': info?['status'],
             'adopter_valid_id':
                 _decodeBase64Image(photos?['adopter_valid_id'] ?? ''),
             'alt_id_type': photos?['alt_id_type'] ?? 'No Available Data',
@@ -226,10 +229,12 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 203, 237, 253),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Application Details',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+        title: Text('Adoption Details',
+            style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: Colors.lightBlue,
         centerTitle: false,
       ),
       body: isLoading
@@ -576,7 +581,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "Home Images",
+                                      "House Photos",
                                       style: GoogleFonts.poppins(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -676,30 +681,54 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                   alignment: Alignment.center, // Center the text
                 ),
                 onPressed: () {
-                  InterviewRejectHelper.showRejectModal(context);
+                  InterviewRejectHelper.showRejectModal(context,
+                      widget.applicationId, applicationData?['shelter_id']);
                 },
                 child: Text('Reject',
                     style: GoogleFonts.poppins(color: Colors.white)),
               ),
             ),
             const SizedBox(width: 10),
-            Expanded(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  minimumSize: const Size(double.infinity, 50),
-                  alignment: Alignment.center, // Center the text
-                ),
-                onPressed: () {
-                  InterviewRejectHelper.showInterviewDateModal(context);
-                },
-                child: Text('Set Interview Date',
-                    style: GoogleFonts.poppins(color: Colors.white)),
-              ),
-            ),
+            applicationData?['status'] == 'pending'
+                ? Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        minimumSize: const Size(double.infinity, 50),
+                        alignment: Alignment.center, // Center the text
+                      ),
+                      onPressed: () {
+                        InterviewRejectHelper.showInterviewDateModal(
+                            context, widget.applicationId);
+                      },
+                      child: Text('Set Interview Date',
+                          style: GoogleFonts.poppins(color: Colors.white)),
+                    ),
+                  )
+                : const SizedBox.shrink(),
+            applicationData?['status'] == 'interview'
+                ? Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        minimumSize: const Size(double.infinity, 50),
+                        alignment: Alignment.center, // Center the text
+                      ),
+                      onPressed: () {
+                        InterviewRejectHelper.showInterviewDateModal(
+                            context, widget.applicationId);
+                      },
+                      child: Text('Approve',
+                          style: GoogleFonts.poppins(color: Colors.white)),
+                    ),
+                  )
+                : const SizedBox.shrink(),
           ],
         ),
       ),
@@ -708,8 +737,11 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
 }
 
 class InterviewRejectHelper {
-  static Future<void> showInterviewDateModal(BuildContext context) async {
+  // ================== INTERVIEW DATE MODAL ==================
+  static Future<void> showInterviewDateModal(
+      BuildContext context, int applicationId) async {
     DateTime now = DateTime.now();
+
     DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: now,
@@ -732,12 +764,13 @@ class InterviewRejectHelper {
           pickedTime.minute,
         );
 
-        bool confirm = await showDialog(
+        bool confirmDate = await showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: Text("Confirm Interview Date"),
             content: Text(
-                "Set interview date and time to:\n${selectedDateTime.toString()}"),
+              "Set interview date and time to:\n${selectedDateTime.toString()}?",
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
@@ -751,17 +784,52 @@ class InterviewRejectHelper {
           ),
         );
 
-        if (confirm == true) {
-          print("Interview date set to $selectedDateTime");
-          // Your further logic here
+        if (confirmDate == true) {
+          // Call API to save interview date here
+          final url = Uri.parse(
+              "http://127.0.0.1:5566/api/shelter/set-interview/$applicationId");
+
+          final response = await http.put(
+            url,
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({
+              "interview_datetime": selectedDateTime.toIso8601String(),
+            }),
+          );
+
+          if (response.statusCode == 200) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Interview scheduled successfully")),
+            );
+
+            // Navigate to PendingApplicationScreen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => PendingApplicantsScreen(shelterId: 0)),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Failed to schedule interview")),
+            );
+          }
         }
       }
     }
   }
 
-  static Future<void> showRejectModal(BuildContext context) async {
-    bool causeChecked = false;
-    TextEditingController rejectDescriptionController = TextEditingController();
+  // ================== REJECT MODAL ==================
+  static Future<void> showRejectModal(
+      BuildContext context, int applicationId, int? shelterId) async {
+    List<String> allReasons = [
+      "Incomplete documents",
+      "Home not suitable",
+      "Did not attend interview",
+      "Other pets not vaccinated",
+      "No stable income",
+    ];
+
+    List<String> selectedReasons = [];
 
     bool? confirmed = await showDialog<bool>(
       context: context,
@@ -769,30 +837,25 @@ class InterviewRejectHelper {
         return StatefulBuilder(
           builder: (context, setState) => AlertDialog(
             title: Text("Reject Application"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Checkbox(
-                      value: causeChecked,
-                      onChanged: (val) {
-                        setState(() {
-                          causeChecked = val ?? false;
-                        });
-                      },
-                    ),
-                    Expanded(child: Text("Cause of rejection")),
-                  ],
-                ),
-                TextField(
-                  controller: rejectDescriptionController,
-                  decoration: InputDecoration(
-                    labelText: "Description",
-                  ),
-                  maxLines: 3,
-                ),
-              ],
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: allReasons.map((reason) {
+                  return CheckboxListTile(
+                    title: Text(reason),
+                    value: selectedReasons.contains(reason),
+                    onChanged: (val) {
+                      setState(() {
+                        if (val == true) {
+                          selectedReasons.add(reason);
+                        } else {
+                          selectedReasons.remove(reason);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
             ),
             actions: [
               TextButton(
@@ -800,8 +863,9 @@ class InterviewRejectHelper {
                 child: Text("Cancel"),
               ),
               TextButton(
-                onPressed:
-                    causeChecked ? () => Navigator.pop(context, true) : null,
+                onPressed: selectedReasons.isNotEmpty
+                    ? () => Navigator.pop(context, true)
+                    : null,
                 child: Text("Confirm"),
               ),
             ],
@@ -811,11 +875,61 @@ class InterviewRejectHelper {
     );
 
     if (confirmed == true) {
-      print(
-          "Application rejected. Cause: $causeChecked, Description: ${rejectDescriptionController.text}");
-      // Your rejection logic here
-    }
+      // Ask for final confirmation
+      bool finalConfirm = await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Confirm Rejection"),
+          content: Text(
+              "Are you sure you want to reject this application for the following reason(s)?\n\n${selectedReasons.join(", ")}"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text("No"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text("Yes"),
+            ),
+          ],
+        ),
+      );
 
-    rejectDescriptionController.dispose();
+      if (finalConfirm == true) {
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString('auth_token');
+        final url = Uri.parse(
+            "http://127.0.0.1:5566/api/shelter/reject-application/$applicationId");
+
+        final response = await http.post(
+          url,
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer $token",
+          },
+          body: jsonEncode({
+            "reason_for_rejection": selectedReasons,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Application rejected successfully")),
+          );
+
+          // Navigate to PendingApplicationScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (_) =>
+                    PendingApplicantsScreen(shelterId: shelterId ?? 0)),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Failed to reject application")),
+          );
+        }
+      }
+    }
   }
 }

@@ -471,7 +471,6 @@ class _PetApplicantsModalState extends State<PetApplicantsModal> {
                               );
                             },
                             child: Card(
-                              color: Colors.white,
                               margin: const EdgeInsets.symmetric(vertical: 8),
                               child: ListTile(
                                 leading: Row(

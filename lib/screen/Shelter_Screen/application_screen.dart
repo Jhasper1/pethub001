@@ -142,37 +142,35 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     }
   }
 
-Map<String, dynamic> _mapApplicant(dynamic app) {
-  final adopter = app['adopter'] ?? {};
-  final adopterMedia = adopter['adoptermedia'] ?? {};
-  final pet = app['pet'] ?? {};
-  final scheduleInterview = app['scheduleinterview'];
+  Map<String, dynamic> _mapApplicant(dynamic app) {
+    final adopter = app['adopter'] ?? {};
+    final adopterMedia = adopter['adoptermedia'] ?? {};
+    final pet = app['pet'] ?? {};
+    final scheduleInterview = app['scheduleinterview'];
 
-  bool hasInterview = scheduleInterview != null &&
-      scheduleInterview['application_id'] != null;
+    bool hasInterview = scheduleInterview != null &&
+        scheduleInterview['application_id'] != null;
 
-  return {
-    'application_id': app['application_id']?.toString() ?? '',
-    'first_name': adopter['first_name']?.toString() ?? '',
-    'last_name': adopter['last_name']?.toString() ?? '',
-    'adopter_profile': adopterMedia['adopter_profile']?.toString() ?? '',
-    'pet_name': pet['pet_name']?.toString() ?? '',
-    'status': app['status']?.toString() ?? '',
-    'created_at': app['created_at']?.toString() ?? '',
-    'has_interview': hasInterview,
-    'interview_date': hasInterview
-        ? scheduleInterview['interview_date']?.toString()
-        : null,
-    'interview_time': hasInterview
-        ? scheduleInterview['interview_time']?.toString()
-        : null,
-    'interview_notes': hasInterview
-        ? scheduleInterview['interview_notes']?.toString() ?? ''
-        : '',
-    'adopter_profile_decoded':
-        _decodeBase64Image(adopterMedia['adopter_profile']?.toString()),
-  };
-}
+    return {
+      'application_id': app['application_id'] ?? '',
+      'first_name': adopter['first_name']?.toString() ?? '',
+      'last_name': adopter['last_name']?.toString() ?? '',
+      'adopter_profile': adopterMedia['adopter_profile']?.toString() ?? '',
+      'pet_name': pet['pet_name']?.toString() ?? '',
+      'status': app['status']?.toString() ?? '',
+      'created_at': app['created_at']?.toString() ?? '',
+      'has_interview': hasInterview,
+      'interview_date':
+          hasInterview ? scheduleInterview['interview_date']?.toString() : null,
+      'interview_time':
+          hasInterview ? scheduleInterview['interview_time']?.toString() : null,
+      'interview_notes': hasInterview
+          ? scheduleInterview['interview_notes']?.toString() ?? ''
+          : '',
+      'adopter_profile_decoded':
+          _decodeBase64Image(adopterMedia['adopter_profile']?.toString()),
+    };
+  }
 
   Uint8List? _decodeBase64Image(String? base64String) {
     if (base64String == null || base64String.isEmpty) {
@@ -313,57 +311,108 @@ Map<String, dynamic> _mapApplicant(dynamic app) {
                               },
                               child: Card(
                                 margin: const EdgeInsets.symmetric(vertical: 8),
-                                child: ListTile(
-                                  leading: CircleAvatar(
-                                    radius: 24,
-                                    backgroundImage:
-                                        applicant['adopter_profile_decoded'] !=
-                                                null
-                                            ? MemoryImage(applicant[
-                                                'adopter_profile_decoded'])
-                                            : const AssetImage(
-                                                    'assets/images/logo.png')
-                                                as ImageProvider,
-                                  ),
-                                  title: Text(
-                                    '${applicant['first_name']} ${applicant['last_name']}',
-                                    style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  subtitle: Text.rich(
-                                    TextSpan(
-                                      style: GoogleFonts.poppins(fontSize: 12),
-                                      children: [
-                                        TextSpan(
-                                            text:
-                                                'Chosen Pet: ${applicant['pet_name']}\n'),
-                                        if (applicant['has_interview'] &&
-                                            applicant['interview_time'] !=
-                                                null &&
-                                            applicant['interview_date'] !=
-                                                null) ...[
-                                          const TextSpan(
-                                            text: 'Interview: ',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 24,
+                                            backgroundImage: applicant[
+                                                        'adopter_profile_decoded'] !=
+                                                    null
+                                                ? MemoryImage(applicant[
+                                                    'adopter_profile_decoded'])
+                                                : const AssetImage(
+                                                        'assets/images/logo.png')
+                                                    as ImageProvider,
                                           ),
-                                          TextSpan(
-                                            text:
-                                                '\n${formatTime(applicant['interview_time'])} | ${formatDate(applicant['interview_date'])}\n',
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '${applicant['first_name']} ${applicant['last_name']}',
+                                                  style: GoogleFonts.poppins(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  'Chosen Pet: ${applicant['pet_name']}',
+                                                  style: GoogleFonts.poppins(
+                                                      fontSize: 12),
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                          const TextSpan(
-                                            text: 'Notes: ',
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.bold),
-                                          ),
-                                          TextSpan(
-                                              text:
-                                                  '\n${applicant['interview_notes'] ?? ''}'),
-                                        ] else ...[
-                                          const TextSpan(text: 'No Interview'),
                                         ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      if (applicant['has_interview'] &&
+                                          applicant['interview_time'] != null &&
+                                          applicant['interview_date'] !=
+                                              null) ...[
+                                        Center(
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.schedule,
+                                                  size: 16, color: Colors.grey),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                '${formatTime(applicant['interview_time'])} | ${formatDate(applicant['interview_date'])}',
+                                                style: GoogleFonts.poppins(
+                                                    fontSize: 12),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            const Icon(Icons.push_pin,
+                                                size: 16, color: Colors.grey),
+                                            const SizedBox(width: 6),
+                                            Expanded(
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(8),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.yellow[100],
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
+                                                ),
+                                                child: Text(
+                                                  applicant[
+                                                          'interview_notes'] ??
+                                                      '',
+                                                  style: GoogleFonts.poppins(
+                                                      fontSize: 12),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ] else ...[
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'No Interview',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                            fontStyle: FontStyle.italic,
+                                            color: Colors.grey[700],
+                                          ),
+                                        ),
                                       ],
-                                    ),
+                                    ],
                                   ),
                                 ),
                               ),
