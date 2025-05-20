@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'package:march24/screen/Shelter_Screen/pending_adoption_screen.dart';
+import 'bottom_nav_bar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'application_details_screen.dart'; // Import the details screen
 
@@ -158,6 +160,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
       'adopter_profile': adopterMedia['adopter_profile']?.toString() ?? '',
       'pet_name': pet['pet_name']?.toString() ?? '',
       'status': app['status']?.toString() ?? '',
+      'reason_for_rejection': app['reason_for_rejection']?.toString() ?? '',
       'created_at': app['created_at']?.toString() ?? '',
       'has_interview': hasInterview,
       'interview_date':
@@ -198,23 +201,61 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text('Adoption Applications',
-            style: GoogleFonts.poppins(
-                fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: Colors.lightBlue,
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: fetchApplicants,
-          ),
-        ],
+      bottomNavigationBar: BottomNavBar(
+        shelterId: widget.shelterId,
+        currentIndex: 3,
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Colors.lightBlue,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  PendingApplicantsScreen(shelterId: widget.shelterId),
+            ),
+          );
+        },
+        icon: const Icon(Icons.assignment, color: Colors.white),
+        label: Text('New Applications',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+            )),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Image.asset(
+                      'assets/images/logo.png',
+                      height: 40,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Adoptions',
+                      style: GoogleFonts.poppins(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.lightBlue),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                        icon: const Icon(Icons.notifications),
+                        onPressed: () {}),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -310,6 +351,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                 );
                               },
                               child: Card(
+                                color: const Color.fromARGB(255, 239, 250, 255),
                                 margin: const EdgeInsets.symmetric(vertical: 8),
                                 child: Padding(
                                   padding: const EdgeInsets.all(12),
@@ -356,8 +398,9 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                       const SizedBox(height: 8),
                                       if (applicant['has_interview'] &&
                                           applicant['interview_time'] != null &&
-                                          applicant['interview_date'] !=
-                                              null) ...[
+                                          applicant['interview_date'] != null &&
+                                          applicant['status'] != 'rejected' &&
+                                          applicant['status'] != 'passed') ...[
                                         Center(
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -368,50 +411,91 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                               Text(
                                                 '${formatTime(applicant['interview_time'])} | ${formatDate(applicant['interview_date'])}',
                                                 style: GoogleFonts.poppins(
-                                                    fontSize: 12),
+                                                    fontSize: 17),
                                               ),
                                             ],
                                           ),
                                         ),
                                         const SizedBox(height: 8),
-                                        Row(
+                                      ],
+                                      if (applicant['status'] == 'interview' ||
+                                          applicant['status'] == 'rejected')
+                                        Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            const Icon(Icons.push_pin,
-                                                size: 16, color: Colors.grey),
-                                            const SizedBox(width: 6),
-                                            Expanded(
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.all(8),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.yellow[100],
-                                                  borderRadius:
-                                                      BorderRadius.circular(4),
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.push_pin,
+                                                    size: 16,
+                                                    color: Colors.grey),
+                                                const SizedBox(width: 4),
+                                                applicant['status'] ==
+                                                        'interview'
+                                                    ? Text(
+                                                        'Interview Notes:',
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      )
+                                                    : const SizedBox(),
+                                                applicant['status'] ==
+                                                        'rejected'
+                                                    ? Text(
+                                                        'Reason for Rejection:',
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      )
+                                                    : const SizedBox(),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const SizedBox(width: 16),
+                                                Expanded(
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.all(8),
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          applicant['status'] ==
+                                                                  'rejected'
+                                                              ? Colors.red[100]
+                                                              : Colors
+                                                                  .yellow[100],
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              4),
+                                                    ),
+                                                    child: Text(
+                                                      applicant['status'] ==
+                                                              'rejected'
+                                                          ? applicant[
+                                                                  'reason_for_rejection'] ??
+                                                              'N/A'
+                                                          : applicant[
+                                                                  'interview_notes'] ??
+                                                              'N/A',
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                              fontSize: 12),
+                                                    ),
+                                                  ),
                                                 ),
-                                                child: Text(
-                                                  applicant[
-                                                          'interview_notes'] ??
-                                                      '',
-                                                  style: GoogleFonts.poppins(
-                                                      fontSize: 12),
-                                                ),
-                                              ),
+                                              ],
                                             ),
                                           ],
                                         ),
-                                      ] else ...[
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'No Interview',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 12,
-                                            fontStyle: FontStyle.italic,
-                                            color: Colors.grey[700],
-                                          ),
-                                        ),
-                                      ],
                                     ],
                                   ),
                                 ),

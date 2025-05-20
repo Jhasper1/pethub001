@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'application_screen.dart';
 import 'home_screen.dart';
-import 'pending_adoption_screen.dart';
 import 'profile_screen.dart';
 import 'view_pets.dart';
 import 'add_pet.dart';
@@ -54,7 +54,7 @@ class BottomNavBar extends StatelessWidget {
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation1, animation2) => PendingApplicantsScreen(shelterId: shelterId),
+          pageBuilder: (context, animation1, animation2) => ApplicantsScreen(shelterId: shelterId),
           transitionDuration: Duration.zero,
         ),
       );

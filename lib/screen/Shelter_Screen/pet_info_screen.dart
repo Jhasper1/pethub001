@@ -173,45 +173,85 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     final token = prefs.getString('auth_token');
     final url =
         'http://127.0.0.1:5566/api/shelter/${widget.petId}/pet/update-priority-status';
+
     try {
-      final response = await http.put(Uri.parse(url), headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      });
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        print("API Response: $data");
+      final response = await http.put(
+        Uri.parse(url),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
 
-        if (data['retCode'] == '200') {
-          // Explicitly toggle the status locally
-          setState(() {
-            // Flip the boolean based on the current value
-            petData!['priority_status'] =
-                !(petData!['priority_status'] ?? false);
-          });
+      final responseData = json.decode(response.body);
 
-          // Refresh the whole screen data
-          await fetchPetDetails();
+      if (responseData['retCode'] == '200') {
+        setState(() {
+          petData!['priority_status'] = !(petData!['priority_status'] ?? false);
+        });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Priority status updated.')),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to update priority.')),
-          );
-        }
+        await fetchPetDetails();
+
+        showPopup('Success', 'Priority status updated.', isSuccess: true);
+      } else if (responseData['retCode'] == '403') {
+        showPopup('Limit Reached', 'Maximum of 3 prioritized pets allowed.',
+            isSuccess: false);
       } else {
-        throw Exception('Failed to update priority status');
+        showPopup('Error', 'Failed to update priority.', isSuccess: false);
       }
     } catch (e) {
-      print("Error updating priority: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error occurred while updating.')),
-      );
+      showPopup('Error', 'Something went wrong while updating.',
+          isSuccess: false);
     }
   }
 
+  void showPopup(String title, String message, {bool isSuccess = true}) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isSuccess ? Icons.check_circle_outline : Icons.highlight_off,
+                size: 60,
+                color: isSuccess ? Colors.green : Colors.red,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   void showFullScreenImage(BuildContext context, Uint8List imageBytes) {
     showDialog(
@@ -252,7 +292,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-         backgroundColor: Colors.white,
+      backgroundColor: Colors.white,
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
@@ -294,6 +334,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         Stack(
                           children: [
                             Card(
+                              color: const Color.fromARGB(255, 239, 250, 255),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -424,6 +465,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         ),
                         const SizedBox(height: 10),
                         Card(
+                          color: const Color.fromARGB(255, 239, 250, 255),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -455,13 +497,13 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                             null
                                         ? Image.memory(
                                             petData!['petmedia']['pet_vaccine'],
-                                            height: 150,
+                                            height: 200,
                                             width: double.infinity,
                                             fit: BoxFit.cover,
                                           )
                                         : Image.asset(
-                                            'assets/images/logo.png',
-                                            height: 150,
+                                            'assets/images/noimage2.webp',
+                                            height: 200,
                                             width: double.infinity,
                                             fit: BoxFit.cover,
                                           ),
@@ -635,7 +677,11 @@ class ApplicantListModal extends StatelessWidget {
   final int petId;
   final List<Map<String, dynamic>> applicants;
 
-  const ApplicantListModal({super.key, required this.applicants, required this.applicationId, required this.petId});
+  const ApplicantListModal(
+      {super.key,
+      required this.applicants,
+      required this.applicationId,
+      required this.petId});
 
   @override
   Widget build(BuildContext context) {

@@ -129,60 +129,24 @@ class _PendingApplicantsScreenState extends State<PendingApplicantsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       backgroundColor: Colors.white,
-      bottomNavigationBar: BottomNavBar(
-        shelterId: widget.shelterId,
-        currentIndex: 3,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text('Adoption Request',
+            style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold, color: Colors.white)),
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: fetchApplicants,
+          ),
+        ],
       ),
-     floatingActionButton: FloatingActionButton.extended(
-  backgroundColor: Colors.lightBlue,
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) =>
-            ApplicantsScreen(shelterId: widget.shelterId),
-      ),
-    );
-  },
-  icon: const Icon(Icons.assignment, color: Colors.white),
-  label: Text('View Applications',
-  style: GoogleFonts.poppins( color: Colors.white,)),
-),
-floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Image.asset(
-                      'assets/images/logo.png',
-                      height: 40,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      'Adoption Request',
-                      style: GoogleFonts.poppins(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.lightBlue),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                        icon: const Icon(Icons.notifications),
-                        onPressed: () {}),
-                  ],
-                ),
-              ],
-            ),
             SizedBox(height: 15),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -234,6 +198,7 @@ floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
                     fontSize: 13, fontWeight: FontWeight.bold),
               ),
             ),
+            const SizedBox(height: 10),
             isLoading
                 ? Center(child: CircularProgressIndicator())
                 : Expanded(
@@ -260,6 +225,8 @@ floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
                                   );
                                 },
                                 child: Card(
+                                  color:
+                                      const Color.fromARGB(255, 239, 250, 255),
                                   margin:
                                       const EdgeInsets.symmetric(vertical: 5),
                                   child: ListTile(
@@ -471,7 +438,8 @@ class _PetApplicantsModalState extends State<PetApplicantsModal> {
                               );
                             },
                             child: Card(
-                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              color: const Color.fromARGB(255, 239, 250, 255),
+                              margin: const EdgeInsets.symmetric(vertical: 20),
                               child: ListTile(
                                 leading: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -508,10 +476,12 @@ class _PetApplicantsModalState extends State<PetApplicantsModal> {
                                       '${applicant['address']}',
                                       style: GoogleFonts.poppins(fontSize: 12),
                                     ),
-                                    const SizedBox(height: 4),
+                                    const SizedBox(height: 10),
                                     Text(
                                       '${applicant['created_at']}',
-                                      style: GoogleFonts.poppins(fontSize: 12),
+                                      style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          color: Colors.grey[400]),
                                     ),
                                   ],
                                 ),

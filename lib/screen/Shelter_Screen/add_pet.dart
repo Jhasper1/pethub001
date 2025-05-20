@@ -22,7 +22,6 @@ class AddPetScreen extends StatefulWidget {
 class _AddPetScreenState extends State<AddPetScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  bool _priorityStatus = false;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -85,7 +84,6 @@ class _AddPetScreenState extends State<AddPetScreen>
     request.fields['pet_sex'] = _selectedSex ?? "";
     request.fields['pet_size'] = _sizeController.text;
     request.fields['pet_descriptions'] = _descriptionController.text;
-    request.fields['priority_status'] = _priorityStatus ? '1' : '0';
 
     // Attach image if available
     if (_imageBytes != null && _imageFile != null) {
@@ -292,7 +290,7 @@ class _AddPetScreenState extends State<AddPetScreen>
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            height: 150,
+            height: 200,
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey),
               borderRadius: BorderRadius.circular(8),
@@ -515,24 +513,6 @@ class _AddPetScreenState extends State<AddPetScreen>
             SizedBox(height: 20),
             _buildpetVaccinePreview(),
             SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Priority Status',
-                  style: TextStyle(fontSize: 16),
-                ),
-                Switch(
-                  value: _priorityStatus,
-                  onChanged: (bool value) {
-                    setState(() {
-                      _priorityStatus = value;
-                    });
-                  },
-                ),
-              ],
-            ),
-            SizedBox(height: 25),
           ],
         );
 
@@ -623,10 +603,6 @@ class _AddPetScreenState extends State<AddPetScreen>
                     SizedBox(height: 16),
                   ],
                 ),
-              _buildReviewItem(
-                'Priority Status',
-                _priorityStatus ? 'Yes' : 'No',
-              ),
               SizedBox(height: 20),
               Text(
                 'Please review all pet information before submitting.',
