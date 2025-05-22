@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:march24/screen/Shelter_Screen/pending_adoption_screen.dart';
 import 'bottom_nav_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'application_details_screen.dart'; // Import the details screen
 
 class ApplicantsScreen extends StatefulWidget {
@@ -20,11 +22,24 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
   String selectedSort = 'Newest';
   final List<String> sortOptions = ['Newest', 'Oldest', 'A to Z', 'Z to A'];
 
-  String selectedTab = 'Pending';
+  String selectedTab = 'Interview';
   final List<String> tabs =
-      ['Pending', 'Approved', 'Completed', 'Rejected'].toList();
+      ['Interview', 'Passed', 'Adopted', 'Rejected'].toList();
   List<Map<String, dynamic>> applicants = [];
   bool isLoading = false;
+
+  String formatDate(String? rawDate) {
+    if (rawDate == null || rawDate.isEmpty) return 'No date';
+    final dateTime = DateTime.parse(rawDate).toLocal();
+    final formatter = DateFormat('MMM d, y');
+    return formatter.format(dateTime);
+  }
+
+  String formatTime(String? rawTime) {
+    if (rawTime == null || rawTime.isEmpty) return 'No time';
+    final time = DateFormat.Hms().parse(rawTime);
+    return DateFormat.jm().format(time);
+  }
 
   @override
   void initState() {
@@ -52,20 +67,30 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
         },
       );
 
+      print('Status Code: ${response.statusCode}');
       print('Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final decoded = json.decode(response.body);
 
-        if (data is List) {
+        if (decoded != null &&
+            decoded is Map &&
+            decoded.containsKey('data') &&
+            decoded['data'] is Map &&
+            decoded['data'].containsKey('submissions') &&
+            decoded['data']['submissions'] is List) {
+          final List applicationList = decoded['data']['submissions'];
+          print('Fetched ${applicationList.length} applicants');
+
           final updatedApplicants =
-              data.map((app) => _mapApplicant(app)).toList();
+              applicationList.map((app) => _mapApplicant(app)).toList();
 
-// Apply sorting by first name
+          // Sort the applicants list after mapping
           updatedApplicants.sort((a, b) {
-            // Parse the dates using DateTime.parse(), which handles the timezone.
-            DateTime dateA = DateTime.parse(a['created_at']);
-            DateTime dateB = DateTime.parse(b['created_at']);
+            DateTime dateA =
+                DateTime.tryParse(a['created_at']) ?? DateTime(2000);
+            DateTime dateB =
+                DateTime.tryParse(b['created_at']) ?? DateTime(2000);
 
             if (selectedSort == 'A to Z') {
               return a['first_name']
@@ -78,10 +103,8 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                   .toLowerCase()
                   .compareTo(a['first_name'].toString().toLowerCase());
             } else if (selectedSort == 'Newest') {
-              // Sorting by newest (most recent first)
               return dateB.compareTo(dateA);
             } else if (selectedSort == 'Oldest') {
-              // Sorting by oldest (least recent first)
               return dateA.compareTo(dateB);
             } else {
               return 0;
@@ -92,33 +115,23 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
             applicants = updatedApplicants;
             isLoading = false;
           });
-        } else if (data is Map) {
-          if (data.containsKey('data') && data['data'] is List) {
-            final applicationList = data['data'] as List;
-            final updatedApplicants =
-                applicationList.map((app) => _mapApplicant(app)).toList();
-            setState(() {
-              applicants = updatedApplicants;
-              isLoading = false;
-            });
-          } else {
-            setState(() {
-              applicants = [];
-              isLoading = false;
-            });
-          }
         } else {
           setState(() {
             applicants = [];
             isLoading = false;
           });
         }
+      } else if (response.statusCode == 404) {
+        setState(() {
+          applicants = [];
+          isLoading = false;
+        });
       } else {
         setState(() {
           isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load applicants')),
+          const SnackBar(content: Text('Failed to load applicants')),
         );
       }
     } catch (e) {
@@ -132,15 +145,33 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
   }
 
   Map<String, dynamic> _mapApplicant(dynamic app) {
+    final adopter = app['adopter'] ?? {};
+    final adopterMedia = adopter['adoptermedia'] ?? {};
+    final pet = app['pet'] ?? {};
+    final scheduleInterview = app['scheduleinterview'];
+
+    bool hasInterview = scheduleInterview != null &&
+        scheduleInterview['application_id'] != null;
+
     return {
-      'application_id': app['application_id'],
-      'first_name': app['first_name'],
-      'last_name': app['last_name'],
-      'adopter_profile': app['adopter_profile'],
-      'pet_name': app['pet_name'],
-      'status': app['status'],
-      'created_at': app['created_at'],
-      'adopter_profile_decoded': _decodeBase64Image(app['adopter_profile']),
+      'application_id': app['application_id'] ?? '',
+      'first_name': adopter['first_name']?.toString() ?? '',
+      'last_name': adopter['last_name']?.toString() ?? '',
+      'adopter_profile': adopterMedia['adopter_profile']?.toString() ?? '',
+      'pet_name': pet['pet_name']?.toString() ?? '',
+      'status': app['status']?.toString() ?? '',
+      'reason_for_rejection': app['reason_for_rejection']?.toString() ?? '',
+      'created_at': app['created_at']?.toString() ?? '',
+      'has_interview': hasInterview,
+      'interview_date':
+          hasInterview ? scheduleInterview['interview_date']?.toString() : null,
+      'interview_time':
+          hasInterview ? scheduleInterview['interview_time']?.toString() : null,
+      'interview_notes': hasInterview
+          ? scheduleInterview['interview_notes']?.toString() ?? ''
+          : '',
+      'adopter_profile_decoded':
+          _decodeBase64Image(adopterMedia['adopter_profile']?.toString()),
     };
   }
 
@@ -174,6 +205,24 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
         shelterId: widget.shelterId,
         currentIndex: 3,
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: Colors.lightBlue,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  PendingApplicantsScreen(shelterId: widget.shelterId),
+            ),
+          );
+        },
+        icon: const Icon(Icons.assignment, color: Colors.white),
+        label: Text('New Applications',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+            )),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -189,7 +238,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      'Applications',
+                      'Adoptions',
                       style: GoogleFonts.poppins(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -223,7 +272,10 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                       value: selectedTab,
                       onChanged: (value) {
                         if (value != null) {
-                          onTabSelected(value);
+                          setState(() {
+                            selectedTab = value;
+                          });
+                          fetchApplicants();
                         }
                       },
                       items: tabs.map((tab) {
@@ -245,8 +297,8 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                         if (value != null) {
                           setState(() {
                             selectedSort = value;
-                            fetchApplicants(); // Re-fetch to apply sorting
                           });
+                          fetchApplicants();
                         }
                       },
                       items: sortOptions.map((option) {
@@ -274,69 +326,184 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                     fontSize: 13, fontWeight: FontWeight.bold),
               ),
             ),
-            isLoading
-                ? Center(child: CircularProgressIndicator())
-                : Expanded(
-                    child: applicants.isEmpty
-                        ? Center(
-                            child: Text('No applications found.',
-                                style: GoogleFonts.poppins()))
-                        : ListView.builder(
-                            itemCount: applicants.length,
-                            itemBuilder: (context, index) {
-                              final applicant = applicants[index];
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          ApplicationDetailsScreen(
-                                        applicationId:
-                                            applicant['application_id'],
+            Expanded(
+              child: isLoading
+                  ? Center(child: CircularProgressIndicator())
+                  : applicants.isEmpty
+                      ? Center(
+                          child: Text('No applications found.',
+                              style: GoogleFonts.poppins()))
+                      : ListView.builder(
+                          itemCount: applicants.length,
+                          itemBuilder: (context, index) {
+                            final applicant = applicants[index];
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        ApplicationDetailsScreen(
+                                      applicationId:
+                                          applicant['application_id'],
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Card(
+                                color: const Color.fromARGB(255, 239, 250, 255),
+                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 24,
+                                            backgroundImage: applicant[
+                                                        'adopter_profile_decoded'] !=
+                                                    null
+                                                ? MemoryImage(applicant[
+                                                    'adopter_profile_decoded'])
+                                                : const AssetImage(
+                                                        'assets/images/logo.png')
+                                                    as ImageProvider,
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  '${applicant['first_name']} ${applicant['last_name']}',
+                                                  style: GoogleFonts.poppins(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  'Chosen Pet: ${applicant['pet_name']}',
+                                                  style: GoogleFonts.poppins(
+                                                      fontSize: 12),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  );
-                                },
-                                child: Card(
-                                  margin:
-                                      const EdgeInsets.symmetric(vertical: 8),
-                                  child: ListTile(
-                                    leading: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text('${index + 1}.',
-                                            style: GoogleFonts.poppins(
-                                                fontWeight: FontWeight.w500)),
-                                        const SizedBox(width: 8),
-                                        CircleAvatar(
-                                          radius: 24,
-                                          backgroundImage: applicant[
-                                                      'adopter_profile_decoded'] !=
-                                                  null
-                                              ? MemoryImage(applicant[
-                                                  'adopter_profile_decoded'])
-                                              : AssetImage(
-                                                      'assets/default_avatar.png')
-                                                  as ImageProvider,
+                                      const SizedBox(height: 8),
+                                      if (applicant['has_interview'] &&
+                                          applicant['interview_time'] != null &&
+                                          applicant['interview_date'] != null &&
+                                          applicant['status'] != 'rejected' &&
+                                          applicant['status'] != 'passed') ...[
+                                        Center(
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.schedule,
+                                                  size: 16, color: Colors.grey),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                '${formatTime(applicant['interview_time'])} | ${formatDate(applicant['interview_date'])}',
+                                                style: GoogleFonts.poppins(
+                                                    fontSize: 17),
+                                              ),
+                                            ],
+                                          ),
                                         ),
+                                        const SizedBox(height: 8),
                                       ],
-                                    ),
-                                    title: Text(
-                                        '${applicant['first_name']} ${applicant['last_name']}',
-                                        style: GoogleFonts.poppins(
-                                            fontWeight: FontWeight.bold)),
-                                    subtitle: Text(
-                                        'Chosen Pet: ${applicant['pet_name']}',
-                                        style:
-                                            GoogleFonts.poppins(fontSize: 12)),
-                                    trailing: Icon(Icons.arrow_forward_ios),
+                                      if (applicant['status'] == 'interview' ||
+                                          applicant['status'] == 'rejected')
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.push_pin,
+                                                    size: 16,
+                                                    color: Colors.grey),
+                                                const SizedBox(width: 4),
+                                                applicant['status'] ==
+                                                        'interview'
+                                                    ? Text(
+                                                        'Interview Notes:',
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      )
+                                                    : const SizedBox(),
+                                                applicant['status'] ==
+                                                        'rejected'
+                                                    ? Text(
+                                                        'Reason for Rejection:',
+                                                        style:
+                                                            GoogleFonts.poppins(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      )
+                                                    : const SizedBox(),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const SizedBox(width: 16),
+                                                Expanded(
+                                                  child: Container(
+                                                    padding:
+                                                        const EdgeInsets.all(8),
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          applicant['status'] ==
+                                                                  'rejected'
+                                                              ? Colors.red[100]
+                                                              : Colors
+                                                                  .yellow[100],
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              4),
+                                                    ),
+                                                    child: Text(
+                                                      applicant['status'] ==
+                                                              'rejected'
+                                                          ? applicant[
+                                                                  'reason_for_rejection'] ??
+                                                              'N/A'
+                                                          : applicant[
+                                                                  'interview_notes'] ??
+                                                              'N/A',
+                                                      style:
+                                                          GoogleFonts.poppins(
+                                                              fontSize: 12),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                    ],
                                   ),
                                 ),
-                              );
-                            },
-                          ),
-                  ),
+                              ),
+                            );
+                          },
+                        ),
+            ),
           ],
         ),
       ),

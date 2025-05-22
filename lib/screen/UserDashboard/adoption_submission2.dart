@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
@@ -7,21 +6,18 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'shelter_clicked.dart';
 import 'adopted_pets_screen.dart';
 
 class AdoptionForm extends StatefulWidget {
   final int petId;
   final int adopterId;
   final int shelterId;
-  final int applicationId;
 
   AdoptionForm(
       {super.key,
       required this.petId,
       required this.adopterId,
-      required this.shelterId,
-      required this.applicationId});
+      required this.shelterId,});
 
   @override
   _AdoptionFormState createState() => _AdoptionFormState();
@@ -65,14 +61,10 @@ class _AdoptionFormState extends State<AdoptionForm> {
   final TextEditingController _pastPetsController = TextEditingController();
   final TextEditingController _interviewSettingController =
       TextEditingController();
-  final TextEditingController _adopterIDType = TextEditingController();
-  final TextEditingController _altIDType = TextEditingController();
 
 // Variables to store the bytes of the valid ID images
   Uint8List? _adopterValidIDBytes;
   Uint8List? _altValidIDBytes;
-  XFile? _adopterValidID;
-  XFile? _altValidID;
 
   // Image controllers for base64 encoding (will be implemented later)
   final List<String> images = List.generate(8, (index) => "");
@@ -269,10 +261,10 @@ class _AdoptionFormState extends State<AdoptionForm> {
           MaterialPageRoute(
             builder: (_) {
               print(
-                  'Navigating to ApplicationDetailsScreen with applicationId: ${widget.applicationId}');
+                  'Navigating to ApplicationDetailsScreen with applicationId: ${widget.adopterId}');
               return ApplicationDetailsScreen(
-                applicationId: widget.applicationId,
                 adopterId: widget.adopterId,
+                applicationId: 0,
               );
             },
           ),
@@ -297,7 +289,7 @@ class _AdoptionFormState extends State<AdoptionForm> {
   }
 
 // Default image (replace with your asset or network image if needed)
-  final String defaultImagePath = 'assets/images/logo.png';
+  final String defaultImagePath = 'assets/images/addimage.jpg';
 
   Future<void> _pickAdopterValidID() async {
     final ImagePicker picker = ImagePicker();
@@ -333,14 +325,14 @@ class _AdoptionFormState extends State<AdoptionForm> {
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            height: 150,
+            height: 200,
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey),
               borderRadius: BorderRadius.circular(8),
               image: DecorationImage(
                 image: _adopterValidIDBytes != null
                     ? MemoryImage(_adopterValidIDBytes!) // Use MemoryImage
-                    : const AssetImage('assets/images/logo.png')
+                    : const AssetImage('')
                         as ImageProvider,
                 fit: BoxFit.cover,
               ),
@@ -366,14 +358,14 @@ class _AdoptionFormState extends State<AdoptionForm> {
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            height: 150,
+            height: 200,
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey),
               borderRadius: BorderRadius.circular(8),
               image: DecorationImage(
                 image: _altValidIDBytes != null
                     ? MemoryImage(_altValidIDBytes!) // Use MemoryImage
-                    : const AssetImage('assets/images/logo.png')
+                    : const AssetImage('')
                         as ImageProvider,
                 fit: BoxFit.cover,
               ),

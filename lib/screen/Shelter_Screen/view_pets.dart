@@ -96,6 +96,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+         backgroundColor: Colors.white,
       body: Column(
         children: [
           Padding(
@@ -152,7 +153,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 5),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: const Color.fromARGB(255, 239, 250, 255),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
                               borderSide: BorderSide(color: Colors.lightBlue),
@@ -191,8 +192,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             ),
                             foregroundColor:
                                 Colors.red, // text/icon color
-                            backgroundColor: Colors
-                                .white, // optional: background color if you want contrast
+                            backgroundColor:const Color.fromARGB(255, 255, 239, 239), // optional: background color if you want contrast
                             elevation: 1,
                             side: BorderSide(
                                 color: Colors
@@ -241,7 +241,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 5),
                             filled: true,
-                            fillColor: Colors.white, // background color
+                            fillColor:const Color.fromARGB(255, 239, 250, 255),  // background color
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
                               borderSide: BorderSide(
@@ -257,7 +257,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                                   BorderSide(color: Colors.lightBlue, width: 2),
                             ),
                           ),
-                          dropdownColor: Colors.white,
+                          dropdownColor: const Color.fromARGB(255, 239, 250, 255), 
                           style: GoogleFonts.poppins(fontSize: 12),
                         ),
                       ),
@@ -289,7 +289,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 5),
                             filled: true,
-                            fillColor: Colors.white, // background color
+                            fillColor: Color.fromARGB(255, 239, 250, 255), // background color
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
                               borderSide: BorderSide(
@@ -305,7 +305,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                                   BorderSide(color: Colors.lightBlue, width: 2),
                             ),
                           ),
-                          dropdownColor: Colors.white,
+                          dropdownColor: const Color.fromARGB(255, 239, 250, 255), 
                           style: GoogleFonts.poppins(fontSize: 12),
                         ),
                       ),
@@ -337,7 +337,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 5),
                             filled: true,
-                            fillColor: Colors.white, // background color
+                            fillColor: const Color.fromARGB(255, 239, 250, 255), // background color
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
                               borderSide: BorderSide(
@@ -353,7 +353,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                                   BorderSide(color: Colors.lightBlue, width: 2),
                             ),
                           ),
-                          dropdownColor: Colors.white,
+                          dropdownColor: const Color.fromARGB(255, 239, 250, 255), 
                           style: GoogleFonts.poppins(fontSize: 12),
                         ),
                       ),

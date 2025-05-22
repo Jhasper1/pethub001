@@ -94,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFE2F3FD),
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,7 +122,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                 ),
-            
                 Padding(
                   padding: const EdgeInsets.all(5), // adjust padding as needed
                   child: Row(
@@ -309,6 +308,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Card(
+                color: const Color.fromARGB(255, 239, 250, 255),
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -363,6 +363,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Card(
+                color: const Color.fromARGB(255, 239, 250, 255),
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),

@@ -30,7 +30,6 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   void initState() {
     super.initState();
     fetchPetDetails();
-    fetchAndLoadApplicantCount();
   }
 
   Future<void> fetchPetDetails() async {
@@ -174,86 +173,84 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
     final token = prefs.getString('auth_token');
     final url =
         'http://127.0.0.1:5566/api/shelter/${widget.petId}/pet/update-priority-status';
-    try {
-      final response = await http.put(Uri.parse(url), headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      });
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        print("API Response: $data");
-
-        if (data['retCode'] == '200') {
-          // Explicitly toggle the status locally
-          setState(() {
-            // Flip the boolean based on the current value
-            petData!['priority_status'] =
-                !(petData!['priority_status'] ?? false);
-          });
-
-          // Refresh the whole screen data
-          await fetchPetDetails();
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Priority status updated.')),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Failed to update priority.')),
-          );
-        }
-      } else {
-        throw Exception('Failed to update priority status');
-      }
-    } catch (e) {
-      print("Error updating priority: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error occurred while updating.')),
-      );
-    }
-  }
-
-  Future<void> fetchAndLoadApplicantCount() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    final url = Uri.parse(
-        'http://127.0.0.1:5566/api/shelter/count/${widget.petId}/applied'); // for Android emulator
 
     try {
-      final response = await http.get(
-        url,
+      final response = await http.put(
+        Uri.parse(url),
         headers: {
           "Content-Type": "application/json",
           "Authorization": "Bearer $token",
         },
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+      final responseData = json.decode(response.body);
 
-        if (data['retCode'] == '200') {
-          setState(() {
-            applicantCount =
-                data['data']; // This should be 2 in your example response
-          });
-        } else {
-          print('API Error: ${data['Message']}');
-          setState(() {
-            applicantCount = 0;
-          });
-        }
-      } else {
-        print('Server Error: ${response.statusCode}');
+      if (responseData['retCode'] == '200') {
         setState(() {
-          applicantCount = 0;
+          petData!['priority_status'] = !(petData!['priority_status'] ?? false);
         });
+
+        await fetchPetDetails();
+
+        showPopup('Success', 'Priority status updated.', isSuccess: true);
+      } else if (responseData['retCode'] == '403') {
+        showPopup('Limit Reached', 'Maximum of 3 prioritized pets allowed.',
+            isSuccess: false);
+      } else {
+        showPopup('Error', 'Failed to update priority.', isSuccess: false);
       }
     } catch (e) {
-      print('Network Error: $e');
-      setState(() {
-        applicantCount = 0;
-      });
+      showPopup('Error', 'Something went wrong while updating.',
+          isSuccess: false);
     }
+  }
+
+  void showPopup(String title, String message, {bool isSuccess = true}) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isSuccess ? Icons.check_circle_outline : Icons.highlight_off,
+                size: 60,
+                color: isSuccess ? Colors.green : Colors.red,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void showFullScreenImage(BuildContext context, Uint8List imageBytes) {
@@ -295,6 +292,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
@@ -333,45 +331,10 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                           ],
                         ),
                         const SizedBox(height: 20),
-
-                        //  Card(
-                        //   color: const Color.fromARGB(255, 255, 255, 255),
-                        //   margin: const EdgeInsets.symmetric(vertical: 8),
-                        //   child: ListTile(
-                        //     leading: const Icon(Icons.pets, size: 32),
-                        //     title: Text(
-                        //       'Number of Applicants',
-                        //       style: GoogleFonts.poppins(
-                        //           fontWeight: FontWeight.bold),
-                        //     ),
-                        //     subtitle: Text(
-                        //       '$applicantCount people want to adopt this pet',
-                        //       style: GoogleFonts.poppins(fontSize: 15),
-                        //     ),
-                        //     trailing: ElevatedButton(
-                        //       onPressed: () {
-                        //         showModalBottomSheet(
-                        //           context: context,
-                        //           isScrollControlled: true,
-                        //           shape: const RoundedRectangleBorder(
-                        //             borderRadius: BorderRadius.vertical(
-                        //                 top: Radius.circular(20)),
-                        //           ),
-                        //           builder: (_) => ApplicantListModal(
-                        //               applicants: applicantsList,
-                        //               applicationId: widget.petId,
-                        //               petId: widget.petId),
-                        //         );
-                        //       },
-                        //       child: const Text("View"),
-                        //     ),
-                        //   ),
-                        // ),
-                        // const SizedBox(height: 10),
                         Stack(
                           children: [
                             Card(
-                              color: const Color.fromARGB(255, 255, 255, 255),
+                              color: const Color.fromARGB(255, 239, 250, 255),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -502,7 +465,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         ),
                         const SizedBox(height: 10),
                         Card(
-                          color: const Color.fromARGB(255, 255, 255, 255),
+                          color: const Color.fromARGB(255, 239, 250, 255),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -534,13 +497,13 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                             null
                                         ? Image.memory(
                                             petData!['petmedia']['pet_vaccine'],
-                                            height: 150,
+                                            height: 200,
                                             width: double.infinity,
                                             fit: BoxFit.cover,
                                           )
                                         : Image.asset(
-                                            'assets/images/logo.png',
-                                            height: 150,
+                                            'assets/images/noimage2.webp',
+                                            height: 200,
                                             width: double.infinity,
                                             fit: BoxFit.cover,
                                           ),
@@ -593,7 +556,6 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                                     const EdgeInsets.symmetric(horizontal: 5.0),
                                 child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.white,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -715,7 +677,11 @@ class ApplicantListModal extends StatelessWidget {
   final int petId;
   final List<Map<String, dynamic>> applicants;
 
-  const ApplicantListModal({super.key, required this.applicants, required this.applicationId, required this.petId});
+  const ApplicantListModal(
+      {super.key,
+      required this.applicants,
+      required this.applicationId,
+      required this.petId});
 
   @override
   Widget build(BuildContext context) {

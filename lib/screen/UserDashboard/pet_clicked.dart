@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
@@ -31,62 +32,66 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
     super.initState();
     fetchPetDetails();
     fetchShelterInfo();
-    fetchPets();
+    fetchOtherPets();
   }
 
-  Future<void> fetchPetDetails() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
-    final url =
-        Uri.parse("http://127.0.0.1:5566/api/users/pets/${widget.petId}");
+ Future<void> fetchPetDetails() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('auth_token');
+  final url =
+      Uri.parse("http://127.0.0.1:5566/api/users/pets/${widget.petId}");
 
-    try {
-      final response = await http.get(url, headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      });
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+  try {
+    final response = await http.get(url, headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer $token",
+    });
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
-        // Handle different response structures
-        if (data is Map<String, dynamic>) {
-          if (data.containsKey('data')) {
-            // Case 1: Data is nested under "data"
-            if (data['data'] is Map && data['data'].containsKey('pet')) {
-              petData = Map<String, dynamic>.from(data['data']['pet']);
-            } else {
-              petData = Map<String, dynamic>.from(data['data']);
-            }
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      if (data is Map<String, dynamic>) {
+        if (data.containsKey('data')) {
+          if (data['data'] is Map && data['data'].containsKey('pet')) {
+            petData = Map<String, dynamic>.from(data['data']['pet']);
           } else {
-            // Case 2: Data is at root level
-            petData = data;
+            petData = Map<String, dynamic>.from(data['data']);
           }
+        } else {
+          petData = data;
         }
-
-        print("Extracted petData: $petData");
-
-        setState(() {
-          isLoading = false;
-          hasError = petData == null;
-        });
-      } else {
-        setState(() {
-          hasError = true;
-          isLoading = false;
-        });
-        print("Failed to load pet details. Status: ${response.statusCode}");
       }
-    } catch (e) {
+
+      // Decode pet_vaccine if it exists and is base64
+      if (petData?['petmedia']?['pet_vaccine'] != null) {
+        final base64String = petData!['petmedia']['pet_vaccine'];
+        petData!['petmedia']['pet_vaccine'] = base64Decode(base64String);
+      }
+
+      print("Extracted petData: $petData");
+
+      setState(() {
+        isLoading = false;
+        hasError = petData == null;
+      });
+    } else {
       setState(() {
         hasError = true;
         isLoading = false;
       });
-      print("Error fetching pet details: $e");
+      print("Failed to load pet details. Status: ${response.statusCode}");
     }
+  } catch (e) {
+    setState(() {
+      hasError = true;
+      isLoading = false;
+    });
+    print("Error fetching pet details: $e");
   }
+}
 
   Future<void> fetchShelterInfo() async {
     final prefs = await SharedPreferences.getInstance();
@@ -132,7 +137,7 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
     }
   }
 
-  Future<void> fetchPets() async {
+  Future<void> fetchOtherPets() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url = Uri.parse(
@@ -203,6 +208,42 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
     }
   }
 
+  void showFullScreenImage(BuildContext context, Uint8List imageBytes) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.7), // Dim background
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                child: Image.memory(imageBytes),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    shape: BoxShape.circle,
+                  ),
+                  padding: EdgeInsets.all(8),
+                  child: Icon(Icons.close, color: Colors.white, size: 28),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _onAdoptPressed() {
     if (petData != null) {
       Navigator.push(
@@ -212,7 +253,6 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
             petId: widget.petId,
             adopterId: widget.adopterId,
             shelterId: widget.shelterId,
-            applicationId: petData!['application_id'],
           ),
         ),
       );
@@ -407,8 +447,61 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
                             ),
                             SizedBox(height: 24),
                             // ... inside your build method, before the main GridView list
+                            Card(
+                              color: const Color.fromARGB(255, 255, 255, 255),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Vaccination Image',
+                                      style: GoogleFonts.poppins(
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    GestureDetector(
+                                      onTap: () {
+                                        if (petData?['petmedia']
+                                                ?['pet_vaccine'] !=
+                                            null) {
+                                          showFullScreenImage(
+                                            context,
+                                            petData!['petmedia']['pet_vaccine'],
+                                          );
+                                        }
+                                      },
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: petData?['petmedia']
+                                                    ?['pet_vaccine'] !=
+                                                null
+                                            ? Image.memory(
+                                                petData!['petmedia']
+                                                    ['pet_vaccine'],
+                                                height: 200,
+                                                width: double.infinity,
+                                                fit: BoxFit.cover,
+                                              )
+                                            : Image.asset(
+                                                'assets/images/noimage2.webp',
+                                                height: 150,
+                                                width: double.infinity,
+                                                fit: BoxFit.cover,
+                                              ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 10),
 
                             Card(
+                                color: const Color.fromARGB(255, 255, 255, 255),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -539,7 +632,7 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
           ),
         );
         if (result == true) {
-          fetchPets();
+          fetchOtherPets();
         }
       },
       child: Card(
