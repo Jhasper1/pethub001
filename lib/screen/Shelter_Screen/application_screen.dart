@@ -3,6 +3,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import 'package:http/http.dart' as http;
 import 'package:march24/screen/Shelter_Screen/pending_adoption_screen.dart';
 import 'bottom_nav_bar.dart';
@@ -41,6 +44,12 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     return DateFormat.jm().format(time);
   }
 
+  String formatUpdatedAt(String? rawDateTime) {
+    if (rawDateTime == null || rawDateTime.isEmpty) return 'No date';
+    final dateTime = DateTime.parse(rawDateTime);
+    return DateFormat("MMM d, y - h:mm a").format(dateTime.toLocal());
+  }
+
   @override
   void initState() {
     super.initState();
@@ -66,9 +75,6 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
           "Authorization": "Bearer $token",
         },
       );
-
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
@@ -162,6 +168,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
       'status': app['status']?.toString() ?? '',
       'reason_for_rejection': app['reason_for_rejection']?.toString() ?? '',
       'created_at': app['created_at']?.toString() ?? '',
+      'updated_at': app['updated_at']?.toString() ?? '',
       'has_interview': hasInterview,
       'interview_date':
           hasInterview ? scheduleInterview['interview_date']?.toString() : null,
@@ -338,8 +345,8 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                           itemBuilder: (context, index) {
                             final applicant = applicants[index];
                             return GestureDetector(
-                              onTap: () {
-                                Navigator.push(
+                              onTap: () async {
+                                final result = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) =>
@@ -349,6 +356,10 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                     ),
                                   ),
                                 );
+
+                                if (result == true) {
+                                  fetchApplicants(); // refresh the list when coming back
+                                }
                               },
                               child: Card(
                                 color: const Color.fromARGB(255, 239, 250, 255),
@@ -400,7 +411,8 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                           applicant['interview_time'] != null &&
                                           applicant['interview_date'] != null &&
                                           applicant['status'] != 'rejected' &&
-                                          applicant['status'] != 'passed') ...[
+                                          applicant['status'] != 'passed' &&
+                                          applicant['status'] != 'adopted') ...[
                                         Center(
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -417,6 +429,67 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                           ),
                                         ),
                                         const SizedBox(height: 8),
+                                      ],
+                                      if (applicant['status'] == 'adopted') ...[
+                                        Column(
+                                          children: [
+                                            Align(
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                'Adopted on:',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(Icons.schedule,
+                                                    size: 16,
+                                                    color: Colors.grey),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  formatUpdatedAt(
+                                                      applicant['updated_at']),
+                                                  style: GoogleFonts.poppins(
+                                                      fontSize: 17),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                      const SizedBox(height: 8),
+                                      if (applicant['status'] == 'passed' ||
+                                          applicant['status'] == 'adopted') ...[
+                                        Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: ElevatedButton(
+                                            onPressed: () {
+                                              generateAndShowAgreementPDF();
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.lightBlue,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              minimumSize: const Size(
+                                                  double.infinity, 50),
+                                            ),
+                                            child: Text(
+                                              'Download Agreement',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors
+                                                    .white, // optional: since the button is white
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                       ],
                                       if (applicant['status'] == 'interview' ||
                                           applicant['status'] == 'rejected')
@@ -508,5 +581,234 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> generateAndShowAgreementPDF() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final applicationId = int.parse(applicants[0]['application_id'].toString());
+
+    final response = await http.get(
+      Uri.parse(
+          'http://127.0.0.1:5566/api/shelter/export/${widget.shelterId}/$applicationId/letter'),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode != 200) {
+      print('Failed to fetch adoption application');
+      return;
+    }
+
+    final responseData = jsonDecode(response.body);
+    final info = responseData['data'];
+
+    final adopterName =
+        // ignore: prefer_interpolation_to_compose_strings
+        info['adopter']['first_name'] + ' ' + info['adopter']['last_name'];
+    final adopterAddress = info['adopter']['address'];
+    final petName = info['pet']['pet_name'];
+    final petType = info['pet']['pet_type'];
+    final petGender = info['pet']['pet_sex'];
+
+    final shelterName = info['shelter']['shelter_name'];
+    final shelterAddress = info['shelter']['shelter_address'];
+    final shelterPhone =
+        info['shelter']['shelter_contact']; // fixed key name from your JSON
+    final shelterEmail = info['shelter']['shelter_email'];
+
+    final pdf = pw.Document();
+
+    pw.Widget buildUnderlinedText(String text) {
+      return pw.Text(
+        text.toUpperCase(),
+        style: pw.TextStyle(
+          fontSize: 12,
+          decoration: pw.TextDecoration.underline,
+        ),
+      );
+    }
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat:
+            PdfPageFormat(8.5 * PdfPageFormat.inch, 14 * PdfPageFormat.inch),
+        margin: const pw.EdgeInsets.all(40),
+        build: (context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Text(
+              shelterName.toUpperCase(),
+              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 4),
+            buildUnderlinedText(shelterAddress.toUpperCase()),
+            pw.SizedBox(height: 4),
+            buildUnderlinedText('Contact: $shelterPhone'.toUpperCase()),
+            pw.SizedBox(height: 4),
+            buildUnderlinedText('Email: $shelterEmail'.toUpperCase()),
+            pw.SizedBox(height: 20),
+            pw.Center(
+              child: pw.Text(
+                'PET ADOPTION AGREEMENT',
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 20),
+            pw.Text(
+              "Date: ${DateFormat('MMMM dd, yyyy').format(DateTime.now())}",
+              textAlign: pw.TextAlign.right,
+            ),
+            pw.SizedBox(height: 20),
+            pw.RichText(
+              textAlign: pw.TextAlign.justify,
+              text: pw.TextSpan(children: [
+                pw.TextSpan(
+                    text: 'This agreement is entered into by and between '),
+                pw.TextSpan(
+                  text: shelterName.toUpperCase(),
+                  style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      decoration: pw.TextDecoration.underline),
+                ),
+                pw.TextSpan(text: ', located at '),
+                pw.TextSpan(
+                  text: shelterAddress.toUpperCase(),
+                  style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      decoration: pw.TextDecoration.underline),
+                ),
+                pw.TextSpan(text: ', represented by '),
+                pw.TextSpan(
+                  text: '________________________',
+                ),
+                pw.TextSpan(text: ', and '),
+                pw.TextSpan(
+                  text: adopterName.toUpperCase(),
+                  style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      decoration: pw.TextDecoration.underline),
+                ),
+                pw.TextSpan(text: ', residing at '),
+                pw.TextSpan(
+                  text: adopterAddress.toUpperCase(),
+                  style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      decoration: pw.TextDecoration.underline),
+                ),
+                pw.TextSpan(text: ', regarding the adoption of the pet named '),
+                pw.TextSpan(
+                  text: petName.toUpperCase(),
+                  style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      decoration: pw.TextDecoration.underline),
+                ),
+                pw.TextSpan(text: ', a '),
+                pw.TextSpan(
+                  text: petType.toUpperCase(),
+                  style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      decoration: pw.TextDecoration.underline),
+                ),
+                pw.TextSpan(text: ', sex: '),
+                pw.TextSpan(
+                  text: petGender.toUpperCase(),
+                  style: pw.TextStyle(
+                      fontWeight: pw.FontWeight.bold,
+                      decoration: pw.TextDecoration.underline),
+                ),
+                pw.TextSpan(text: '.'),
+              ]),
+            ),
+            pw.SizedBox(height: 20),
+            pw.Text('Purpose of the Agreement:',
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 4),
+            pw.Text(
+                'This agreement ensures that the adopted pet is placed in a responsible, caring, and safe environment.'),
+            pw.SizedBox(height: 10),
+            pw.Text('Terms and Conditions:',
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 4),
+            pw.Text('1. Responsibilities of the Adopter:'),
+            pw.Bullet(
+                text:
+                    'Will provide the pet with proper food, clean water, shelter, and medical attention when needed.'),
+            pw.Bullet(
+                text:
+                    'Will not sell, give away, or abandon the pet without notifying the shelter.'),
+            pw.Bullet(
+                text:
+                    'Will ensure the pet receives regular veterinary care, including vaccinations.'),
+            pw.Bullet(
+                text:
+                    'Will not harm, abuse, neglect, or restrain the pet in any way that endangers its well-being.'),
+            pw.SizedBox(height: 10),
+            pw.Text('2. Responsibilities of the Shelter:'),
+            pw.Bullet(
+                text:
+                    'Has provided accurate information regarding the pet’s health and background.'),
+            pw.Bullet(
+                text:
+                    'Ensures the pet is in good condition at the time of adoption.'),
+            pw.Bullet(
+                text:
+                    "May follow up or contact the adopter to check on the pet’s condition after adoption."),
+            pw.SizedBox(height: 10),
+            pw.Text('3. Right to Reclaim:'),
+            pw.Bullet(
+                text:
+                    'If the adopter is found to be violating any part of this agreement, the shelter reserves the right to reclaim the pet.'),
+            pw.SizedBox(height: 10),
+            pw.Text('4. Voluntary Agreement:'),
+            pw.Bullet(
+                text:
+                    'Both parties confirm that this agreement is made willingly, without pressure or coercion, and with full understanding of the terms.'),
+            pw.SizedBox(height: 20),
+            pw.Text(
+              'IN WITNESS WHEREOF, the parties hereunto set their hands on this agreement on this day.',
+              textAlign: pw.TextAlign.justify,
+            ),
+            pw.SizedBox(height: 40),
+            pw.Text('Adopter:',
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 20),
+            pw.Center(
+              child: pw.Column(
+                children: [
+                  pw.Text(adopterName.toUpperCase(),
+                      style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                      )),
+                  pw.Text('_________________________'),
+                  pw.Text('Signature over Printed Name'),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 40),
+            pw.Text('Shelter Representative:',
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 20),
+            pw.Center(
+              child: pw.Column(
+                children: [
+                  pw.Text('_________________________'),
+                  pw.Text('Signature over Printed Name'),
+                ],
+              ),
+            ),
+            pw.SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+
+    await Printing.layoutPdf(
+        onLayout: (PdfPageFormat format) async => pdf.save());
   }
 }
