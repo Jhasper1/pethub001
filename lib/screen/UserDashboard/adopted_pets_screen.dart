@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:march24/screen/UserDashboard/pet_details_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'user_bottom_nav_bar.dart';
+import 'user_home_screen.dart';
 
 class ApplicationDetailsScreen extends StatefulWidget {
   final int applicationId;
@@ -338,7 +339,17 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
       backgroundColor: const Color(0xFFE2F3FD),
       appBar: AppBar(
         title: const Text('Application Details'),
-        automaticallyImplyLeading: false, // Removes the back button
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => UserHomeScreen(adopterId: widget.adopterId),
+              ),
+            );
+          },
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

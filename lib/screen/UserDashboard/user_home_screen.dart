@@ -10,6 +10,8 @@ import 'package:march24/screen/UserDashboard/view_all_shelter.dart';
 import 'package:march24/screen/UserDashboard/pet_clicked.dart';
 import 'package:march24/screen/UserDashboard/adopter_notification.dart';
 
+int _unreadCount = 0;
+
 class UserHomeScreen extends StatefulWidget {
   final int adopterId;
 
@@ -38,7 +40,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     final token = prefs.getString('auth_token');
     final adopterId = widget.adopterId;
 
-    if (token == null || adopterId == null) return;
+    if (token == null) return;
 
     try {
       final response = await http.get(
@@ -51,11 +53,14 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data['notifications'] is List && data['notifications'].isNotEmpty) {
-          setState(() {
-            _hasUnseenNotifications = true;
-          });
-        }
+        final notifications = data['notifications'] as List;
+
+        final unreadCount =
+            notifications.where((n) => n['is_read'] == false).length;
+
+        setState(() {
+          _unreadCount = unreadCount;
+        });
       }
     } catch (e) {
       debugPrint('Error checking notifications: $e');
@@ -135,37 +140,44 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             onPressed: () {},
           ),
           Stack(
-            alignment: Alignment.center,
             children: [
               IconButton(
                 icon: const Icon(Icons.notifications, color: Colors.white),
                 onPressed: () {
-                  // Mark notifications as seen when clicked
-                  setState(() {
-                    _hasUnseenNotifications = false;
-                  });
-                  Navigator.push(
+                  Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => AdopterNotificationScreen()),
+                      builder: (_) => AdopterNotificationScreen(),
+                    ),
                   ).then((_) {
-                    // Check for new notifications when returning from notification screen
                     _checkForUnseenNotifications();
                   });
                 },
               ),
-              if (_hasUnseenNotifications)
+              if (_unreadCount > 0)
                 Positioned(
-                  top: 8,
                   right: 8,
+                  top: 8,
                   child: Container(
-                    width: 12,
-                    height: 12,
+                    padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: Colors.orange,
-                      borderRadius: BorderRadius.circular(6),
-                      border:
-                          Border.all(color: Colors.blue.shade700, width: 1.5),
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$_unreadCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
                 ),
