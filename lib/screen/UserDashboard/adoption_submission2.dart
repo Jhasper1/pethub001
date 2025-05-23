@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
@@ -6,18 +7,21 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'shelter_clicked.dart';
 import 'adopted_pets_screen.dart';
+import 'adopted_pet_list_screen.dart';
 
 class AdoptionForm extends StatefulWidget {
   final int petId;
   final int adopterId;
   final int shelterId;
 
-  AdoptionForm(
-      {super.key,
-      required this.petId,
-      required this.adopterId,
-      required this.shelterId,});
+  AdoptionForm({
+    super.key,
+    required this.petId,
+    required this.adopterId,
+    required this.shelterId,
+  });
 
   @override
   _AdoptionFormState createState() => _AdoptionFormState();
@@ -61,10 +65,14 @@ class _AdoptionFormState extends State<AdoptionForm> {
   final TextEditingController _pastPetsController = TextEditingController();
   final TextEditingController _interviewSettingController =
       TextEditingController();
+  final TextEditingController _adopterIDType = TextEditingController();
+  final TextEditingController _altIDType = TextEditingController();
 
 // Variables to store the bytes of the valid ID images
   Uint8List? _adopterValidIDBytes;
   Uint8List? _altValidIDBytes;
+  XFile? _adopterValidID;
+  XFile? _altValidID;
 
   // Image controllers for base64 encoding (will be implemented later)
   final List<String> images = List.generate(8, (index) => "");
@@ -261,8 +269,8 @@ class _AdoptionFormState extends State<AdoptionForm> {
           MaterialPageRoute(
             builder: (_) {
               print(
-                  'Navigating to ApplicationDetailsScreen with applicationId: ${widget.adopterId}');
-              return ApplicationDetailsScreen(
+                  'Navigating to ApplicationDetailsScreen with applicationId:');
+              return AdoptedPetListScreen(
                 adopterId: widget.adopterId,
                 applicationId: 0,
               );
@@ -289,7 +297,7 @@ class _AdoptionFormState extends State<AdoptionForm> {
   }
 
 // Default image (replace with your asset or network image if needed)
-  final String defaultImagePath = 'assets/images/addimage.jpg';
+  final String defaultImagePath = 'assets/images/logo.png';
 
   Future<void> _pickAdopterValidID() async {
     final ImagePicker picker = ImagePicker();
@@ -325,14 +333,14 @@ class _AdoptionFormState extends State<AdoptionForm> {
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            height: 200,
+            height: 150,
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey),
               borderRadius: BorderRadius.circular(8),
               image: DecorationImage(
                 image: _adopterValidIDBytes != null
                     ? MemoryImage(_adopterValidIDBytes!) // Use MemoryImage
-                    : const AssetImage('')
+                    : const AssetImage('assets/images/logo.png')
                         as ImageProvider,
                 fit: BoxFit.cover,
               ),
@@ -358,14 +366,14 @@ class _AdoptionFormState extends State<AdoptionForm> {
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            height: 200,
+            height: 150,
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey),
               borderRadius: BorderRadius.circular(8),
               image: DecorationImage(
                 image: _altValidIDBytes != null
                     ? MemoryImage(_altValidIDBytes!) // Use MemoryImage
-                    : const AssetImage('')
+                    : const AssetImage('assets/images/logo.png')
                         as ImageProvider,
                 fit: BoxFit.cover,
               ),
@@ -456,79 +464,87 @@ class _AdoptionFormState extends State<AdoptionForm> {
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextFormField(
-              controller: adopterNameController,
-              readOnly: true,
-              decoration: InputDecoration(labelText: 'Adopter Name'),
-            ),
-            TextFormField(
-              controller: ageController,
-              readOnly: true,
-              decoration: InputDecoration(labelText: 'Age'),
-            ),
-            TextFormField(
-              controller: sexController,
-              readOnly: true,
-              decoration: InputDecoration(labelText: 'Sex'),
-            ),
-            TextFormField(
-              controller: addressController,
-              readOnly: true,
-              decoration: InputDecoration(labelText: 'Address'),
-            ),
-            TextFormField(
-              controller: contactNumberController,
-              readOnly: true,
-              decoration: InputDecoration(labelText: 'Contact Number'),
-            ),
-            TextFormField(
-              controller: emailController,
-              readOnly: true,
-              decoration: InputDecoration(labelText: 'Email'),
-            ),
-            TextFormField(
-              controller: occupationController,
-              readOnly: true,
-              decoration: InputDecoration(labelText: 'Occupation'),
-            ),
-            TextFormField(
-              controller: civilStatusController,
-              readOnly: true,
-              decoration: InputDecoration(labelText: 'Civil Status'),
-            ),
-            TextFormField(
-              controller: socialMediaController,
-              readOnly: true,
-              decoration: InputDecoration(labelText: 'Social Media'),
-            ),
-            SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: selectedAdopterIDType,
-              decoration: InputDecoration(labelText: 'Type of ID'),
-              items: idTypes.map((String idType) {
-                return DropdownMenuItem<String>(
-                  value: idType,
-                  child: Text(idType),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedAdopterIDType = newValue;
-                });
-              },
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please select an ID type';
-                }
-                return null;
-              },
-            ),
-            _buildAdopterValidIDPreview()
-          ],
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 8)],
+        ),
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: adopterNameController,
+                readOnly: true,
+                decoration: InputDecoration(labelText: 'Adopter Name'),
+              ),
+              TextFormField(
+                controller: ageController,
+                readOnly: true,
+                decoration: InputDecoration(labelText: 'Age'),
+              ),
+              TextFormField(
+                controller: sexController,
+                readOnly: true,
+                decoration: InputDecoration(labelText: 'Sex'),
+              ),
+              TextFormField(
+                controller: addressController,
+                readOnly: true,
+                decoration: InputDecoration(labelText: 'Address'),
+              ),
+              TextFormField(
+                controller: contactNumberController,
+                readOnly: true,
+                decoration: InputDecoration(labelText: 'Contact Number'),
+              ),
+              TextFormField(
+                controller: emailController,
+                readOnly: true,
+                decoration: InputDecoration(labelText: 'Email'),
+              ),
+              TextFormField(
+                controller: occupationController,
+                readOnly: true,
+                decoration: InputDecoration(labelText: 'Occupation'),
+              ),
+              TextFormField(
+                controller: civilStatusController,
+                readOnly: true,
+                decoration: InputDecoration(labelText: 'Civil Status'),
+              ),
+              TextFormField(
+                controller: socialMediaController,
+                readOnly: true,
+                decoration: InputDecoration(labelText: 'Social Media'),
+              ),
+              SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: selectedAdopterIDType,
+                decoration: InputDecoration(labelText: 'Type of ID'),
+                items: idTypes.map((String idType) {
+                  return DropdownMenuItem<String>(
+                    value: idType,
+                    child: Text(idType),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedAdopterIDType = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select an ID type';
+                  }
+                  return null;
+                },
+              ),
+              _buildAdopterValidIDPreview()
+            ],
+          ),
         ),
       ),
     );
@@ -537,176 +553,256 @@ class _AdoptionFormState extends State<AdoptionForm> {
   Widget _buildContactInfoStep() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 8)],
+        ),
+        child: SingleChildScrollView(
           child: Column(
-        children: [
-          Text("SECOND CONTACT PERSON INFORMATION"),
-          TextFormField(
-            controller: _altFNameController,
-            decoration: InputDecoration(labelText: 'First Name'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter a first name';
-              }
-              return null;
-            },
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(12.0),
+                child: Text(
+                  "SECOND CONTACT PERSON INFORMATION",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _altFNameController,
+                  decoration: InputDecoration(labelText: 'First Name'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a first name';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _altLNameController,
+                  decoration: InputDecoration(labelText: 'Last Name'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a last name';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _relationshipController,
+                  decoration:
+                      InputDecoration(labelText: 'Relationship to the Adopter'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the relationship';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _altContactNumberController,
+                  decoration: InputDecoration(labelText: 'Contact Number'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a contact number';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _altEmailController,
+                  decoration: InputDecoration(labelText: 'Email'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter an Email Address';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: DropdownButtonFormField<String>(
+                  value: selectedAltIDType,
+                  decoration: InputDecoration(labelText: 'Type of ID'),
+                  items: idTypes.map((String idType) {
+                    return DropdownMenuItem<String>(
+                      value: idType,
+                      child: Text(idType),
+                    );
+                  }).toList(),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      selectedAltIDType = newValue;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please select an ID type';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              _buildAltValidIDPreview(),
+            ],
           ),
-          TextFormField(
-            controller: _altLNameController,
-            decoration: InputDecoration(labelText: 'Last Name'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter a last name';
-              }
-              return null;
-            },
-          ),
-          TextFormField(
-            controller: _relationshipController,
-            decoration:
-                InputDecoration(labelText: 'Relationship to the Adopter'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter the relationship';
-              }
-              return null;
-            },
-          ),
-          TextFormField(
-            controller: _altContactNumberController,
-            decoration: InputDecoration(labelText: 'Contact Number'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter a contact number';
-              }
-              return null;
-            },
-          ),
-          TextFormField(
-            controller: _altEmailController,
-            decoration: InputDecoration(labelText: 'Email'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please enter an Email Address';
-              }
-              return null;
-            },
-          ),
-          SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            value: selectedAltIDType,
-            decoration: InputDecoration(labelText: 'Type of ID'),
-            items: idTypes.map((String idType) {
-              return DropdownMenuItem<String>(
-                value: idType,
-                child: Text(idType),
-              );
-            }).toList(),
-            onChanged: (String? newValue) {
-              setState(() {
-                selectedAltIDType = newValue;
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select an ID type';
-              }
-              return null;
-            },
-          ),
-          _buildAltValidIDPreview()
-        ],
-      )),
+        ),
+      ),
     );
   }
 
   Widget _buildQuestionnaireStep() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          TextFormField(
-            controller: _reasonController,
-            decoration: InputDecoration(labelText: 'Reason for Adoption'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please provide a reason';
-              }
-              return null;
-            },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 8)],
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _reasonController,
+                  decoration: InputDecoration(labelText: 'Reason for Adoption'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please provide a reason';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _idealPetDescController,
+                  decoration:
+                      InputDecoration(labelText: 'Ideal Pet Description'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please describe your ideal pet';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _housingSituationController,
+                  decoration: InputDecoration(labelText: 'Housing Situation'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please describe your housing situation';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _petsAtHomeController,
+                  decoration: InputDecoration(labelText: 'Pets at Home'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please mention any pets at home';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _allergiesController,
+                  decoration: InputDecoration(labelText: 'Any Allergies'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please mention any allergies';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _familySupportController,
+                  decoration: InputDecoration(labelText: 'Family Support'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please mention if your family supports the adoption';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _pastPetsController,
+                  decoration: InputDecoration(labelText: 'Past Pet Ownership'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please describe any past pets';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                child: TextFormField(
+                  controller: _interviewSettingController,
+                  decoration:
+                      InputDecoration(labelText: 'Preferred Interview Setting'),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please provide your preferred interview setting';
+                    }
+                    return null;
+                  },
+                ),
+              ),
+            ],
           ),
-          TextFormField(
-            controller: _idealPetDescController,
-            decoration: InputDecoration(labelText: 'Ideal Pet Description'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please describe your ideal pet';
-              }
-              return null;
-            },
-          ),
-          TextFormField(
-            controller: _housingSituationController,
-            decoration: InputDecoration(labelText: 'Housing Situation'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please describe your housing situation';
-              }
-              return null;
-            },
-          ),
-          TextFormField(
-            controller: _petsAtHomeController,
-            decoration: InputDecoration(labelText: 'Pets at Home'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please mention any pets at home';
-              }
-              return null;
-            },
-          ),
-          TextFormField(
-            controller: _allergiesController,
-            decoration: InputDecoration(labelText: 'Any Allergies'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please mention any allergies';
-              }
-              return null;
-            },
-          ),
-          TextFormField(
-            controller: _familySupportController,
-            decoration: InputDecoration(labelText: 'Family Support'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please mention if your family supports the adoption';
-              }
-              return null;
-            },
-          ),
-          TextFormField(
-            controller: _pastPetsController,
-            decoration: InputDecoration(labelText: 'Past Pet Ownership'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please describe any past pets';
-              }
-              return null;
-            },
-          ),
-          TextFormField(
-            controller: _interviewSettingController,
-            decoration:
-                InputDecoration(labelText: 'Preferred Interview Setting'),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please provide your preferred interview setting';
-              }
-              return null;
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -714,22 +810,41 @@ class _AdoptionFormState extends State<AdoptionForm> {
   Widget _buildPhotoImagesStep() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Column(
-          children: List.generate(4, (rowIndex) {
-            int first = rowIndex * 2;
-            int second = first + 1;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16.0),
-              child: Row(
-                children: [
-                  Expanded(child: _buildImagePreview(first, labels[first])),
-                  const SizedBox(width: 16),
-                  Expanded(child: _buildImagePreview(second, labels[second])),
-                ],
-              ),
-            );
-          }),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 8)],
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: List.generate(4, (rowIndex) {
+              int first = rowIndex * 2;
+              int second = first + 1;
+
+              return Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: _buildImagePreview(first, labels[first]),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: _buildImagePreview(second, labels[second]),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ),
         ),
       ),
     );
@@ -738,15 +853,23 @@ class _AdoptionFormState extends State<AdoptionForm> {
   Widget _buildReviewStep() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Text('Review All Information:'),
-          // Display all information entered by the user
-          Text('Adopter Name: ${adopterNameController.text}'),
-          Text('Contact Number: ${contactNumberController.text}'),
-          Text('Relationship: ${_relationshipController.text}'),
-          // Display other fields similarly...
-        ],
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 8)],
+        ),
+        child: Column(
+          children: [
+            Text('Review All Information:'),
+            // Display all information entered by the user
+            Text('Adopter Name: ${adopterNameController.text}'),
+            Text('Contact Number: ${contactNumberController.text}'),
+            Text('Relationship: ${_relationshipController.text}'),
+
+            // Display other fields similarly...
+          ],
+        ),
       ),
     );
   }
@@ -794,4 +917,3 @@ class _AdoptionFormState extends State<AdoptionForm> {
     );
   }
 }
-

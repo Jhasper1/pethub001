@@ -111,8 +111,8 @@ class _ShelterScreenState extends State<ShelterScreen> {
                         final shelterProfile =
                             shelterMedia['shelter_profile'] ?? '';
                         final shelterDescription =
-                            shelterInfo?['shelter_description'] ??
-                                'No description available';
+                            shelterInfo?['shelter_address'] ??
+                                'No address available';
 
                         return InkWell(
                           onTap: () {
