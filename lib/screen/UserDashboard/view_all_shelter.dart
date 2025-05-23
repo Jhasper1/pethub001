@@ -104,7 +104,7 @@ class _ShelterScreenState extends State<ShelterScreen> {
                       itemBuilder: (context, index) {
                         final shelter = shelters[index];
                         final shelterId = shelter['shelter_id'];
-                        final shelterInfo = shelter['ShelterInfo'];
+                        final shelterInfo = shelter['shelterinfo'];
                         final shelterMedia = shelterInfo?['sheltermedia'] ?? {};
                         final shelterName =
                             shelterInfo?['shelter_name'] ?? 'No name provided';
