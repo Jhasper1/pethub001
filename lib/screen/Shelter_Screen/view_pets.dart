@@ -96,7 +96,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-         backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       body: Column(
         children: [
           Padding(
@@ -147,13 +147,13 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                               TextStyle(color: Colors.lightBlue, fontSize: 12),
                           decoration: InputDecoration(
                             hintText: 'Search pet name...',
-                            hintStyle: TextStyle( fontSize: 12),
+                            hintStyle: TextStyle(fontSize: 12),
                             prefixIcon: Icon(Icons.search,
                                 size: 20, color: Colors.lightBlue),
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 5),
                             filled: true,
-                            fillColor: const Color.fromARGB(255, 239, 250, 255),
+                            fillColor: Colors.white,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
                               borderSide: BorderSide(color: Colors.lightBlue),
@@ -190,13 +190,13 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(5),
                             ),
-                            foregroundColor:
-                                Colors.red, // text/icon color
-                            backgroundColor:const Color.fromARGB(255, 255, 239, 239), // optional: background color if you want contrast
+                            foregroundColor: Colors.red, // text/icon color
+                            backgroundColor: const Color.fromARGB(255, 255, 239,
+                                239), // optional: background color if you want contrast
                             elevation: 1,
                             side: BorderSide(
-                                color: Colors
-                                    .red), // optional: light blue outline
+                                color:
+                                    Colors.red), // optional: light blue outline
                           ),
                           child: Text(
                             'Reset',
@@ -241,7 +241,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 5),
                             filled: true,
-                            fillColor:const Color.fromARGB(255, 239, 250, 255),  // background color
+                            fillColor: Colors.white, // background color
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
                               borderSide: BorderSide(
@@ -257,7 +257,8 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                                   BorderSide(color: Colors.lightBlue, width: 2),
                             ),
                           ),
-                          dropdownColor: const Color.fromARGB(255, 239, 250, 255), 
+                          dropdownColor:
+                              const Color.fromARGB(255, 239, 250, 255),
                           style: GoogleFonts.poppins(fontSize: 12),
                         ),
                       ),
@@ -289,7 +290,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 5),
                             filled: true,
-                            fillColor: Color.fromARGB(255, 239, 250, 255), // background color
+                            fillColor: Colors.white, // background color
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
                               borderSide: BorderSide(
@@ -305,7 +306,8 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                                   BorderSide(color: Colors.lightBlue, width: 2),
                             ),
                           ),
-                          dropdownColor: const Color.fromARGB(255, 239, 250, 255), 
+                          dropdownColor:
+                              const Color.fromARGB(255, 239, 250, 255),
                           style: GoogleFonts.poppins(fontSize: 12),
                         ),
                       ),
@@ -337,7 +339,7 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                             contentPadding: EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 5),
                             filled: true,
-                            fillColor: const Color.fromARGB(255, 239, 250, 255), // background color
+                            fillColor: Colors.white,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(5),
                               borderSide: BorderSide(
@@ -353,7 +355,8 @@ class _ViewPetsScreenState extends State<ViewPetsScreen> {
                                   BorderSide(color: Colors.lightBlue, width: 2),
                             ),
                           ),
-                          dropdownColor: const Color.fromARGB(255, 239, 250, 255), 
+                          dropdownColor:
+                              const Color.fromARGB(255, 239, 250, 255),
                           style: GoogleFonts.poppins(fontSize: 12),
                         ),
                       ),

@@ -28,7 +28,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
 
   String selectedTab = 'Interview';
   final List<String> tabs =
-      ['Interview', 'Passed', 'Adopted', 'Rejected'].toList();
+      ['Interview', 'Approved', 'Adopted', 'Rejected'].toList();
   List<Map<String, dynamic>> applicants = [];
   bool isLoading = false;
 
@@ -208,7 +208,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       bottomNavigationBar: BottomNavBar(
         shelterId: widget.shelterId,
         currentIndex: 3,
@@ -363,7 +363,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                 }
                               },
                               child: Card(
-                                color: const Color.fromARGB(255, 239, 250, 255),
+                                color: Colors.white,
                                 margin: const EdgeInsets.symmetric(vertical: 8),
                                 child: Padding(
                                   padding: const EdgeInsets.all(12),
@@ -411,8 +411,10 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                       if (applicant['has_interview'] &&
                                           applicant['interview_time'] != null &&
                                           applicant['interview_date'] != null &&
-                                          applicant['status'] != 'rejected' &&
-                                          applicant['status'] != 'passed' &&
+                                          applicant['status'] != 'application_reject' &&
+                                          applicant['status'] != 'interview_reject' &&
+                                          applicant['status'] != 'approved_reject' &&
+                                          applicant['status'] != 'approved' &&
                                           applicant['status'] != 'adopted') ...[
                                         Center(
                                           child: Row(
@@ -463,7 +465,7 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                         ),
                                       ],
                                       const SizedBox(height: 8),
-                                      if (applicant['status'] == 'passed' ||
+                                      if (applicant['status'] == 'approved' ||
                                           applicant['status'] == 'adopted') ...[
                                         Align(
                                           alignment: Alignment.centerLeft,
@@ -493,7 +495,12 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                         ),
                                       ],
                                       if (applicant['status'] == 'interview' ||
-                                          applicant['status'] == 'rejected')
+                                          applicant['status'] ==
+                                              'application_reject' ||
+                                          applicant['status'] ==
+                                              'interview_reject' ||
+                                          applicant['status'] ==
+                                              'approved_reject')
                                         Column(
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
@@ -517,7 +524,11 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                                       )
                                                     : const SizedBox(),
                                                 applicant['status'] ==
-                                                        'rejected'
+                                                            'application_reject' ||
+                                                        applicant['status'] ==
+                                                            'interview_reject' ||
+                                                        applicant['status'] ==
+                                                            'approved_reject'
                                                     ? Text(
                                                         'Reason for Rejection:',
                                                         style:
@@ -543,7 +554,11 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                                     decoration: BoxDecoration(
                                                       color:
                                                           applicant['status'] ==
-                                                                  'rejected'
+                                                            "application_reject" ||
+                                                        applicant['status'] ==
+                                                            "interview_reject" ||
+                                                        applicant['status'] ==
+                                                            "approved_reject"
                                                               ? Colors.red[100]
                                                               : Colors
                                                                   .yellow[100],
@@ -553,7 +568,11 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
                                                     ),
                                                     child: Text(
                                                       applicant['status'] ==
-                                                              'rejected'
+                                                            "application_reject" ||
+                                                        applicant['status'] ==
+                                                            "interview_reject" ||
+                                                        applicant['status'] ==
+                                                            "approved_reject"
                                                           ? applicant[
                                                                   'reason_for_rejection'] ??
                                                               'N/A'
@@ -588,8 +607,9 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final applicationId = int.parse(applicants[0]['application_id'].toString());
-    final appLogoBytes = await rootBundle.load('assets/images/logo.png').then((data) => data.buffer.asUint8List());
-
+    final appLogoBytes = await rootBundle
+        .load('assets/images/logo.png')
+        .then((data) => data.buffer.asUint8List());
 
     final response = await http.get(
       Uri.parse(
@@ -625,7 +645,6 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     final profileImageBytes = _decodeBase64Image(shelterProfile);
 
     final pdf = pw.Document();
-
 
     pdf.addPage(
       pw.Page(

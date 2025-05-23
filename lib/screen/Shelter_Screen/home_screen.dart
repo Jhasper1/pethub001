@@ -74,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       bottomNavigationBar: BottomNavBar(
         shelterId: widget.shelterId,
         currentIndex: 0,

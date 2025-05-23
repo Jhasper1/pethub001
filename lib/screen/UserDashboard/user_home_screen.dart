@@ -149,12 +149,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildWelcomeBanner(),
-                        const SizedBox(height: 20),
-                        _buildSectionTitle(
-                            'Featured Pets',
-                            ViewAllPetsScreen(
-                              adopterId: widget.adopterId,
-                            )),
+                        const SizedBox(height: 10),
                         Flexible(
                           child: SingleChildScrollView(
                             physics: const AlwaysScrollableScrollPhysics(),
@@ -162,6 +157,11 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                _buildSectionTitle(
+                                    'Featured Pets',
+                                    ViewAllPetsScreen(
+                                      adopterId: widget.adopterId,
+                                    )),
                                 _buildFeaturedPetsList(),
                                 const SizedBox(height: 20),
                                 _buildSectionTitle(

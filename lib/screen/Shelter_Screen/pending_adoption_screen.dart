@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'application_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'bottom_nav_bar.dart';
 import 'application_details_screen.dart'; // Import the details screen
 
 class PendingApplicantsScreen extends StatefulWidget {
@@ -129,7 +127,7 @@ class _PendingApplicantsScreenState extends State<PendingApplicantsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       appBar: AppBar(
         title: Text('Adoption Request',
             style: GoogleFonts.poppins(
@@ -225,8 +223,7 @@ class _PendingApplicantsScreenState extends State<PendingApplicantsScreen> {
                                   );
                                 },
                                 child: Card(
-                                  color:
-                                      const Color.fromARGB(255, 239, 250, 255),
+                                  color: Colors.white,
                                   margin:
                                       const EdgeInsets.symmetric(vertical: 5),
                                   child: ListTile(
@@ -304,7 +301,7 @@ class _PetApplicantsModalState extends State<PetApplicantsModal> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url =
-        'http://127.0.0.1:5566/api/shelter/${widget.petId}/get/applications'; // Replace with your actual URL
+        'http://127.0.0.1:5566/api/shelter/${widget.petId}/get/applications';
 
     final response = await http.get(
       Uri.parse(url),
@@ -319,8 +316,10 @@ class _PetApplicantsModalState extends State<PetApplicantsModal> {
 
       // Assuming the data is a list of applicants
       setState(() {
-        petApplicants =
-            (data as List).map((app) => _mapApplicant(app)).toList();
+        petApplicants = (data['data'] as List)
+            .where((app) => app['status'] == 'pending') // Filter by status
+            .map((app) => _mapApplicant(app))
+            .toList();
         isLoading = false;
       });
     } else {
@@ -365,6 +364,7 @@ class _PetApplicantsModalState extends State<PetApplicantsModal> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       height: MediaQuery.of(context).size.height * 0.75,
+      color: const Color.fromARGB(255, 239, 250, 255),
       child: Column(
         children: [
           // 🔹 Fixed gray drag handle bar
@@ -438,7 +438,7 @@ class _PetApplicantsModalState extends State<PetApplicantsModal> {
                               );
                             },
                             child: Card(
-                              color: const Color.fromARGB(255, 239, 250, 255),
+                              color: Colors.white,
                               margin: const EdgeInsets.symmetric(vertical: 20),
                               child: ListTile(
                                 leading: Row(

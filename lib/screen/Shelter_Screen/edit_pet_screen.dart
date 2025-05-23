@@ -218,7 +218,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
                 color: Colors.white)),
       ),
       body: _buildBodyContent(),
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
     );
   }
 
@@ -235,7 +235,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
           child: Column(
             children: [
               Card(
-                color: const Color.fromARGB(255, 239, 250, 255),
+                color: Colors.white,
                 child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -514,7 +514,7 @@ class _EditPetScreenState extends State<EditPetScreen> {
               ),
               const SizedBox(height: 15),
               Card(
-                color: const Color.fromARGB(255, 239, 250, 255),
+                color: Colors.white,
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -533,7 +533,6 @@ class _EditPetScreenState extends State<EditPetScreen> {
                         child: GestureDetector(
                           onTap: _pickVaccineImage,
                           child: Container(
-                        
                             height: 200,
                             width: double.infinity,
                             decoration: BoxDecoration(
@@ -562,57 +561,60 @@ class _EditPetScreenState extends State<EditPetScreen> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-  onPressed: () {
-    if (_formKey.currentState!.validate()) {
-      if (_imageBytes != null) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Confirm'),
-              content: Text('Are you sure you want to save changes?'),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close the dialog
-                  },
-                  child: Text('Cancel'),
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    if (_imageBytes != null) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Confirm'),
+                            content:
+                                Text('Are you sure you want to save changes?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context)
+                                      .pop(); // Close the dialog
+                                },
+                                child: Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.of(context)
+                                      .pop(); // Close the dialog
+                                  setState(() {
+                                    isLoading = true;
+                                  });
+                                  _updateForm().then((_) {
+                                    setState(() {
+                                      isLoading = false;
+                                    });
+                                  });
+                                },
+                                child: Text('Yes'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Please select an image')),
+                      );
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  minimumSize: Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close the dialog
-                    setState(() {
-                      isLoading = true;
-                    });
-                    _updateForm().then((_) {
-                      setState(() {
-                        isLoading = false;
-                      });
-                    });
-                  },
-                  child: Text('Yes'),
-                ),
-              ],
-            );
-          },
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please select an image')),
-        );
-      }
-    }
-  },
-  style: ElevatedButton.styleFrom(
-    backgroundColor: Colors.green,
-    minimumSize: Size(double.infinity, 50),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(10),
-    ),
-  ),
-  child: Text('Save Changes', style: TextStyle(color: Colors.white)),
-),
-
+                child:
+                    Text('Save Changes', style: TextStyle(color: Colors.white)),
+              ),
             ],
           ),
         ),

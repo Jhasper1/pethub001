@@ -430,11 +430,15 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Pet Details"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
+        title: Text('Pet Information',
+            style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
       ),
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : hasError || petData == null

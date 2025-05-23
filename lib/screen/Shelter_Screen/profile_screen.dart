@@ -8,6 +8,7 @@ import 'shelter_donations_screen.dart';
 import 'bottom_nav_bar.dart';
 import 'edit_profile_screen.dart';
 import '../splash_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int shelterId;
@@ -94,7 +95,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,7 +309,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Card(
-                color: const Color.fromARGB(255, 239, 250, 255),
+                color: Colors.white,
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -336,8 +337,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _infoRow(Icons.location_on,
                           shelterInfo!['shelter_address'] ?? 'No information'),
                       const Divider(height: 20, thickness: 0.5),
-                      _infoRow(Icons.location_city,
-                          shelterInfo!['shelter_landmark'] ?? 'No information'),
+                      infoRowWithLink(Icons.location_city,
+                          shelterInfo!['shelter_landmark']),
                       const Divider(height: 20, thickness: 0.5),
                       _infoRow(
                           Icons.phone,
@@ -363,7 +364,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Card(
-                color: const Color.fromARGB(255, 239, 250, 255),
+                color: Colors.white,
                 elevation: 4,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -429,6 +430,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
             style: GoogleFonts.poppins(
               fontSize: 14,
               color: Colors.black87,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget infoRowWithLink(IconData icon, String? text) {
+    final displayText = text?.isNotEmpty == true ? text! : 'No information';
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: Colors.blue.shade700, size: 22),
+        const SizedBox(width: 12),
+        Expanded(
+          child: InkWell(
+            onTap: displayText != 'No information'
+                ? () async {
+                    final url =
+                        'https://maps.google.com/?q=${Uri.encodeComponent(displayText)}';
+                    final uri = Uri.parse(url);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri);
+                    }
+                  }
+                : null,
+            child: Text(
+              displayText,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: displayText != 'No information'
+                    ? Colors.blue
+                    : Colors.black87,
+                decoration: displayText != 'No information'
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+              ),
             ),
           ),
         ),

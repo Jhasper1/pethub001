@@ -14,7 +14,7 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
-      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       type: BottomNavigationBarType.fixed, // Disable slide animation
       selectedItemColor: Colors.lightBlue,
       unselectedItemColor: Colors.grey,

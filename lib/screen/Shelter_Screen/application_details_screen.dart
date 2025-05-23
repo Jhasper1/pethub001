@@ -265,7 +265,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       appBar: AppBar(
         title: Text('Adoption Details',
             style: GoogleFonts.poppins(
@@ -291,7 +291,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                         ),
                       ),
                       Card(
-                        color: const Color.fromARGB(255, 239, 250, 255),
+                        color: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -330,7 +330,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                       ),
                       SizedBox(height: 20),
                       Card(
-                        color: const Color.fromARGB(255, 239, 250, 255),
+                        color: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -602,7 +602,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                       ),
                       SizedBox(height: 15),
                       Card(
-                        color: const Color.fromARGB(255, 239, 250, 255),
+                        color: Colors.white,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
                         child: Padding(

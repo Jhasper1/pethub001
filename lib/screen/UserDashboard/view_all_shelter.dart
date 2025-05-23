@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -91,8 +92,15 @@ class _ShelterScreenState extends State<ShelterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Shelters'),
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
+        title: Text('Shelters',
+            style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
       ),
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
@@ -127,6 +135,7 @@ class _ShelterScreenState extends State<ShelterScreen> {
                             );
                           },
                           child: Card(
+                            color: Colors.white,
                             margin: const EdgeInsets.all(8),
                             child: Padding(
                               padding: const EdgeInsets.all(12),

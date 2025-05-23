@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
@@ -110,10 +111,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return InputDecoration(
       hintText: hintText,
       hintStyle: TextStyle(color: Colors.grey), // Sets hint text color to gray
-      border: InputBorder.none, // Removes the outline
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       filled: true,
       fillColor: Colors.grey[200],
-      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+      // contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
     );
   }
 
@@ -256,170 +257,218 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
+        title: Text('Edit Profile',
+            style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Cover Photo Picker
-            Stack(
-              children: [
-                GestureDetector(
-                  onTap: () => pickImage('cover'),
-                  child: Container(
-                    height: 150,
-                    decoration: BoxDecoration(
-                      image: coverImageBytes != null
-                          ? DecorationImage(
-                              image: MemoryImage(coverImageBytes!),
-                              fit: BoxFit.cover)
-                          : (shelterInfo!['shelter_cover'] != null
-                              ? DecorationImage(
-                                  image: NetworkImage(
-                                      shelterInfo!['shelter_cover']),
-                                  fit: BoxFit.cover)
-                              : const DecorationImage(
-                                  image: AssetImage('assets/images/logo.png'),
-                                  fit: BoxFit.cover)),
-                      color: Colors.blueAccent,
-                    ),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: GestureDetector(
-                      onTap: () => pickImage('cover'),
-                      child: const Icon(Icons.camera_alt, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Profile Photo Picker
-            Align(
-              alignment: Alignment.center,
-              child: GestureDetector(
-                onTap: () => pickImage('profile'),
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundImage: profileImageBytes != null
-                      ? MemoryImage(profileImageBytes!)
-                      : (shelterInfo!['shelter_profile'] != null
-                              ? NetworkImage(shelterInfo!['shelter_profile'])
-                              : const AssetImage('assets/images/logo.png'))
-                          as ImageProvider,
-                  child: const Align(
-                    alignment: Alignment.bottomRight,
-                    child: CircleAvatar(
-                      radius: 15,
-                      backgroundColor: Colors.blueAccent,
-                      child:
-                          Icon(Icons.camera_alt, size: 15, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Form Fields
-            Padding(
-              padding: const EdgeInsets.all(16.0),
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: SingleChildScrollView(
+          child: Card(
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Shelter Name',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextFormField(
-                    initialValue: shelterInfo!['shelter_name'],
-                    decoration: _inputDecoration('Enter shelter name'),
-                    onChanged: (value) => shelterInfo!['shelter_name'] = value,
+                  // Cover Photo Picker
+                  Text(
+                    'Shelter Cover Photo',
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
                   ),
-                  const SizedBox(height: 10),
-                  const Text('Address',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextFormField(
-                    initialValue: shelterInfo!['shelter_address'],
-                    decoration: _inputDecoration('Enter address'),
-                    onChanged: (value) =>
-                        shelterInfo!['shelter_address'] = value,
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('Landmark',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextFormField(
-                    initialValue: shelterInfo!['shelter_landmark'],
-                    decoration: _inputDecoration('Enter landmark'),
-                    onChanged: (value) =>
-                        shelterInfo!['shelter_landmark'] = value,
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('Contact Number',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextFormField(
-                    initialValue: shelterInfo!['shelter_contact'],
-                    decoration: _inputDecoration('Enter contact number'),
-                    onChanged: (value) =>
-                        shelterInfo!['shelter_contact'] = value,
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('Email',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextFormField(
-                    initialValue: shelterInfo!['shelter_email'],
-                    decoration: _inputDecoration('Enter email'),
-                    onChanged: (value) => shelterInfo!['shelter_email'] = value,
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('Description',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextFormField(
-                    initialValue: shelterInfo!['shelter_description'],
-                    decoration: _inputDecoration('Enter description'),
-                    onChanged: (value) =>
-                        shelterInfo!['shelter_description'] = value,
-                    maxLines: 5,
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('Social Media',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextFormField(
-                    initialValue: shelterInfo!['shelter_social'],
-                    decoration: _inputDecoration('Enter social media link'),
-                    onChanged: (value) =>
-                        shelterInfo!['shelter_social'] = value,
-                  ),
-                  const SizedBox(height: 10),
-                  const Text('Owner Name',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
-                  TextFormField(
-                    initialValue: shelterInfo!['shelter_owner'],
-                    decoration: _inputDecoration(
-                      'Enter owner name',
-                    ),
-                    onChanged: (value) => shelterInfo!['shelter_owner'] = value,
+                  SizedBox(height: 10),
+                  Stack(
+                    children: [
+                      GestureDetector(
+                        onTap: () => pickImage('cover'),
+                        child: Container(
+                          height: 150,
+                          decoration: BoxDecoration(
+                            image: coverImageBytes != null
+                                ? DecorationImage(
+                                    image: MemoryImage(coverImageBytes!),
+                                    fit: BoxFit.cover)
+                                : (shelterInfo!['shelter_cover'] != null
+                                    ? DecorationImage(
+                                        image: NetworkImage(
+                                            shelterInfo!['shelter_cover']),
+                                        fit: BoxFit.cover)
+                                    : const DecorationImage(
+                                        image: AssetImage(
+                                            'assets/images/logo.png'),
+                                        fit: BoxFit.cover)),
+                            color: Colors.blueAccent,
+                          ),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.topRight,
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: GestureDetector(
+                            onTap: () => pickImage('cover'),
+                            child: const Icon(Icons.camera_alt,
+                                color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      updateShelterDetails();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(double.infinity, 50),
-                      backgroundColor: Colors.blueAccent,
+                  Text(
+                    'Shelter Logo',
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.center,
+                    child: GestureDetector(
+                      onTap: () => pickImage('profile'),
+                      child: CircleAvatar(
+                        radius: 75,
+                        backgroundImage: profileImageBytes != null
+                            ? MemoryImage(profileImageBytes!)
+                            : (shelterInfo!['shelter_profile'] != null
+                                ? NetworkImage(shelterInfo!['shelter_profile'])
+                                : const AssetImage(
+                                    'assets/images/logo.png')) as ImageProvider,
+                        child: const Align(
+                          alignment: Alignment.bottomRight,
+                          child: CircleAvatar(
+                            radius: 15,
+                            backgroundColor: Colors.blueAccent,
+                            child: Icon(Icons.camera_alt,
+                                size: 15, color: Colors.white),
+                          ),
+                        ),
+                      ),
                     ),
-                    child: const Text('Save Changes',
-                        style: TextStyle(color: Colors.white)),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Form Fields
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Shelter Name',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                             const SizedBox(height: 5),
+                        TextFormField(
+                          initialValue: shelterInfo!['shelter_name'],
+                          decoration: _inputDecoration('Enter shelter name'),
+                          onChanged: (value) =>
+                              shelterInfo!['shelter_name'] = value,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text('Address',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                             const SizedBox(height: 5),
+                        TextFormField(
+                          initialValue: shelterInfo!['shelter_address'],
+                          decoration: _inputDecoration('Enter address'),
+                          onChanged: (value) =>
+                              shelterInfo!['shelter_address'] = value,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text('Landmark (Google Maps Link)',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                             const SizedBox(height: 5),
+                        TextFormField(
+                          initialValue: shelterInfo!['shelter_landmark'],
+                          decoration:
+                              _inputDecoration('Enter landmark in google maps'),
+                          onChanged: (value) =>
+                              shelterInfo!['shelter_landmark'] = value,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text('Contact Number',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                             const SizedBox(height: 5),
+                        TextFormField(
+                          initialValue: shelterInfo!['shelter_contact'],
+                          decoration: _inputDecoration('Enter contact number'),
+                          onChanged: (value) =>
+                              shelterInfo!['shelter_contact'] = value,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text('Email',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                             const SizedBox(height: 5),
+                        TextFormField(
+                          initialValue: shelterInfo!['shelter_email'],
+                          decoration: _inputDecoration('Enter email'),
+                          onChanged: (value) =>
+                              shelterInfo!['shelter_email'] = value,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text('Social Media',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                             const SizedBox(height: 5),
+                        TextFormField(
+                          initialValue: shelterInfo!['shelter_social'],
+                          decoration:
+                              _inputDecoration('Enter social media link'),
+                          onChanged: (value) =>
+                              shelterInfo!['shelter_social'] = value,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text('Owner Name',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                             const SizedBox(height: 5),
+                        TextFormField(
+                          initialValue: shelterInfo!['shelter_owner'],
+                          decoration: _inputDecoration(
+                            'Enter owner name',
+                          ),
+                          onChanged: (value) =>
+                              shelterInfo!['shelter_owner'] = value,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text('Description',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
+                             const SizedBox(height: 5),
+                        TextFormField(
+                          initialValue: shelterInfo!['shelter_description'],
+                          decoration: _inputDecoration('Enter description'),
+                          onChanged: (value) =>
+                              shelterInfo!['shelter_description'] = value,
+                          maxLines: 5,
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () {
+                            updateShelterDetails();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 50),
+                            backgroundColor: Colors.lightBlue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: const Text('Save Changes',
+                              style: TextStyle(color: Colors.white)),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
