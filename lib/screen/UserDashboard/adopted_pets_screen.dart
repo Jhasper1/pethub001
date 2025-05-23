@@ -366,7 +366,10 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
       backgroundColor: const Color(0xFFE2F3FD),
       appBar: AppBar(
         title: const Text('Application Details'),
-        automaticallyImplyLeading: false, // Removes the back button
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
