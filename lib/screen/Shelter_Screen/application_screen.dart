@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf/pdf.dart';
@@ -587,6 +588,8 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final applicationId = int.parse(applicants[0]['application_id'].toString());
+    final appLogoBytes = await rootBundle.load('assets/images/logo.png').then((data) => data.buffer.asUint8List());
+
 
     final response = await http.get(
       Uri.parse(
@@ -605,31 +608,24 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
     final responseData = jsonDecode(response.body);
     final info = responseData['data'];
 
-    final adopterName =
-        // ignore: prefer_interpolation_to_compose_strings
-        info['adopter']['first_name'] + ' ' + info['adopter']['last_name'];
-    final adopterAddress = info['adopter']['address'];
-    final petName = info['pet']['pet_name'];
-    final petType = info['pet']['pet_type'];
-    final petGender = info['pet']['pet_sex'];
+    final adopterName = info['application']['adopter']['first_name'] +
+        ' ' +
+        info['application']['adopter']['last_name'];
+    final adopterAddress = info['application']['adopter']['address'];
+    final petName = info['application']['pet']['pet_name'];
+    final petType = info['application']['pet']['pet_type'];
+    final petGender = info['application']['pet']['pet_sex'];
 
-    final shelterName = info['shelter']['shelter_name'];
-    final shelterAddress = info['shelter']['shelter_address'];
-    final shelterPhone =
-        info['shelter']['shelter_contact']; // fixed key name from your JSON
-    final shelterEmail = info['shelter']['shelter_email'];
+    final shelterName = info['application']['shelter']['shelter_name'];
+    final shelterAddress = info['application']['shelter']['shelter_address'];
+    final shelterPhone = info['application']['shelter']['shelter_contact'];
+    final shelterEmail = info['application']['shelter']['shelter_email'];
+    final shelterProfile =
+        info['application']['shelter']['sheltermedia']['shelter_profile'];
+    final profileImageBytes = _decodeBase64Image(shelterProfile);
 
     final pdf = pw.Document();
 
-    pw.Widget buildUnderlinedText(String text) {
-      return pw.Text(
-        text.toUpperCase(),
-        style: pw.TextStyle(
-          fontSize: 12,
-          decoration: pw.TextDecoration.underline,
-        ),
-      );
-    }
 
     pdf.addPage(
       pw.Page(
@@ -639,17 +635,51 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
         build: (context) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text(
-              shelterName.toUpperCase(),
-              style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
+              children: [
+                // Shelter Info (on the left)
+                pw.Expanded(
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        shelterName.toUpperCase(),
+                        style: pw.TextStyle(
+                            fontSize: 14, fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.SizedBox(height: 4),
+                      pw.Text(shelterAddress),
+                      pw.Text('Contact: $shelterPhone'),
+                      pw.Text('Email: $shelterEmail'),
+                    ],
+                  ),
+                ),
+
+                // App Logo (center)
+                pw.Container(
+                  height: 75,
+                  width: 75,
+                  child: pw.Image(
+                    pw.MemoryImage(appLogoBytes),
+                    fit: pw.BoxFit.contain,
+                  ),
+                ),
+
+                // Shelter Profile Image (right)
+                if (profileImageBytes != null)
+                  pw.Container(
+                    height: 75,
+                    width: 75,
+                    child: pw.Image(
+                      pw.MemoryImage(profileImageBytes),
+                      fit: pw.BoxFit.cover,
+                    ),
+                  ),
+              ],
             ),
-            pw.SizedBox(height: 4),
-            buildUnderlinedText(shelterAddress.toUpperCase()),
-            pw.SizedBox(height: 4),
-            buildUnderlinedText('Contact: $shelterPhone'.toUpperCase()),
-            pw.SizedBox(height: 4),
-            buildUnderlinedText('Email: $shelterEmail'.toUpperCase()),
-            pw.SizedBox(height: 20),
+            pw.SizedBox(height: 30),
             pw.Center(
               child: pw.Text(
                 'PET ADOPTION AGREEMENT',
@@ -752,13 +782,13 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
             pw.Text('2. Responsibilities of the Shelter:'),
             pw.Bullet(
                 text:
-                    'Has provided accurate information regarding the pet’s health and background.'),
+                    'Has provided accurate information regarding the pet\'s health and background.'),
             pw.Bullet(
                 text:
                     'Ensures the pet is in good condition at the time of adoption.'),
             pw.Bullet(
                 text:
-                    "May follow up or contact the adopter to check on the pet’s condition after adoption."),
+                    "May follow up or contact the adopter to check on the pet\'s condition after adoption."),
             pw.SizedBox(height: 10),
             pw.Text('3. Right to Reclaim:'),
             pw.Bullet(
@@ -774,32 +804,37 @@ class _ApplicantsScreenState extends State<ApplicantsScreen> {
               'IN WITNESS WHEREOF, the parties hereunto set their hands on this agreement on this day.',
               textAlign: pw.TextAlign.justify,
             ),
-            pw.SizedBox(height: 40),
-            pw.Text('Adopter:',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            pw.SizedBox(height: 20),
+            pw.SizedBox(height: 60),
             pw.Center(
-              child: pw.Column(
-                children: [
-                  pw.Text(adopterName.toUpperCase(),
-                      style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold,
-                      )),
-                  pw.Text('_________________________'),
-                  pw.Text('Signature over Printed Name'),
-                ],
-              ),
-            ),
-            pw.SizedBox(height: 40),
-            pw.Text('Shelter Representative:',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            pw.SizedBox(height: 20),
-            pw.Center(
-              child: pw.Column(
-                children: [
-                  pw.Text('_________________________'),
-                  pw.Text('Signature over Printed Name'),
-                ],
+              child: pw.Container(
+                alignment: pw.Alignment.center,
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.center,
+                  children: [
+                    pw.Column(
+                      children: [
+                        pw.Text(adopterName.toUpperCase(),
+                            style:
+                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                        pw.Text('_________________________'),
+                        pw.Text('Signature over Printed Name'),
+                        pw.Text('Adopter\'s Name',
+                            style:
+                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      ],
+                    ),
+                    pw.SizedBox(width: 100),
+                    pw.Column(
+                      children: [
+                        pw.Text('_________________________'),
+                        pw.Text('Signature over Printed Name'),
+                        pw.Text('Shelter Representative',
+                            style:
+                                pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
             pw.SizedBox(height: 10),
