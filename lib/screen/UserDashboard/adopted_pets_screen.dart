@@ -369,14 +369,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
         title: const Text('Application Details'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => UserHomeScreen(adopterId: widget.adopterId),
-              ),
-            );
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: isLoading

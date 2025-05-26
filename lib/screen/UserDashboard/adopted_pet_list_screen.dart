@@ -106,22 +106,22 @@ class _AdoptedPetListScreenState extends State<AdoptedPetListScreen> {
     }
   }
 
-  Color getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return Colors.orange;
-      case 'interview':
-        return Colors.blue;
-      case 'approved':
-        return Colors.green;
-      case 'completed':
-        return Colors.purple;
-      case 'rejected':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
+  // Color getStatusColor(String status) {
+  //   switch (status.toLowerCase()) {
+  //     case 'pending':
+  //       return Colors.orange;
+  //     case 'interview':
+  //       return Colors.blue;
+  //     case 'approved':
+  //       return Colors.green;
+  //     case 'completed':
+  //       return Colors.purple;
+  //     case 'rejected':
+  //       return Colors.red;
+  //     default:
+  //       return Colors.grey;
+  //   }
+  // }
 
   Widget _buildCategoryChip(String label, String category) {
     return GestureDetector(
@@ -153,6 +153,7 @@ class _AdoptedPetListScreenState extends State<AdoptedPetListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Adopted Pets'),
+        automaticallyImplyLeading: false, // This removes the back button
       ),
       body: Column(
         children: [
@@ -186,103 +187,122 @@ class _AdoptedPetListScreenState extends State<AdoptedPetListScreen> {
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : filteredPets.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No ${selectedCategory} pets found',
-                          style: const TextStyle(fontSize: 16),
-                        ),
-                      )
-                    : ListView.builder(
-                        itemCount: filteredPets.length,
-                        itemBuilder: (context, index) {
-                          final pet = filteredPets[index];
-                          final base64Image = pet['pet_image1'];
-                          final status = (pet['status'] ?? '').toString();
-
-                          // Create circular avatar for pet image
-                          Widget petAvatar;
-                          if (base64Image != null && base64Image.isNotEmpty) {
-                            try {
-                              Uint8List imageBytes = base64Decode(base64Image);
-                              petAvatar = CircleAvatar(
-                                radius: 30,
-                                backgroundImage: MemoryImage(imageBytes),
-                                backgroundColor: Colors.transparent,
-                              );
-                            } catch (e) {
-                              petAvatar = CircleAvatar(
-                                radius: 30,
-                                child: Icon(Icons.pets, size: 30),
-                                backgroundColor: Colors.grey[200],
-                              );
-                            }
-                          } else {
-                            petAvatar = CircleAvatar(
-                              radius: 30,
-                              child: Icon(Icons.pets, size: 30),
-                              backgroundColor: Colors.grey[200],
-                            );
-                          }
-
-                          return Card(
-                            margin: const EdgeInsets.symmetric(
-                                vertical: 8.0, horizontal: 16.0),
-                            child: Stack(
-                              children: [
-                                ListTile(
-                                  leading: petAvatar,
-                                  title: Text(pet['pet_name'] ?? 'Unknown'),
-                                  subtitle: Text(
-                                      'Shelter: ${pet['shelter_name'] ?? 'Unknown'}'),
-                                  onTap: () {
-                                    int applicationId =
-                                        pet['application_id'] ?? 0;
-                                    if (applicationId != 0) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ApplicationDetailsScreen(
-                                                  adopterId: widget.adopterId,
-                                                  applicationId: applicationId),
-                                        ),
-                                      );
-                                    } else {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        const SnackBar(
-                                            content:
-                                                Text('Invalid application ID')),
-                                      );
-                                    }
-                                  },
-                                ),
-                                Positioned(
-                                  top: 8,
-                                  right: 8,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: getStatusColor(status),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      getStatusDisplayText(status),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
+                : RefreshIndicator(
+                    onRefresh: fetchAdoptedPets,
+                    child: filteredPets.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 100),
+                                  child: Text(
+                                    'No ${selectedCategory} pets found',
+                                    style: const TextStyle(fontSize: 16),
                                   ),
                                 ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                              ),
+                            ],
+                          )
+                        : ListView.builder(
+                            itemCount: filteredPets.length,
+                            itemBuilder: (context, index) {
+                              final pet = filteredPets[index];
+                              final base64Image = pet['pet_image1'];
+                              final status = (pet['status'] ?? '').toString();
+
+                              Widget petAvatar;
+                              if (base64Image != null &&
+                                  base64Image.isNotEmpty) {
+                                try {
+                                  Uint8List imageBytes =
+                                      base64Decode(base64Image);
+                                  petAvatar = CircleAvatar(
+                                    radius: 30,
+                                    backgroundImage: MemoryImage(imageBytes),
+                                    backgroundColor: Colors.transparent,
+                                  );
+                                } catch (e) {
+                                  petAvatar = CircleAvatar(
+                                    radius: 30,
+                                    child: Icon(Icons.pets, size: 30),
+                                    backgroundColor: const Color.fromARGB(
+                                        255, 255, 255, 255),
+                                  );
+                                }
+                              } else {
+                                petAvatar = CircleAvatar(
+                                  radius: 30,
+                                  child: Icon(Icons.pets, size: 30),
+                                  backgroundColor:
+                                      const Color.fromARGB(255, 255, 255, 255),
+                                );
+                              }
+
+                              return Card(
+                                color: Colors
+                                    .white, // Set background color to white
+                                margin: const EdgeInsets.symmetric(
+                                  vertical: 8.0,
+                                  horizontal: 16.0,
+                                ),
+                                child: Stack(
+                                  children: [
+                                    ListTile(
+                                      leading: petAvatar,
+                                      title: Text(pet['pet_name'] ?? 'Unknown'),
+                                      subtitle: Text(
+                                          'Shelter: ${pet['shelter_name'] ?? 'Unknown'}'),
+                                      onTap: () {
+                                        int applicationId =
+                                            pet['application_id'] ?? 0;
+                                        if (applicationId != 0) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ApplicationDetailsScreen(
+                                                adopterId: widget.adopterId,
+                                                applicationId: applicationId,
+                                              ),
+                                            ),
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                                content: Text(
+                                                    'Invalid application ID')),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                    Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
+                                        // decoration: BoxDecoration(
+                                        //   color: getStatusColor(status),
+                                        //   borderRadius: BorderRadius.circular(12),
+                                        // ),
+                                        // child: Text(
+                                        //   getStatusDisplayText(status),
+                                        //   style: const TextStyle(
+                                        //     color: Colors.white,
+                                        //     fontSize: 12,
+                                        //     fontWeight: FontWeight.bold,
+                                        //   ),
+                                        // ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                  ),
           ),
         ],
       ),

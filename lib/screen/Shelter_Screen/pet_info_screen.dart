@@ -292,7 +292,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : errorMessage.isNotEmpty
@@ -334,7 +334,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         Stack(
                           children: [
                             Card(
-                              color: const Color.fromARGB(255, 239, 250, 255),
+                              color: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -465,7 +465,7 @@ class _PetDetailsScreenState extends State<PetDetailsScreen> {
                         ),
                         const SizedBox(height: 10),
                         Card(
-                          color: const Color.fromARGB(255, 239, 250, 255),
+                          color: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),

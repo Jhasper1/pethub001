@@ -167,10 +167,13 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
       );
 
       if (response.statusCode == 200) {
-        Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Application status updated successfully")),
         );
+
+        await Future.delayed(
+            Duration(milliseconds: 500)); // allow time for snackbar
+        Navigator.pop(context, true); // <- this will trigger refresh
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to update application")),
@@ -262,7 +265,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       appBar: AppBar(
         title: Text('Adoption Details',
             style: GoogleFonts.poppins(
@@ -288,7 +291,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                         ),
                       ),
                       Card(
-                          color: const Color.fromARGB(255, 239, 250, 255),
+                        color: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -327,7 +330,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                       ),
                       SizedBox(height: 20),
                       Card(
-                          color: const Color.fromARGB(255, 239, 250, 255),
+                        color: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -599,7 +602,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                       ),
                       SizedBox(height: 15),
                       Card(
-                          color: const Color.fromARGB(255, 239, 250, 255),
+                        color: Colors.white,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10)),
                         child: Padding(
@@ -790,9 +793,9 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                                 TextButton(
                                   child: const Text('Confirm'),
                                   onPressed: () {
-                                    Navigator.of(context).pop();
-                                    updateApplicationStatus();
-                                    setState(() {});
+                                    Navigator.of(context)
+                                        .pop(); // close dialog only
+                                    updateApplicationStatus(); // this will pop the screen if success
                                   },
                                 ),
                               ],

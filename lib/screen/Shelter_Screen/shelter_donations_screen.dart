@@ -30,8 +30,6 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
 
   final TextEditingController qrImageController = TextEditingController();
 
-
-
   @override
   void initState() {
     super.initState();
@@ -39,13 +37,12 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
   }
 
   Future<void> fetchShelterDonations() async {
-        final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url =
         'http://127.0.0.1:5566/api/shelter/${widget.shelterId}/get/donationinfo';
     try {
-      final response = await http.get(Uri.parse(url),
-      headers: {
+      final response = await http.get(Uri.parse(url), headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       });
@@ -90,8 +87,6 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
       });
     }
   }
-
-
 
   InputDecoration _buildTextFieldDecoration(String hint) {
     return InputDecoration(
@@ -163,128 +158,141 @@ class _ShelterDonationsScreenState extends State<ShelterDonationsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Donation Information',
-        style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+            style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: Colors.lightBlue,
         centerTitle: false,
       ),
-      body: SingleChildScrollView(
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Profile Photo Picker
-            const SizedBox(height: 50),
-            Align(
-              alignment: Alignment.center,
-              child: GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      image: _qrImageBytes != null
-                          ? MemoryImage(_qrImageBytes!)
-                          : (shelterDonations!['qr_image'] != null
-                                  ? NetworkImage(shelterDonations!['qr_image'])
-                                  : const AssetImage('assets/images/logo.png'))
-                              as ImageProvider,
-                      fit: BoxFit.cover,
-                    ),
-                    borderRadius:
-                        BorderRadius.circular(10), // Rounded corners (optional)
-                    color: Colors.grey[300], // Optional background color
-                  ),
-                  child: const Align(
-                    alignment: Alignment.bottomRight,
-                    child: CircleAvatar(
-                      radius: 15,
-                      backgroundColor: Colors.blueAccent,
-                      child:
-                          Icon(Icons.camera_alt, size: 15, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // Form Fields
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Account Number',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-                  TextFormField(
-                    controller: _accountnumberController,
-                    decoration:
-                        _buildTextFieldDecoration('Enter your account number'),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(11),
-                    ],
-                    onChanged: (value) =>
-                        shelterDonations!['account_number'] = value,
-                  ),
-                  const SizedBox(height: 10),
-                  Text('Account Name',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
-                  TextFormField(
-                    controller: _accountnameController,
-                    decoration:
-                        _buildTextFieldDecoration('Enter your account name'),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
-                    ],
-                    onChanged: (value) =>
-                        shelterDonations!['account_name'] = value,
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            // title: const Text("Confirm"),
-                            content: const Text(
-                                "Are you sure you want to save the changes?"),
-                            actions: [
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context)
-                                      .pop(); // Close dialog, cancel action
-                                },
-                                child: const Text("Cancel"),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop(); // Close dialog
-                                  updatedonationDetails(); // Proceed with the update
-                                },
-                                child: const Text("Yes"),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.lightBlue,
-                      minimumSize: const Size(double.infinity, 50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+            Card(
+              color: Colors.white,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Gcash QR Code',
+                        style:
+                            GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.center,
+                      child: GestureDetector(
+                        onTap: _pickImage,
+                        child: Container(
+                          width: 200,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: _qrImageBytes != null
+                                  ? MemoryImage(_qrImageBytes!)
+                                  : (shelterDonations!['qr_image'] != null
+                                          ? NetworkImage(
+                                              shelterDonations!['qr_image'])
+                                          : const AssetImage(
+                                              'assets/images/logo.png'))
+                                      as ImageProvider,
+                              fit: BoxFit.cover,
+                            ),
+                            borderRadius: BorderRadius.circular(
+                                10), // Rounded corners (optional)
+                            color:
+                                Colors.grey[300], // Optional background color
+                          ),
+                          child: const Align(
+                            alignment: Alignment.bottomRight,
+                            child: CircleAvatar(
+                              radius: 15,
+                              backgroundColor: Colors.blueAccent,
+                              child: Icon(Icons.camera_alt,
+                                  size: 15, color: Colors.white),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                    child: Text(
-                      'Save Changes',
-                      style: GoogleFonts.poppins(color: Colors.white),
+                    const SizedBox(height: 15),
+                    Text('Account Number',
+                        style:
+                            GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 5),
+                    TextFormField(
+                      controller: _accountnumberController,
+                      decoration: _buildTextFieldDecoration(
+                          'Enter your account number'),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(11),
+                      ],
+                      onChanged: (value) =>
+                          shelterDonations!['account_number'] = value,
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 15),
+                    Text('Account Name',
+                        style:
+                            GoogleFonts.poppins(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 5),
+                    TextFormField(
+                      controller: _accountnameController,
+                      decoration:
+                          _buildTextFieldDecoration('Enter your account name'),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'[a-zA-Z\s]')),
+                      ],
+                      onChanged: (value) =>
+                          shelterDonations!['account_name'] = value,
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text("Confirm"),
+                              content: const Text(
+                                  "Are you sure you want to save the changes?"),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context)
+                                        .pop(); // Close dialog, cancel action
+                                  },
+                                  child: const Text("Cancel"),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop(); // Close dialog
+                                    updatedonationDetails(); // Proceed with the update
+                                  },
+                                  child: const Text("Yes"),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.lightBlue,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Save Changes',
+                        style: GoogleFonts.poppins(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

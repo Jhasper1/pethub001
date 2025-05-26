@@ -32,66 +32,68 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
     super.initState();
     fetchPetDetails();
     fetchShelterInfo();
-    fetchOtherPets();
+    fetchPets();
   }
 
- Future<void> fetchPetDetails() async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('auth_token');
-  final url =
-      Uri.parse("http://127.0.0.1:5566/api/users/pets/${widget.petId}");
+  Future<void> fetchPetDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url =
+        Uri.parse("http://127.0.0.1:5566/api/users/pets/${widget.petId}");
 
-  try {
-    final response = await http.get(url, headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer $token",
-    });
-
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
-
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-
-      if (data is Map<String, dynamic>) {
-        if (data.containsKey('data')) {
-          if (data['data'] is Map && data['data'].containsKey('pet')) {
-            petData = Map<String, dynamic>.from(data['data']['pet']);
-          } else {
-            petData = Map<String, dynamic>.from(data['data']);
-          }
-        } else {
-          petData = data;
-        }
-      }
-
-      // Decode pet_vaccine if it exists and is base64
-      if (petData?['petmedia']?['pet_vaccine'] != null) {
-        final base64String = petData!['petmedia']['pet_vaccine'];
-        petData!['petmedia']['pet_vaccine'] = base64Decode(base64String);
-      }
-
-      print("Extracted petData: $petData");
-
-      setState(() {
-        isLoading = false;
-        hasError = petData == null;
+    try {
+      final response = await http.get(url, headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
       });
-    } else {
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        // Handle different response structures
+        if (data is Map<String, dynamic>) {
+          if (data.containsKey('data')) {
+            // Case 1: Data is nested under "data"
+            if (data['data'] is Map && data['data'].containsKey('pet')) {
+              petData = Map<String, dynamic>.from(data['data']['pet']);
+            } else {
+              petData = Map<String, dynamic>.from(data['data']);
+            }
+          } else {
+            // Case 2: Data is at root level
+            petData = data;
+          }
+        }
+
+        // Decode pet_vaccine if it exists and is base64
+        if (petData?['petmedia']?['pet_vaccine'] != null) {
+          final base64String = petData!['petmedia']['pet_vaccine'];
+          petData!['petmedia']['pet_vaccine'] = base64Decode(base64String);
+        }
+
+        print("Extracted petData: $petData");
+
+        setState(() {
+          isLoading = false;
+          hasError = petData == null;
+        });
+      } else {
+        setState(() {
+          hasError = true;
+          isLoading = false;
+        });
+        print("Failed to load pet details. Status: ${response.statusCode}");
+      }
+    } catch (e) {
       setState(() {
         hasError = true;
         isLoading = false;
       });
-      print("Failed to load pet details. Status: ${response.statusCode}");
+      print("Error fetching pet details: $e");
     }
-  } catch (e) {
-    setState(() {
-      hasError = true;
-      isLoading = false;
-    });
-    print("Error fetching pet details: $e");
   }
-}
 
   Future<void> fetchShelterInfo() async {
     final prefs = await SharedPreferences.getInstance();
@@ -137,7 +139,7 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
     }
   }
 
-  Future<void> fetchOtherPets() async {
+  Future<void> fetchPets() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final url = Uri.parse(
@@ -244,16 +246,78 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
     );
   }
 
-  void _onAdoptPressed() {
-    if (petData != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => AdoptionForm(
-            petId: widget.petId,
-            adopterId: widget.adopterId,
-            shelterId: widget.shelterId,
+  Future<void> _onAdoptPressed() async {
+    final uri = Uri.parse(
+      'http://127.0.0.1:5566/check_application?petId=${widget.petId}&adopterId=${widget.adopterId}',
+    );
+
+    final response = await http.get(uri);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      final petAndAdopter = data['pet_and_adopter'] == true;
+      final adopterExists = data['adopter_exists'] == true;
+
+      if (petAndAdopter) {
+        // Exact match: this adopter already applied for this specific pet
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Already Applied'),
+            content: const Text(
+                'You have already submitted an application for this pet.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
           ),
+        );
+      } else if (adopterExists) {
+        // Adopter has other pending applications
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Pending Application'),
+            content:
+                const Text('You still have a pending adoption application.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        // Proceed to form (no existing application found)
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AdoptionForm(
+              petId: widget.petId,
+              adopterId: widget.adopterId,
+              shelterId: widget.shelterId,
+            ),
+          ),
+        );
+      }
+    } else {
+      // Error response
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Error'),
+          content: const Text(
+              'Something went wrong while checking application status.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
         ),
       );
     }
@@ -366,11 +430,15 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Pet Details"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
+        title: Text('Pet Information',
+            style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
       ),
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : hasError || petData == null
@@ -501,7 +569,7 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
                             SizedBox(height: 10),
 
                             Card(
-                                color: const Color.fromARGB(255, 255, 255, 255),
+                              color: const Color.fromARGB(255, 255, 255, 255),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
@@ -632,7 +700,7 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
           ),
         );
         if (result == true) {
-          fetchOtherPets();
+          fetchPets();
         }
       },
       child: Card(
