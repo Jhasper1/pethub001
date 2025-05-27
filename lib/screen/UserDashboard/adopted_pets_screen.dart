@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:march24/screen/UserDashboard/pet_details_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'user_bottom_nav_bar.dart';
 
 class ApplicationDetailsScreen extends StatefulWidget {
   final int applicationId;
@@ -207,26 +206,35 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
       {'label': 'Completed', 'status': 'completed', 'state': 'default'},
     ];
 
-    // Assign visual state: 'completed', 'current', 'default', or 'rejected'
+    // Assign visual state: 'completed' (green), 'current' (orange), 'default' (gray), or 'rejected' (red)
     for (int i = 0; i < steps.length; i++) {
       final stepStatus = steps[i]['status'] as String;
 
-      if (status == 'rejected') {
-        if (stepStatus == 'application') {
-          steps[i]['state'] = 'rejected';
-        }
-      } else if (status == 'pending' && stepStatus == 'application') {
-        steps[i]['state'] = 'completed';
+      // Reset to default first
+      steps[i]['state'] = 'default';
+
+      // Handle all status cases
+      if (status == 'pending' || status == 'inqueue') {
+        if (stepStatus == 'application') steps[i]['state'] = 'current';
+      } else if (status == 'application_reject') {
+        if (stepStatus == 'application') steps[i]['state'] = 'rejected';
       } else if (status == 'interview') {
         if (stepStatus == 'application') steps[i]['state'] = 'completed';
         if (stepStatus == 'interview') steps[i]['state'] = 'current';
+      } else if (status == 'interview_reject') {
+        if (stepStatus == 'application') steps[i]['state'] = 'completed';
+        if (stepStatus == 'interview') steps[i]['state'] = 'rejected';
       } else if (status == 'approved') {
-        if (stepStatus == 'application' ||
-            stepStatus == 'interview' ||
-            stepStatus == 'approved') {
+        if (stepStatus == 'application' || stepStatus == 'interview') {
           steps[i]['state'] = 'completed';
         }
+        if (stepStatus == 'approved') steps[i]['state'] = 'completed';
         if (stepStatus == 'completed') steps[i]['state'] = 'current';
+      } else if (status == 'approved_reject') {
+        if (stepStatus == 'application' || stepStatus == 'interview') {
+          steps[i]['state'] = 'completed';
+        }
+        if (stepStatus == 'approved') steps[i]['state'] = 'rejected';
       } else if (status == 'completed') {
         steps[i]['state'] = 'completed';
       }
