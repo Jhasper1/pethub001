@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -28,9 +29,14 @@ class _AdoptedPetListScreenState extends State<AdoptedPetListScreen> {
   String selectedCategory = 'inprogress';
 
   final Map<String, List<String>> statusCategories = {
-    'inprogress': ['pending', 'interview', 'approved'],
+    'inprogress': ['pending', 'interview', 'approved', 'inqueue', ''],
     'completed': ['completed'],
-    'rejected': ['rejected'],
+    'rejected': [
+      'rejected',
+      'application_reject',
+      'interview_reject',
+      'approved_reject'
+    ],
   };
 
   @override
@@ -106,23 +112,6 @@ class _AdoptedPetListScreenState extends State<AdoptedPetListScreen> {
     }
   }
 
-  // Color getStatusColor(String status) {
-  //   switch (status.toLowerCase()) {
-  //     case 'pending':
-  //       return Colors.orange;
-  //     case 'interview':
-  //       return Colors.blue;
-  //     case 'approved':
-  //       return Colors.green;
-  //     case 'completed':
-  //       return Colors.purple;
-  //     case 'rejected':
-  //       return Colors.red;
-  //     default:
-  //       return Colors.grey;
-  //   }
-  // }
-
   Widget _buildCategoryChip(String label, String category) {
     return GestureDetector(
       onTap: () => filterPetsByCategory(category),
@@ -151,9 +140,16 @@ class _AdoptedPetListScreenState extends State<AdoptedPetListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       appBar: AppBar(
-        title: const Text('Adopted Pets'),
-        automaticallyImplyLeading: false, // This removes the back button
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
+        title: Text('Adopted Pets',
+            style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
       ),
       body: Column(
         children: [
@@ -283,18 +279,6 @@ class _AdoptedPetListScreenState extends State<AdoptedPetListScreen> {
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 8, vertical: 4),
-                                        // decoration: BoxDecoration(
-                                        //   color: getStatusColor(status),
-                                        //   borderRadius: BorderRadius.circular(12),
-                                        // ),
-                                        // child: Text(
-                                        //   getStatusDisplayText(status),
-                                        //   style: const TextStyle(
-                                        //     color: Colors.white,
-                                        //     fontSize: 12,
-                                        //     fontWeight: FontWeight.bold,
-                                        //   ),
-                                        // ),
                                       ),
                                     ),
                                   ],

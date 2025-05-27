@@ -6,7 +6,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:march24/screen/UserDashboard/pet_details_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'user_bottom_nav_bar.dart';
 
 class ApplicationDetailsScreen extends StatefulWidget {
   final int applicationId;
@@ -83,6 +82,8 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
             'pet_size': pet['pet_size'] ?? 'No Available Data',
             'pet_descriptions': pet['pet_descriptions'] ?? 'No Available Data',
             'pet_image1': decodeBase64Image(petMedia['pet_image1']),
+            'pet_vaccine':
+                decodeBase64Image(petMedia['pet_vaccine']),
           };
 
           // Extract adopter data
@@ -207,26 +208,35 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
       {'label': 'Completed', 'status': 'completed', 'state': 'default'},
     ];
 
-    // Assign visual state: 'completed', 'current', 'default', or 'rejected'
+    // Assign visual state: 'completed' (green), 'current' (orange), 'default' (gray), or 'rejected' (red)
     for (int i = 0; i < steps.length; i++) {
       final stepStatus = steps[i]['status'] as String;
 
-      if (status == 'rejected') {
-        if (stepStatus == 'application') {
-          steps[i]['state'] = 'rejected';
-        }
-      } else if (status == 'pending' && stepStatus == 'application') {
-        steps[i]['state'] = 'completed';
+      // Reset to default first
+      steps[i]['state'] = 'default';
+
+      // Handle all status cases
+      if (status == 'pending' || status == 'inqueue') {
+        if (stepStatus == 'application') steps[i]['state'] = 'current';
+      } else if (status == 'application_reject') {
+        if (stepStatus == 'application') steps[i]['state'] = 'rejected';
       } else if (status == 'interview') {
         if (stepStatus == 'application') steps[i]['state'] = 'completed';
         if (stepStatus == 'interview') steps[i]['state'] = 'current';
+      } else if (status == 'interview_reject') {
+        if (stepStatus == 'application') steps[i]['state'] = 'completed';
+        if (stepStatus == 'interview') steps[i]['state'] = 'rejected';
       } else if (status == 'approved') {
-        if (stepStatus == 'application' ||
-            stepStatus == 'interview' ||
-            stepStatus == 'approved') {
+        if (stepStatus == 'application' || stepStatus == 'interview') {
           steps[i]['state'] = 'completed';
         }
+        if (stepStatus == 'approved') steps[i]['state'] = 'completed';
         if (stepStatus == 'completed') steps[i]['state'] = 'current';
+      } else if (status == 'approved_reject') {
+        if (stepStatus == 'application' || stepStatus == 'interview') {
+          steps[i]['state'] = 'completed';
+        }
+        if (stepStatus == 'approved') steps[i]['state'] = 'rejected';
       } else if (status == 'completed') {
         steps[i]['state'] = 'completed';
       }
@@ -363,13 +373,15 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE2F3FD),
+         backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       appBar: AppBar(
-        title: const Text('Application Details'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
+        title: Text('Application Details',
+            style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -379,6 +391,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                 children: [
                   // Move the buildStatusBar here
                   Card(
+                    color: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -398,6 +411,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                     ),
                   ),
                   Card(
+                    color: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -442,6 +456,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                   ),
                   const SizedBox(height: 20),
                   Card(
+                    color: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -648,6 +663,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                   ),
                   const SizedBox(height: 15),
                   Card(
+                    color: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

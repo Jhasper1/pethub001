@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -37,7 +38,8 @@ class _AdoptionFormState extends State<AdoptionForm> {
   bool isLoading = false;
 
   // Controllers for text fields
-  TextEditingController adopterNameController = TextEditingController();
+  TextEditingController adopterFNameController = TextEditingController();
+  TextEditingController adopterLNameController = TextEditingController();
   TextEditingController ageController = TextEditingController();
   TextEditingController sexController = TextEditingController();
   TextEditingController addressController = TextEditingController();
@@ -139,8 +141,8 @@ class _AdoptionFormState extends State<AdoptionForm> {
         setState(() {
           var adopterInfo = data['data'] ?? {};
 
-          adopterNameController.text =
-              "${adopterInfo!['first_name'] ?? ''} ${adopterInfo!['last_name'] ?? ''}";
+          adopterFNameController.text = adopterInfo!['first_name'] ?? '';
+          adopterLNameController.text = adopterInfo!['last_name'] ?? '';
           ageController.text = adopterInfo!['age']?.toString() ?? '';
           sexController.text = adopterInfo!['sex'] ?? '';
           addressController.text = adopterInfo!['address'] ?? '';
@@ -323,27 +325,38 @@ class _AdoptionFormState extends State<AdoptionForm> {
     }
   }
 
+  InputDecoration _inputDecoration(String hintText) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: TextStyle(color: Colors.grey), // Sets hint text color to gray
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+      filled: true,
+      fillColor: Colors.grey[200],
+    );
+  }
+
   Widget _buildAdopterValidIDPreview() {
     return GestureDetector(
       onTap: _pickAdopterValidID,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Adopter Valid ID"),
-          const SizedBox(height: 8),
+          const Text('Adopted Valid ID',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 5),
           Container(
             width: double.infinity,
-            height: 150,
+            height: 200,
             decoration: BoxDecoration(
+              color: Colors.grey[200],
               border: Border.all(color: Colors.grey),
               borderRadius: BorderRadius.circular(8),
-              image: DecorationImage(
-                image: _adopterValidIDBytes != null
-                    ? MemoryImage(_adopterValidIDBytes!) // Use MemoryImage
-                    : const AssetImage('assets/images/logo.png')
-                        as ImageProvider,
-                fit: BoxFit.cover,
-              ),
+              image: _adopterValidIDBytes != null
+                  ? DecorationImage(
+                      image: MemoryImage(_adopterValidIDBytes!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
             child: _adopterValidIDBytes == null
                 ? const Center(
@@ -475,55 +488,158 @@ class _AdoptionFormState extends State<AdoptionForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TextFormField(
-                controller: adopterNameController,
-                readOnly: true,
-                decoration: InputDecoration(labelText: 'Adopter Name'),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "ADOPTER INFORMATION",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
               ),
-              TextFormField(
-                controller: ageController,
-                readOnly: true,
-                decoration: InputDecoration(labelText: 'Age'),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('First Name',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 5),
+                      TextFormField(
+                        controller: adopterFNameController,
+                        readOnly: true,
+                        decoration: _inputDecoration('Adopter First Name'),
+                      ),
+                    ],
+                  )),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Last Name',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 5),
+                      TextFormField(
+                        controller: adopterLNameController,
+                        readOnly: true,
+                        decoration: _inputDecoration('Adopter Last Name'),
+                      ),
+                    ],
+                  )),
+                ],
               ),
-              TextFormField(
-                controller: sexController,
-                readOnly: true,
-                decoration: InputDecoration(labelText: 'Sex'),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Age',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 5),
+                      TextFormField(
+                        controller: ageController,
+                        readOnly: true,
+                        decoration: _inputDecoration('Age'),
+                      ),
+                    ],
+                  )),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Sex',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 5),
+                      TextFormField(
+                        controller: sexController,
+                        readOnly: true,
+                        decoration: _inputDecoration('Sex'),
+                      ),
+                    ],
+                  )),
+                ],
               ),
+              const SizedBox(height: 10),
+              const Text('Address',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 5),
               TextFormField(
                 controller: addressController,
                 readOnly: true,
-                decoration: InputDecoration(labelText: 'Address'),
+                decoration: _inputDecoration('Address'),
               ),
-              TextFormField(
-                controller: contactNumberController,
-                readOnly: true,
-                decoration: InputDecoration(labelText: 'Contact Number'),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Contact Number',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 5),
+                      TextFormField(
+                        controller: contactNumberController,
+                        readOnly: true,
+                        decoration: _inputDecoration('Contact Number'),
+                      ),
+                    ],
+                  )),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Email Address',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 5),
+                      TextFormField(
+                        controller: emailController,
+                        readOnly: true,
+                        decoration: _inputDecoration('Email'),
+                      ),
+                    ],
+                  )),
+                ],
               ),
-              TextFormField(
-                controller: emailController,
-                readOnly: true,
-                decoration: InputDecoration(labelText: 'Email'),
-              ),
+              const SizedBox(height: 10),
+              const Text('Occupation',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 5),
               TextFormField(
                 controller: occupationController,
                 readOnly: true,
-                decoration: InputDecoration(labelText: 'Occupation'),
+                decoration: _inputDecoration('Occupation'),
               ),
+              const SizedBox(height: 10),
+              const Text('Civil Status',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 5),
               TextFormField(
                 controller: civilStatusController,
                 readOnly: true,
-                decoration: InputDecoration(labelText: 'Civil Status'),
+                decoration: _inputDecoration('Civil Status'),
               ),
+              const SizedBox(height: 10),
+              const Text('Social Media',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 5),
               TextFormField(
                 controller: socialMediaController,
                 readOnly: true,
-                decoration: InputDecoration(labelText: 'Social Media'),
+                decoration: _inputDecoration('Social Media'),
               ),
-              SizedBox(height: 16),
+              SizedBox(height: 10),
+              const Text('Type of ID',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 5),
               DropdownButtonFormField<String>(
                 value: selectedAdopterIDType,
-                decoration: InputDecoration(labelText: 'Type of ID'),
+                decoration: _inputDecoration('Select Type of ID'),
                 items: idTypes.map((String idType) {
                   return DropdownMenuItem<String>(
                     value: idType,
@@ -542,6 +658,7 @@ class _AdoptionFormState extends State<AdoptionForm> {
                   return null;
                 },
               ),
+              const SizedBox(height: 10),
               _buildAdopterValidIDPreview()
             ],
           ),
@@ -559,58 +676,76 @@ class _AdoptionFormState extends State<AdoptionForm> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [BoxShadow(color: Colors.grey.shade300, blurRadius: 8)],
         ),
+        padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.all(12.0),
+              Align(
+                alignment: Alignment.centerLeft,
                 child: Text(
                   "SECOND CONTACT PERSON INFORMATION",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                child: TextFormField(
-                  controller: _altFNameController,
-                  decoration: InputDecoration(labelText: 'First Name'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a first name';
-                    }
-                    return null;
-                  },
-                ),
+              SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('First Name',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 5),
+                      TextFormField(
+                        controller: _altFNameController,
+                        decoration: _inputDecoration('First Name'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a first name';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  )),
+                  const SizedBox(width: 10),
+                  Expanded(
+                      child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Last Name',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 5),
+                      TextFormField(
+                        controller: _altLNameController,
+                        decoration: _inputDecoration('Last Name'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a last name';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  )),
+                ],
               ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                child: TextFormField(
-                  controller: _altLNameController,
-                  decoration: InputDecoration(labelText: 'Last Name'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a last name';
-                    }
-                    return null;
-                  },
-                ),
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                child: TextFormField(
-                  controller: _relationshipController,
-                  decoration:
-                      InputDecoration(labelText: 'Relationship to the Adopter'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter the relationship';
-                    }
-                    return null;
-                  },
-                ),
+              const SizedBox(height: 10),
+              const Text('Relationship to the Adopter',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 5),
+              TextFormField(
+                controller: _relationshipController,
+                decoration:
+                    _inputDecoration('Enter your relationship to the Adopter'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter type of relationship';
+                  }
+                  return null;
+                },
               ),
               Padding(
                 padding:
@@ -863,7 +998,7 @@ class _AdoptionFormState extends State<AdoptionForm> {
           children: [
             Text('Review All Information:'),
             // Display all information entered by the user
-            Text('Adopter Name: ${adopterNameController.text}'),
+            Text('Adopter Name: ${adopterFNameController.text}'),
             Text('Contact Number: ${contactNumberController.text}'),
             Text('Relationship: ${_relationshipController.text}'),
 
@@ -878,7 +1013,13 @@ class _AdoptionFormState extends State<AdoptionForm> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Adoption Form'),
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
+        title: Text('Adoption Form',
+            style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
       ),
       body: Form(
         key: _formKey,
@@ -894,18 +1035,45 @@ class _AdoptionFormState extends State<AdoptionForm> {
                 children: [
                   // Back Button (disabled if at step 0)
                   if (_currentStep > 0)
-                    ElevatedButton(
-                      onPressed: _previousStep,
-                      child: const Text('Back'),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _previousStep,
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 55),
+                          backgroundColor: Colors.grey[200],
+                          foregroundColor: Colors.black, // sets text/icon color
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Back'),
+                      ),
                     )
                   else
-                    const SizedBox(width: 100), // Placeholder to balance layout
+                    const Expanded(
+                      child: SizedBox(
+                          height: 55), // Placeholder to keep layout balanced
+                    ),
+
+                  const SizedBox(width: 16), // Space between buttons
 
                   // Next or Submit Button
-                  ElevatedButton(
-                    onPressed: _nextStep,
-                    child: Text(
-                      _currentStep == _formSteps.length - 1 ? 'Submit' : 'Next',
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _nextStep,
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 55),
+                        backgroundColor: Colors.lightBlue,
+                        foregroundColor: Colors.white, // sets text/icon color
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        _currentStep == _formSteps.length - 1
+                            ? 'Submit'
+                            : 'Next',
+                      ),
                     ),
                   ),
                 ],

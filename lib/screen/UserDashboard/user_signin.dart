@@ -171,7 +171,7 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                             fillColor: Colors.grey[100],
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
                         const Text('Password',
                             style: TextStyle(fontWeight: FontWeight.bold)),
                         const SizedBox(height: 8),
@@ -230,11 +230,10 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                             ? const Center(child: CircularProgressIndicator())
                             : ElevatedButton(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF0288D1),
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 15),
+                                  backgroundColor: Colors.lightBlue,
+                                  minimumSize: Size(150, 50),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(30),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
                                 onPressed: _login,
@@ -243,24 +242,23 @@ class _UserSignInScreenState extends State<UserSignInScreen> {
                                   style: TextStyle(color: Colors.white),
                                 ),
                               ),
+                        const SizedBox(height: 5),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const UserSignUpScreen()),
+                            );
+                          },
+                          child: const Text(
+                            "Don't have an account? Sign up",
+                            style: TextStyle(color: Color(0xFF0288D1)),
+                          ),
+                        ),
                       ],
                     ),
                   ),
-
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const UserSignUpScreen()),
-                      );
-                    },
-                    child: const Text(
-                      "Don't have an account? Sign up",
-                      style: TextStyle(color: Color(0xFF0288D1)),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
                 ],
               ),
             ),

@@ -90,7 +90,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     if (fullName.isEmpty) fullName = 'Unknown User';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F9FF), // Light blue background
+ backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

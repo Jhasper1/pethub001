@@ -94,45 +94,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 243, 243, 243),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/images/logo.png',
-              height: 40,
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'PetHub',
-              style: GoogleFonts.poppins(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-          ],
-        ),
-        centerTitle: false,
-        backgroundColor: Colors.white,
-        elevation: 1,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search, color: Colors.black),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.notifications, color: Colors.black),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => AdopterNotificationScreen()),
-              );
-            },
-          )
-        ],
-      ),
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       bottomNavigationBar: UserBottomNavBar(
         adopterId: widget.adopterId,
         currentIndex: 0,
@@ -148,6 +110,37 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Image.asset(
+                                    'assets/images/logo.png',
+                                    height: 40,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    'PetHub',
+                                    style: GoogleFonts.poppins(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.lightBlue),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  IconButton(
+                                      icon: const Icon(Icons.notifications),
+                                      onPressed: () {}),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                         _buildWelcomeBanner(),
                         const SizedBox(height: 10),
                         Flexible(
@@ -408,6 +401,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             );
           },
           child: Card(
+            color: Colors.white,
             margin: const EdgeInsets.all(8),
             child: Padding(
               padding: const EdgeInsets.all(12),

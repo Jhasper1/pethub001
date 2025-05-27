@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'adopted_pet_list_screen.dart';
 import 'user_profile_screen.dart';
 import 'user_home_screen.dart';
-import 'adopted_pets_screen.dart';
 
 class UserBottomNavBar extends StatelessWidget {
   final int adopterId; // Default value for applicationId
@@ -19,6 +18,7 @@ class UserBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
+      backgroundColor: Colors.white,
       type: BottomNavigationBarType.fixed,
       selectedItemColor: Colors.blueAccent,
       unselectedItemColor: Colors.grey,

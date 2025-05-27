@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'user_signin.dart';
@@ -111,8 +113,13 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
     );
   }
 
-  Widget _buildInputField(TextEditingController controller, String label,
-      {TextInputType? keyboardType, bool obscureText = false}) {
+  Widget _buildInputField(
+    TextEditingController controller,
+    String label, {
+    TextInputType? keyboardType,
+    bool obscureText = false,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextFormField(
@@ -127,13 +134,14 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
         ),
         keyboardType: keyboardType,
         obscureText: obscureText,
+        inputFormatters: inputFormatters,
         onChanged: (_) => setState(() {}),
       ),
     );
   }
 
-  Widget _buildDropdownField(
-      String label, String? value, List<String> items, Function(String?) onChanged) {
+  Widget _buildDropdownField(String label, String? value, List<String> items,
+      Function(String?) onChanged) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: DropdownButtonFormField<String>(
@@ -149,9 +157,9 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
         onChanged: onChanged,
         items: items
             .map((item) => DropdownMenuItem(
-          value: item,
-          child: Text(item),
-        ))
+                  value: item,
+                  child: Text(item),
+                ))
             .toList(),
       ),
     );
@@ -160,19 +168,62 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
   Widget _buildPageOne() {
     return SingleChildScrollView(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildInputField(firstNameController, "First Name"),
-          _buildInputField(lastNameController, "Last Name"),
-          _buildInputField(ageController, "Age", keyboardType: TextInputType.number),
-          _buildDropdownField(
-            "Sex",
-            selectedSex,
-            ["Male", "Female"],
-                (newValue) => setState(() => selectedSex = newValue),
+          SizedBox(
+            height: 10,
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInputField(
+                  firstNameController,
+                  "First Name",
+                ),
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: _buildInputField(
+                  lastNameController,
+                  "Last Name",
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInputField(
+                  ageController,
+                  "Age",
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(2),
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                ),
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: _buildDropdownField(
+                  "Sex",
+                  selectedSex,
+                  ["Male", "Female"],
+                  (newValue) => setState(() => selectedSex = newValue),
+                ),
+              )
+            ],
           ),
           _buildInputField(addressController, "Address"),
-          _buildInputField(contactNumberController, "Contact Number",
-              keyboardType: TextInputType.phone),
+          _buildInputField(
+            contactNumberController,
+            "Contact Number",
+            keyboardType: TextInputType.phone,
+            inputFormatters: [
+              LengthLimitingTextInputFormatter(11),
+              FilteringTextInputFormatter.digitsOnly,
+            ],
+          ),
           _buildInputField(emailController, "Email",
               keyboardType: TextInputType.emailAddress),
           _buildInputField(occupationController, "Occupation"),
@@ -180,10 +231,10 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
             "Civil Status",
             selectedCivilStatus,
             ["Single", "Married", "Divorced", "Widowed"],
-                (newValue) => setState(() => selectedCivilStatus = newValue),
+            (newValue) => setState(() => selectedCivilStatus = newValue),
           ),
           _buildInputField(socialMediaController, "Social Media"),
-          SizedBox(height: 20),
+          SizedBox(height: 10),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               minimumSize: Size(double.infinity, 50),
@@ -199,7 +250,8 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
               );
               setState(() => currentPage = 1);
             },
-            child: Text("Next", style: TextStyle(color: Colors.white, fontSize: 16)),
+            child: Text("Next",
+                style: TextStyle(color: Colors.white, fontSize: 16)),
           ),
         ],
       ),
@@ -214,7 +266,8 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
             child: Column(
               children: [
                 _buildInputField(usernameController, "Username"),
-                _buildInputField(passwordController, "Password", obscureText: true),
+                _buildInputField(passwordController, "Password",
+                    obscureText: true),
                 SizedBox(height: 20),
               ],
             ),
@@ -247,21 +300,23 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 15),
-                    backgroundColor: isButtonEnabled() ? Colors.blue : Colors.grey,
+                    backgroundColor:
+                        isButtonEnabled() ? Colors.blue : Colors.grey,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: isButtonEnabled() && !isLoading ? registerUser : null,
+                  onPressed:
+                      isButtonEnabled() && !isLoading ? registerUser : null,
                   child: isLoading
                       ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
                       : Text("Sign Up", style: TextStyle(color: Colors.white)),
                 ),
               ),
@@ -275,92 +330,92 @@ class _UserSignUpScreenState extends State<UserSignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue.shade50,
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.blue),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          "Create Account",
-          style: TextStyle(
-            color: Colors.blue,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: Center(
-          child: Container(
-            margin: const EdgeInsets.all(20),
-            padding: const EdgeInsets.all(25),
-            constraints: BoxConstraints(
-              maxWidth: 500,
-              maxHeight: MediaQuery.of(context).size.height * 0.8,
+          backgroundColor: Colors.lightBlue,
+          title: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              "Create Account",
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
             ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                  offset: Offset(0, 5),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildPageIndicator(),
-                SizedBox(height: 20),
-                Form(
-                  key: _formKey,
-                  child: Expanded(
-                    child: PageView(
-                      controller: _pageController,
-                      physics: NeverScrollableScrollPhysics(),
-                      onPageChanged: (page) => setState(() => currentPage = page),
-                      children: [
-                        _buildPageOne(),
-                        _buildPageTwo(),
-                      ],
+          )),
+      body: SingleChildScrollView(
+        child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Container(
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(25),
+              constraints: BoxConstraints(
+                maxWidth: 500,
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildPageIndicator(),
+                  SizedBox(height: 20),
+                  Form(
+                    key: _formKey,
+                    child: Expanded(
+                      child: PageView(
+                        controller: _pageController,
+                        physics: NeverScrollableScrollPhysics(),
+                        onPageChanged: (page) =>
+                            setState(() => currentPage = page),
+                        children: [
+                          _buildPageOne(),
+                          _buildPageTwo(),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 10),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (_) => UserSignInScreen()),
-                    );
-                  },
-                  child: RichText(
-                    text: TextSpan(
-                      text: "Already have an account? ",
-                      style: TextStyle(color: Colors.grey),
-                      children: [
-                        TextSpan(
-                          text: "Sign In",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
+                  SizedBox(height: 10),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => UserSignInScreen()),
+                      );
+                    },
+                    child: RichText(
+                      text: TextSpan(
+                        text: "Already have an account? ",
+                        style: TextStyle(color: Colors.grey),
+                        children: [
+                          TextSpan(
+                            text: "Sign In",
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          
         ),
       ),
     );
+    
   }
 }
