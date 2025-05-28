@@ -155,9 +155,51 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                               ),
                               Row(
                                 children: [
-                                  IconButton(
-                                      icon: const Icon(Icons.notifications),
-                                      onPressed: () {}),
+                                  Stack(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.notifications),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  AdopterNotificationScreen(),
+                                            ),
+                                          ).then((_) {
+                                            // Refresh unread count when returning from notifications
+                                            _fetchUnreadCount();
+                                          });
+                                        },
+                                      ),
+                                      if (_unreadCount > 0)
+                                        Positioned(
+                                          right: 8,
+                                          top: 8,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(2),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red,
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            constraints: const BoxConstraints(
+                                              minWidth: 18,
+                                              minHeight: 18,
+                                            ),
+                                            child: Text(
+                                              '$_unreadCount',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ],

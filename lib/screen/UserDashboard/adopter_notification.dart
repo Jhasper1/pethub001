@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'user_home_screen.dart';
 import 'adopted_pet_list_screen.dart';
+import 'user_bottom_nav_bar.dart';
 
 class AdopterNotificationScreen extends StatefulWidget {
   const AdopterNotificationScreen({super.key});
@@ -445,19 +446,6 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          tooltip: 'Back to Home',
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const UserHomeScreen(
-                    adopterId: 0), // Pass correct adopterId if available
-              ),
-            );
-          },
-        ),
         title: const Text('Notifications'),
         actions: [
           IconButton(
@@ -522,6 +510,12 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
                         return buildNotificationCard(notifications[index]);
                       },
                     ),
+      bottomNavigationBar: UserBottomNavBar(
+        adopterId: _adopterId ?? 0,
+        currentIndex:
+            0, // Set to 0, 1, or 2 depending on which tab you want highlighted
+        applicationId: 0,
+      ),
     );
   }
 }
