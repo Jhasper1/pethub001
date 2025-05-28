@@ -373,7 +373,7 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
               onPressed: updateAdopterInfo,
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
-                backgroundColor: Colors.blueAccent,
+                backgroundColor: Colors.lightBlue,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

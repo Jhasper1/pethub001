@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -139,9 +140,16 @@ class _AdoptedPetListScreenState extends State<AdoptedPetListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Adopted Pets'),
-        automaticallyImplyLeading: false, // This removes the back button
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
+        title: Text('Adopted Pets',
+            style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
       ),
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       body: Column(
         children: [
           // New white category selector

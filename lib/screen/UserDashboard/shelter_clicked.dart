@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pet_clicked.dart';
@@ -437,7 +438,16 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Shelter Details")),
+      appBar: AppBar(
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
+        title: Text('Shelter Details',
+            style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
+      ),
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(

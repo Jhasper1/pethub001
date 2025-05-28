@@ -100,7 +100,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               height: 200,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.blue.shade700, Colors.blue.shade400],
+                  colors: [Colors.lightBlue, Colors.blue.shade400],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -198,7 +198,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade700,
+                    backgroundColor: Colors.lightBlue,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -236,7 +236,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 width: double.infinity,
                 child: OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.blue.shade700),
+                    side: BorderSide(color: Colors.lightBlue),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
