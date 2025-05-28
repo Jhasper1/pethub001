@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:march24/screen/UserDashboard/pet_details_screen.dart';
+import 'package:march24/screen/UserDashboard/user_home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApplicationDetailsScreen extends StatefulWidget {
@@ -82,8 +83,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
             'pet_size': pet['pet_size'] ?? 'No Available Data',
             'pet_descriptions': pet['pet_descriptions'] ?? 'No Available Data',
             'pet_image1': decodeBase64Image(petMedia['pet_image1']),
-            'pet_vaccine':
-                decodeBase64Image(petMedia['pet_vaccine']),
+            'pet_vaccine': decodeBase64Image(petMedia['pet_vaccine']),
           };
 
           // Extract adopter data
@@ -373,15 +373,13 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-         backgroundColor: const Color.fromARGB(255, 239, 250, 255),
+      backgroundColor: const Color(0xFFE2F3FD),
       appBar: AppBar(
-        backgroundColor: Colors.lightBlue,
-        centerTitle: false,
-        title: Text('Application Details',
-            style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white)),
+        title: const Text('Application Details'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:typed_data';
-
 import 'user_bottom_nav_bar.dart';
 import 'adopted_pets_screen.dart';
 
@@ -140,16 +138,9 @@ class _AdoptedPetListScreenState extends State<AdoptedPetListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.lightBlue,
-        centerTitle: false,
-        title: Text('Adopted Pets',
-            style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white)),
+        title: const Text('Adopted Pets'),
+        automaticallyImplyLeading: false, // This removes the back button
       ),
       body: Column(
         children: [
@@ -279,6 +270,18 @@ class _AdoptedPetListScreenState extends State<AdoptedPetListScreen> {
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 8, vertical: 4),
+                                        // decoration: BoxDecoration(
+                                        //   color: getStatusColor(status),
+                                        //   borderRadius: BorderRadius.circular(12),
+                                        // ),
+                                        // child: Text(
+                                        //   getStatusDisplayText(status),
+                                        //   style: const TextStyle(
+                                        //     color: Colors.white,
+                                        //     fontSize: 12,
+                                        //     fontWeight: FontWeight.bold,
+                                        //   ),
+                                        // ),
                                       ),
                                     ),
                                   ],
