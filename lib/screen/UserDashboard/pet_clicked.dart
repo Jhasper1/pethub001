@@ -73,7 +73,6 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
           petData!['petmedia']['pet_vaccine'] = base64Decode(base64String);
         }
 
-        print("Extracted petData: $petData");
 
         setState(() {
           isLoading = false;
@@ -438,7 +437,7 @@ class _UserPetDetailsScreenState extends State<UserPetDetailsScreen> {
                 fontWeight: FontWeight.bold,
                 color: Colors.white)),
       ),
-      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
+
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : hasError || petData == null
