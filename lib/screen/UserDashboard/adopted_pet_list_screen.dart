@@ -66,9 +66,6 @@ class _AdoptedPetListScreenState extends State<AdoptedPetListScreen> {
         setState(() {
           isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to fetch adopted pets')),
-        );
       }
     } catch (e) {
       setState(() {
