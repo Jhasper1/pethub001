@@ -114,7 +114,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       filled: true,
       fillColor: Colors.grey[200],
-      // contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
     );
   }
 
@@ -365,7 +364,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       children: [
                         const Text('Shelter Name',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                             const SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         TextFormField(
                           initialValue: shelterInfo!['shelter_name'],
                           decoration: _inputDecoration('Enter shelter name'),
@@ -375,7 +374,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         const SizedBox(height: 10),
                         const Text('Address',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                             const SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         TextFormField(
                           initialValue: shelterInfo!['shelter_address'],
                           decoration: _inputDecoration('Enter address'),
@@ -385,7 +384,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         const SizedBox(height: 10),
                         const Text('Landmark (Google Maps Link)',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                             const SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         TextFormField(
                           initialValue: shelterInfo!['shelter_landmark'],
                           decoration:
@@ -396,7 +395,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         const SizedBox(height: 10),
                         const Text('Contact Number',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                             const SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         TextFormField(
                           initialValue: shelterInfo!['shelter_contact'],
                           decoration: _inputDecoration('Enter contact number'),
@@ -406,7 +405,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         const SizedBox(height: 10),
                         const Text('Email',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                             const SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         TextFormField(
                           initialValue: shelterInfo!['shelter_email'],
                           decoration: _inputDecoration('Enter email'),
@@ -416,7 +415,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         const SizedBox(height: 10),
                         const Text('Social Media',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                             const SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         TextFormField(
                           initialValue: shelterInfo!['shelter_social'],
                           decoration:
@@ -427,7 +426,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         const SizedBox(height: 10),
                         const Text('Owner Name',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                             const SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         TextFormField(
                           initialValue: shelterInfo!['shelter_owner'],
                           decoration: _inputDecoration(
@@ -439,7 +438,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         const SizedBox(height: 10),
                         const Text('Description',
                             style: TextStyle(fontWeight: FontWeight.bold)),
-                             const SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         TextFormField(
                           initialValue: shelterInfo!['shelter_description'],
                           decoration: _inputDecoration('Enter description'),

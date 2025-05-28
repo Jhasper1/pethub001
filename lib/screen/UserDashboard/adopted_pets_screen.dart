@@ -373,29 +373,12 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
+      backgroundColor: const Color(0xFFE2F3FD),
       appBar: AppBar(
-        backgroundColor: Colors.lightBlue,
-        centerTitle: false,
+        title: const Text('Application Details'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          tooltip: 'Back',
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => UserHomeScreen(adopterId: widget.adopterId),
-              ),
-            );
-          },
-        ),
-        title: Text(
-          'Application Details',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: isLoading

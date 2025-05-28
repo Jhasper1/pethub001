@@ -106,6 +106,16 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.lightBlue,
+        centerTitle: false,
+        title: Text('Available Pets',
+            style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.white)),
+      ),
+      backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       body: Column(
         children: [
           // --- TOP FILTERS ---
@@ -113,32 +123,8 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
             padding: const EdgeInsets.all(16.0),
             child: Column(
               children: [
-                // Title
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Image.asset(
-                          'assets/images/logo.png',
-                          height: 40,
-                        ),
-                        const SizedBox(width: 10),
-                        Text(
-                          'Pet Library',
-                          style: GoogleFonts.poppins(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.lightBlue),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                // Search Bar
                 SizedBox(
-                  height: 35,
+                  height: 40,
                   child: TextField(
                     controller: searchController,
                     onChanged: (value) {
@@ -149,6 +135,8 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
                       prefixIcon: const Icon(Icons.search, size: 20),
                       contentPadding: const EdgeInsets.symmetric(vertical: 10),
                       border: const OutlineInputBorder(),
+                      filled: true,
+                      fillColor: Colors.white,
                     ),
                   ),
                 ),
@@ -158,7 +146,7 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
                   children: [
                     Expanded(
                       child: SizedBox(
-                        height: 35,
+                        height: 40,
                         child: DropdownButtonFormField<String>(
                           value: selectedSex,
                           items: ['All', 'Male', 'Female']
@@ -180,6 +168,8 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 8),
                             border: const OutlineInputBorder(),
+                             filled: true,
+                          fillColor: Colors.white,
                           ),
                         ),
                       ),
@@ -187,7 +177,7 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
                     const SizedBox(width: 5),
                     Expanded(
                       child: SizedBox(
-                        height: 35,
+                        height: 40,
                         child: DropdownButtonFormField<String>(
                           value: selectedPetType,
                           items: ['All', 'Dog', 'Cat']
@@ -209,6 +199,8 @@ class _ViewAllPetsScreenState extends State<ViewAllPetsScreen> {
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 8),
                             border: const OutlineInputBorder(),
+                             filled: true,
+                          fillColor: Colors.white,
                           ),
                         ),
                       ),

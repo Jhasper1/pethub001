@@ -188,6 +188,7 @@ class _UserEditProfileScreenState extends State<UserEditProfileScreen> {
     }
 
     return Scaffold(
+       backgroundColor: const Color.fromARGB(255, 239, 250, 255),
       appBar: AppBar(
         backgroundColor: Colors.lightBlue,
         centerTitle: false,
