@@ -12,8 +12,6 @@ import 'view_all_shelter.dart';
 import 'pet_clicked.dart';
 import 'adopter_notification.dart';
 
-int _unreadCount = 0;
-
 class UserHomeScreen extends StatefulWidget {
   final int adopterId;
 
@@ -28,40 +26,38 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
   List<Map<String, dynamic>> shelters = [];
   bool isLoading = true;
   String errorMessage = '';
+  int _unreadCount = 0; // Only this is needed
 
   @override
   void initState() {
     super.initState();
     fetchPetsAndShelters();
-    _checkForUnseenNotifications();
+    _fetchUnreadCount();
   }
 
-  Future<void> _checkForUnseenNotifications() async {
+  Future<void> _fetchUnreadCount() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
     final adopterId = widget.adopterId;
-
     if (token == null || adopterId == null) return;
 
     try {
       final response = await http.get(
-        Uri.parse('http://127.0.0.1:5566/api/adopter/$adopterId/notifications'),
+        Uri.parse(
+            'http://127.0.0.1:5566/api/adopter/$adopterId/notifications/unread_count'),
         headers: {
           "Authorization": "Bearer $token",
           "Content-Type": "application/json",
         },
-      ).timeout(const Duration(seconds: 5));
-
+      );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data['notifications'] is List && data['notifications'].isNotEmpty) {
-          setState(() {
-            _hasUnseenNotifications = true;
-          });
-        }
+        setState(() {
+          _unreadCount = data['unread_count'] ?? 0;
+        });
       }
     } catch (e) {
-      debugPrint('Error checking notifications: $e');
+      debugPrint('Error fetching unread count: $e');
     }
   }
 
@@ -82,9 +78,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         "Authorization": "Bearer $token",
       });
 
-      print("Pet API Response: ${petResponse.body}");
-      print("Shelter API Response: ${shelterResponse.body}");
-
       if (petResponse.statusCode == 200 && shelterResponse.statusCode == 200) {
         final petData = jsonDecode(petResponse.body);
         final shelterData =
@@ -103,9 +96,6 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
               .toList();
 
           shelters = approvedShelters.take(5).toList();
-
-          print("Filtered Pets: $pets");
-          print("Filtered Shelters: $shelters");
 
           isLoading = false;
         });
@@ -158,34 +148,40 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.notifications, color: Colors.white),
-                onPressed: () {
-                  // Mark notifications as seen when clicked
-                  setState(() {
-                    _hasUnseenNotifications = false;
-                  });
-                  Navigator.push(
+                icon: const Icon(Icons.notifications, color: Colors.black),
+                onPressed: () async {
+                  // Go to notifications screen and refresh badge after
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (_) => AdopterNotificationScreen()),
-                  ).then((_) {
-                    // Check for new notifications when returning from notification screen
-                    _checkForUnseenNotifications();
-                  });
+                  );
+                  _fetchUnreadCount(); // Always refresh after returning
                 },
               ),
-              if (_hasUnseenNotifications)
+              if (_unreadCount > 0)
                 Positioned(
                   top: 8,
                   right: 8,
                   child: Container(
-                    width: 12,
-                    height: 12,
+                    padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       color: Colors.orange,
-                      borderRadius: BorderRadius.circular(6),
-                      border:
-                          Border.all(color: Colors.blue.shade700, width: 1.5),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.white, width: 1.5),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 16,
+                      minHeight: 16,
+                    ),
+                    child: Text(
+                      '$_unreadCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),

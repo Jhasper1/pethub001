@@ -58,6 +58,36 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
     }
   }
 
+  Future<void> deleteAllNotifications() async {
+    if (_authToken == null || _adopterId == null) return;
+
+    final url = Uri.parse(
+        'http://127.0.0.1:5566/api/adopter/$_adopterId/notifications/remove_all');
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          'Authorization': 'Bearer $_authToken',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        await fetchNotifications();
+        await updateUnreadCount();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('All notifications deleted.')),
+        );
+      } else {
+        debugPrint(
+            'Failed to delete all notifications: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Error deleting all notifications: $e');
+    }
+  }
+
   Future<void> fetchNotifications() async {
     if (_authToken == null || _adopterId == null) {
       setState(() {
@@ -123,8 +153,6 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final notif = data['notification'];
         setState(() {
           notifications = notifications.map((n) {
             if (n['id'] == notificationId) {
@@ -159,18 +187,8 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
       );
 
       if (response.statusCode == 200) {
-        setState(() {
-          notifications = notifications.map((notif) {
-            if (notif['id'] == notificationId) {
-              return {...notif, 'is_read': markRead};
-            }
-            return notif;
-          }).toList();
-        });
-
-        await updateUnreadCount();
         await fetchNotifications();
-
+        await updateUnreadCount();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -188,37 +206,6 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
       }
     } catch (e) {
       debugPrint('Error marking as ${markRead ? 'read' : 'unread'}: $e');
-    }
-  }
-
-  Future<void> deleteNotification(int notificationId) async {
-    if (_authToken == null) return;
-
-    final url = Uri.parse(
-        'http://127.0.0.1:5566/api/adopter/notifications/$notificationId/remove');
-
-    try {
-      final response = await http.delete(
-        url,
-        headers: {
-          'Authorization': 'Bearer $_authToken',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          notifications.removeWhere((notif) => notif['id'] == notificationId);
-        });
-        await updateUnreadCount();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Notification deleted.')),
-        );
-      } else {
-        debugPrint('Failed to delete notification: ${response.statusCode}');
-      }
-    } catch (e) {
-      debugPrint('Error deleting notification: $e');
     }
   }
 
@@ -258,8 +245,8 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
         title: const Text('Notification Options'),
         content: Text(
           isRead
-              ? 'Would you like to mark this notification as unread, delete it, or view all your adopted pets?'
-              : 'Would you like to delete this notification or view all your adopted pets?',
+              ? 'Would you like to mark this notification as unread or view all your adopted pets?'
+              : 'Would you like to view all your adopted pets?',
         ),
         actions: [
           TextButton(
@@ -274,13 +261,6 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
               },
               child: const Text('Mark as Unread'),
             ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              await deleteNotification(notificationId);
-            },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-          ),
           TextButton(
             onPressed: _adopterId != null
                 ? () {
@@ -318,20 +298,43 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
     }
   }
 
-  Color getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'approved':
-        return Colors.green;
-      case 'rejected':
-        return Colors.red;
-      case 'completed':
-        return Colors.blue;
-      case 'interviewing':
-        return Colors.purple;
-      case 'pending':
-      default:
-        return Colors.orange;
+  // Color mapping based on status and category (manual mapping for *_reject)
+  Color getNotificationColor(String status, String category) {
+    status = status.toLowerCase();
+    category = category.toLowerCase();
+
+    // Any rejected status: red (covers application_reject, interview_reject, approved_reject)
+    if (status == 'rejected') {
+      return Colors.red;
     }
+
+    // Approved: green
+    if (status == 'approved' && category == 'approved') {
+      return Colors.green;
+    }
+
+    // Completed: green
+    if (status == 'completed' && category == 'completed') {
+      return Colors.green;
+    }
+
+    // In progress (pending, in queue): orange
+    if (status == 'pending' || status == 'in queue') {
+      return Colors.orange;
+    }
+
+    // Interview scheduled (application): green
+    if (status == 'interview' && category == 'application') {
+      return Colors.green;
+    }
+
+    // Interview scheduled (interview): orange
+    if (status == 'interview' && category == 'interview') {
+      return Colors.orange;
+    }
+
+    // Default
+    return Colors.orange;
   }
 
   String formatFriendlyDate(String isoDate) {
@@ -356,6 +359,7 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
 
   Widget buildNotificationCard(Map<String, dynamic> notif) {
     final status = notif['status'] ?? '';
+    final category = notif['category'] ?? '';
     final dateLabel = formatFriendlyDate(notif['created_at'] ?? '');
     final isRead = notif['is_read'] == true;
 
@@ -369,7 +373,7 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
         leading: Stack(
           children: [
             Icon(Icons.notifications_active,
-                color: getStatusColor(status), size: 28),
+                color: getNotificationColor(status, category), size: 28),
             if (!isRead)
               Positioned(
                 right: 0,
@@ -407,14 +411,15 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: getStatusColor(status).withOpacity(0.15),
+                    color: getNotificationColor(status, category)
+                        .withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     status.toUpperCase(),
                     style: TextStyle(
                       fontSize: 11,
-                      color: getStatusColor(status),
+                      color: getNotificationColor(status, category),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -440,31 +445,76 @@ class _AdopterNotificationScreenState extends State<AdopterNotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Notifications"),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          tooltip: 'Back to Home',
           onPressed: () {
-            if (_adopterId != null) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => UserHomeScreen(adopterId: _adopterId!),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Adopter ID not found.')),
-              );
-            }
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const UserHomeScreen(
+                    adopterId: 0), // Pass correct adopterId if available
+              ),
+            );
           },
         ),
+        title: const Text('Notifications'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            tooltip: 'Delete All Notifications',
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Delete All Notifications'),
+                  content: const Text(
+                      'Are you sure you want to delete all notifications? This cannot be undone.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text('Delete All',
+                          style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm == true) {
+                await deleteAllNotifications();
+              }
+            },
+          ),
+          if (unreadCount > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 16, top: 12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$unreadCount',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : errorMessage != null
               ? Center(child: Text(errorMessage!))
               : notifications.isEmpty
-                  ? const Center(child: Text("No notifications found."))
+                  ? const Center(child: Text('No notifications found.'))
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),
                       itemCount: notifications.length,
