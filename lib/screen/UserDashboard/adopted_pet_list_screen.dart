@@ -243,8 +243,14 @@ class _AdoptedPetListScreenState extends State<AdoptedPetListScreen> {
                                     ListTile(
                                       leading: petAvatar,
                                       title: Text(pet['pet_name'] ?? 'Unknown'),
-                                      subtitle: Text(
-                                          'Shelter: ${pet['shelter_name'] ?? 'Unknown'}'),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                              'Shelter: ${pet['shelter_name'] ?? 'Unknown'}'),
+                                        ],
+                                      ),
                                       onTap: () {
                                         int applicationId =
                                             pet['application_id'] ?? 0;

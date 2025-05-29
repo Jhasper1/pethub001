@@ -711,7 +711,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
           children: [
             applicationData?['status'] == "pending" ||
                     applicationData?['status'] == "interview" ||
-                    applicationData?['status'] == "passed"
+                    applicationData?['status'] == "approved"
                 ? Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -755,7 +755,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                   )
                 : const SizedBox.shrink(),
             applicationData?['status'] == 'interview' ||
-                    applicationData?['status'] == 'passed'
+                    applicationData?['status'] == 'approved'
                 ? Expanded(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
@@ -883,14 +883,15 @@ class InterviewRejectHelper {
                           lastDate: DateTime(2100),
                         );
                         if (pickedDate != null) {
-                          String formattedDate =
-                              DateFormat('MMMM d, yyyy').format(pickedDate);
+                          String formattedDate = DateFormat('yyyy-MM-dd')
+                              .format(pickedDate); // ✅ CORRECT
                           dateController.text = formattedDate;
+
                           setState(() {});
                         }
                       },
                       decoration: InputDecoration(
-                        labelText: "Date (e.g. January 24, 2025)",
+                        labelText: "Date",
                         border: OutlineInputBorder(),
                       ),
                     ),
@@ -911,18 +912,14 @@ class InterviewRejectHelper {
                           },
                         );
                         if (pickedTime != null) {
-                          final hour = pickedTime.hourOfPeriod == 0
-                              ? 12
-                              : pickedTime.hourOfPeriod;
-                          final period =
-                              pickedTime.period == DayPeriod.am ? 'AM' : 'PM';
                           timeController.text =
-                              "${hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}:00 $period";
+                              "${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}:00"; // ✅ CORRECT
+
                           setState(() {});
                         }
                       },
                       decoration: InputDecoration(
-                        labelText: "Time (HH:MM:SS AM/PM)",
+                        labelText: "Time",
                         border: OutlineInputBorder(),
                       ),
                     ),
