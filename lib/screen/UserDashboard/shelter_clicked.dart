@@ -6,6 +6,20 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pet_clicked.dart';
 
+class ShelterDonationInfo {
+  final String qrImage;
+  final String accountNumber;
+
+  ShelterDonationInfo({required this.qrImage, required this.accountNumber});
+
+  factory ShelterDonationInfo.fromJson(Map<String, dynamic> json) {
+    return ShelterDonationInfo(
+      qrImage: json['qr_image'] ?? '',
+      accountNumber: json['account_number'] ?? '',
+    );
+  }
+}
+
 class ShelterDetailsScreen extends StatefulWidget {
   final int shelterId;
   final int adopterId; // Default value, can be changed later
@@ -27,6 +41,34 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
   void initState() {
     super.initState();
     fetchShelterData();
+  }
+
+  Future<ShelterDonationInfo?> fetchDonationInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    final url = Uri.parse(
+        'http://127.0.0.1:5566/adopter/viewdonations/${widget.shelterId}');
+
+    try {
+      final response = await http.get(url, headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      });
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded['data'] != null) {
+          return ShelterDonationInfo.fromJson(decoded['data']);
+        }
+      } else if (response.statusCode == 404) {
+        // Handle not found case
+        return null;
+      }
+      return null;
+    } catch (e) {
+      print("Error fetching donation info: $e");
+      return null;
+    }
   }
 
   Future<void> fetchShelterData() async {
@@ -435,6 +477,46 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
     );
   }
 
+  void _showDonationDialog(BuildContext context) async {
+    final donationInfo = await fetchDonationInfo();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Donation Information'),
+          content: donationInfo == null
+              ? const Text('No donation information available for this shelter')
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (donationInfo.qrImage.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        child: Image.memory(
+                          base64Decode(donationInfo.qrImage),
+                          height: 200,
+                          width: 200,
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Account Number: ${donationInfo.accountNumber}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -448,82 +530,96 @@ class _ShelterDetailsScreenState extends State<ShelterDetailsScreen> {
                 color: Colors.white)),
       ),
       backgroundColor: const Color.fromARGB(255, 239, 250, 255),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildShelterInfo(),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+      body: Stack(
+        children: [
+          isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedTab = 'pets';
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: selectedTab == 'pets'
-                                ? Colors.blue
-                                : Colors.grey[300],
-                            foregroundColor: selectedTab == 'pets'
-                                ? Colors.white
-                                : Colors.black,
+                      _buildShelterInfo(),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  selectedTab = 'pets';
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: selectedTab == 'pets'
+                                    ? Colors.blue
+                                    : Colors.grey[300],
+                                foregroundColor: selectedTab == 'pets'
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+                              child: const Text("Pets"),
+                            ),
                           ),
-                          child: const Text("Pets"),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedTab = 'policy';
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: selectedTab == 'policy'
-                                ? Colors.blue
-                                : Colors.grey[300],
-                            foregroundColor: selectedTab == 'policy'
-                                ? Colors.white
-                                : Colors.black,
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  selectedTab = 'policy';
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: selectedTab == 'policy'
+                                    ? Colors.blue
+                                    : Colors.grey[300],
+                                foregroundColor: selectedTab == 'policy'
+                                    ? Colors.white
+                                    : Colors.black,
+                              ),
+                              child: const Text("Adoption Policy"),
+                            ),
                           ),
-                          child: const Text("Adoption Policy"),
-                        ),
+                        ],
                       ),
+                      const SizedBox(height: 16),
+                      if (selectedTab == 'pets') ...[
+                        const Text(
+                          "Available Pets",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildPetList(),
+                      ] else ...[
+                        const Text(
+                          "Adoption Policy",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          shelter?['adoption_policy'] ??
+                              "No policy provided by the shelter.",
+                          style: const TextStyle(fontSize: 15),
+                        ),
+                      ],
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  if (selectedTab == 'pets') ...[
-                    const Text(
-                      "Available Pets",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildPetList(),
-                  ] else ...[
-                    const Text(
-                      "Adoption Policy",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      shelter?['adoption_policy'] ??
-                          "No policy provided by the shelter.",
-                      style: const TextStyle(fontSize: 15),
-                    ),
-                  ],
-                ],
-              ),
+                ),
+          Positioned(
+            left: 20,
+            bottom: 20,
+            child: FloatingActionButton(
+              onPressed: () => _showDonationDialog(context),
+              backgroundColor: Colors.blue,
+              child: const Icon(Icons.credit_card, color: Colors.white),
+              shape: const CircleBorder(),
             ),
+          ),
+        ],
+      ),
     );
   }
 }
